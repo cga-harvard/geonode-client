@@ -78,6 +78,7 @@ GeoExplorer.Viewer = Ext.extend(GeoExplorer, {
         var source = GeoExplorer.superclass.addLayerSource.apply(this, arguments);
     },
 
+    
     /**
      * api: method[createTools]
      * Create the various parts that compose the layout.
@@ -108,4 +109,15 @@ GeoExplorer.Viewer = Ext.extend(GeoExplorer, {
 
         return tools;
     }
+    
+
+    
 });
+
+
+
+
+
+
+
+

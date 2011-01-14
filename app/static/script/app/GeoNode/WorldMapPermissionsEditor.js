@@ -1,5 +1,5 @@
 Ext.namespace("GeoNode");
-GeoNode.PermissionsEditor = Ext.extend(Ext.util.Observable, {
+GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
     constructor: function(config) {
         Ext.apply(this, config);
         this.initPermissionStore();
@@ -19,24 +19,12 @@ GeoNode.PermissionsEditor = Ext.extend(Ext.util.Observable, {
     },
 
     buildUserChooser: function() {
-        var userStore = new Ext.data.Store({
-            proxy: new Ext.data.HttpProxy({ url: this.userLookup }),
-            reader: new Ext.data.JsonReader({
-                root: 'users',
-                totalProperty: 'count',
-                fields: [{name: 'username'}]
-            })
-        });
 
-        var chooser = new Ext.form.ComboBox({ 
-            width: 120,
-            typeAhead: true,
-            minChars: 2,
-            align: 'right',
-            border: false,
-            store: userStore,
-            displayField: 'username',
-            emptyText: gettext("Type a username")
+
+        var chooser = new Ext.form.TextField({ 
+            width: 150,
+            vtype: 'email',
+            emptyText: gettext("Type an email")
         });
 
         return new Ext.Panel({
@@ -44,18 +32,13 @@ GeoNode.PermissionsEditor = Ext.extend(Ext.util.Observable, {
             layout: 'hbox',
             items: [
                 new Ext.Button({
-                    iconCls: 'icon-addlayers',
+                    iconCls: 'icon-add',
                     handler: function() {
-                        var idx = chooser.getStore().findExact(
-                            "username",
-                            chooser.getValue()
-                        );
-                        if (idx >= 0
-                            && chooser.getValue() != this.permissions.owner_email
+                        if (chooser.getValue() != this.permissions.email && chooser.isValid() && chooser.getValue() != ''
                             && !this.userset[chooser.getValue()]
                         ) {
                             this.addUser({
-                                username: chooser.getValue(),
+                                email: chooser.getValue(),
                                 role: this.permissions.authenticated
                             });
                         }
@@ -69,6 +52,7 @@ GeoNode.PermissionsEditor = Ext.extend(Ext.util.Observable, {
         }); 
     },
 
+
     buildGroupPermissionCombo: function(group, permission) {
         return new Ext.Panel({
             border: false,
@@ -76,9 +60,10 @@ GeoNode.PermissionsEditor = Ext.extend(Ext.util.Observable, {
             items: [
                 {html: group.displayname, flex: 1, border: false},
                 new Ext.form.ComboBox({ 
-                    width: 120,
+                    width: 100,
                     align: 'right',
                     border: false,
+                    cls: 'x-span-font-eight',
                     store: this.permissionStore,
                     value: permission,
                     displayField: "displayname",
@@ -114,7 +99,7 @@ GeoNode.PermissionsEditor = Ext.extend(Ext.util.Observable, {
                     iconCls: 'icon-removelayers',
                     handler: function() {
                         var params = {};
-                        params['user.' + user.username] = "";
+                        params['user.' + user.email] = "";
                         Ext.Ajax.request({
                             params: params,
                             url: this.submitTo,
@@ -125,11 +110,12 @@ GeoNode.PermissionsEditor = Ext.extend(Ext.util.Observable, {
                     },
                     scope: this
                 }),
-                { flex: 1, html: user.username, border: false },
+                { flex: 1, html: '<span class="x-span-font-eight">' + user.email + '</span>', border: false },
                 new Ext.form.ComboBox({ 
-                    width: 120,
+                    width: 100,
                     align: 'right',
                     border: false,
+                    cls: 'x-span-font-eight',
                     store: this.permissionStore,
                     displayField: "displayname",
                     valueField: "identifier",
@@ -140,7 +126,7 @@ GeoNode.PermissionsEditor = Ext.extend(Ext.util.Observable, {
                     listeners: {
                         select: function(cb, rec, index) {
                             var params = {};
-                            params["user." + user.username] = rec.get("identifier");
+                            params["user." + user.email] = rec.get("identifier");
                             Ext.Ajax.request({
                                 params: params,
                                 url: this.submitTo
@@ -162,9 +148,9 @@ GeoNode.PermissionsEditor = Ext.extend(Ext.util.Observable, {
         });
 
         for (var i = 0; i < this.permissions.users.length; i++) {
-            if (this.permissions.users[i][0] != this.permissions.owner) {
+            if (this.permissions.users[i][0] != this.permissions.owner_email) {
                 this.addUser({
-                    username: this.permissions.users[i][0],
+                    email: this.permissions.users[i][0],
                     role: this.permissions.users[i][1]
                 });
             }

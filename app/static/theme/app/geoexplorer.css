@@ -1,3 +1,9 @@
+.olLayerGoogleCopyright
+{
+	display:none;	
+}
+
+
 /* don't wrap lines on any tooltips */
 .x-tip {
     white-space: nowrap;
@@ -6,6 +12,18 @@
 /* get images on buttons with text to line up with those with no text */
 .x-btn-text-icon .x-btn-center .x-btn-text {
     background-position: 0 3px;
+}
+
+.x-btn-text {
+	font-size: 8pt;
+	text-decoration: underline;
+	color: #18469C;	
+}
+
+.x-btn-text button {
+	font-size: 8pt;
+	text-decoration: underline;
+	color: #18469C;	
 }
 
 /* apply some margin when using the row expander */
@@ -19,6 +37,7 @@
     background-color: #EAEAEA;
 }
 
+
 .x-tree-node-leaf  .gx-tree-layer-icon {
     background-image: url(img/geosilk/vector.png);
 }
@@ -28,25 +47,34 @@
 }
 
 .x-menu-group-item .x-menu-item-icon {
-    background: transparent url(../../externals/ext/resources/images/default/form/radio.gif) no-repeat 0 0;
+    background: transparent url(http://extjs.cachefly.net/ext-2.2.1/resources/images/default/form/radio.gif) no-repeat 0 0;
     height: 13px;
     width: 13px;
     margin: 2px;
 }
 
 .x-menu-item-checked .x-menu-group-item .x-menu-item-icon {
-    background: transparent url(../../externals/ext/resources/images/default/form/radio.gif) no-repeat -13px -13px;
+    background: transparent url(http://extjs.cachefly.net/ext-2.2.1/resources/images/default/form/radio.gif) no-repeat -13px -13px;
     height: 13px;
     width: 13px;
     margin: 2px;
+}
+
+.x-span-font-eight {
+	font-size: 8pt;	
 }
 
 .x-btn .icon-geoexplorer {
     background-image: url(img/geoexplorer.png);
 }
 
+.x-btn .icon-add {
+    background-image: url(img/silk/add.png);	
+}
+
+
 .x-btn .icon-addlayers {
-    background-image: url(img/silk/add.png);
+    background-image: url(img/silk/layers.png);
 }
 
 .x-btn .icon-removelayers, .x-menu-item .icon-removelayers {
@@ -63,6 +91,14 @@
 
 .x-btn .icon-getfeatureinfo {
     background-image: url(img/silk/information.png);
+}
+
+.x-btn .icon-picasa {
+    background-image: url(img/worldmap/picasa.png);
+}
+
+.x-btn .icon-youtube {
+    background-image: url(img/worldmap/youtube.gif);
 }
 
 .x-btn .icon-3D {
@@ -106,6 +142,14 @@
 .x-btn .icon-pdf {
     background-image: url(img/silk/page_white_acrobat.png);
 }
+
+.x-btn-link-medium {
+	text-decoration:underline;
+	float:right;
+	text-align:right;
+}
+
+
 
 div.report { 
     background-color: white;
@@ -181,8 +225,20 @@ background-color:white;
     background-image: url(img/geosilk/pan.png);
 }
 
+
+
+.x-form-field-inline {
+	display:inline;
+	padding:0 0 30px 0;
+	margin:0px;
+}
+
 .legend-item {
     margin: 0.5em 10px;
+}
+
+.transparent-panel {
+	background:transparent;
 }
 
 div.map-overlay {
@@ -190,26 +246,53 @@ div.map-overlay {
     position: absolute; 
     right: 10px; 
     bottom: 10px;
+    background:transparent;
 }
 
 div.map-overlay div.overlay-element {
     display:inline;
     float: left;
     margin: 5px;
+    background:transparent;
+}
+
+
+cga-logo-overlay {
+    z-index: 10000; 
+    position: absolute; 
+    left: 100px; 
+    bottom: 10px;
+    width:151px;
+    height:39px;
+    background: transparent;  
+}
+
+.more-overlay-element {
+    float: left;
+    z-index: 1000; 
+    position: absolute; 
+    right: 50px; 
+    top: 10px;  
+    height:25px;
+    width:50px;
+    background: #FFF;
+    text-decoration: none;
+    border: 1px solid #000;
+}
+
+.more-overlay-element .x-btn-small td {background-image: none; text-decoration:none;}
+.more-overlay-element .x-btn-small td button {text-decoration:none;}
+
+div.cga-link {
+	margin:3px;
+	font-size:8pt;
+	clear: both;	
 }
 
 div.overlay-scaleline {
     bottom: 0px;
     left: 0px;
     margin-top: 0px;
-}
-
-.olControlAttribution{ 
-    color: gray;
-    bottom: .5em;
-    left: .4em;
-    right: 220px;
-    font-size: smaller;
 }
 
 .olControlScaleLineTop,
@@ -220,7 +303,7 @@ div.overlay-scaleline {
 /* Pan- and Zoom- Panel Styles*/
 
 .olControlPanPanel div {
-    background-image:url(../../externals/ext/resources/images/gray/panel/tool-sprites.gif);
+    background-image:url(http://extjs.cachefly.net/ext-2.2.1/resources/images/gray/panel/tool-sprites.gif);
     height:15px;
     width:15px;
     /* workaround for button height in IE */
@@ -252,7 +335,7 @@ div.overlay-scaleline {
 }
 
 .olControlZoomPanel div {
-    background-image:url(../../externals/ext/resources/images/gray/panel/tool-sprites.gif);
+    background-image:url(http://extjs.cachefly.net/ext-2.2.1/resources/images/gray/panel/tool-sprites.gif);
     height:15px;
     width:15px;
     /* workaround for button height in IE */
@@ -352,4 +435,25 @@ div.overlay-scaleline {
 
 #more-info{ 
 float:right;
+}
+
+.featureDetailList {
+}
+.featureDetailList li {
+margin:4px 5px;
+min-height:16px;
+position:relative;
+}
+* html .featureDetailList li {
+height:16px;
+}
+.featureDetailList li label {
+font-weight:bold;
+left:0;
+position:absolute;
+top:0;
+width:150px;
+}
+.featureDetailList li span {
+margin-left:160px;
 }
