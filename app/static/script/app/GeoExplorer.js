@@ -492,7 +492,31 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
       		(mapRoot.findChild("text", category)).expand();
       	}
       },
-    
+
+
+      registerEvents: function(layer) {
+
+        var geoEx = this;
+        layer.events.register("loadstart", layer, function() {
+            if (!geoEx.busyMask)
+            {
+              geoEx.busyMask = new Ext.LoadMask(
+                    geoEx.mapPanel.map.div, {
+                        msg: 'Searching...'
+              });
+            }
+            geoEx.busyMask.show();
+        });
+
+
+        layer.events.register("loadend", layer, function() {
+            if (geoEx.busyMask)
+            {
+                geoEx.busyMask.hide();
+            }
+        });
+    },
+
 	onMapClick:function(e) {
 		var pixel = new OpenLayers.Pixel(e.xy.x, e.xy.y);
 		var lonlat = this.mapPanel.map.getLonLatFromPixel(pixel);
@@ -647,7 +671,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             }
         });
     },
-    
+
 
     
     addInfo : function() {
@@ -655,7 +679,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                return x.get("queryable");
            });
            var geoEx = this;
-           
+
+
 
            queryableLayers.each(function(x){           	
            	var dl = x.getLayer();
@@ -684,6 +709,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 }
                
            }, this);
+
        },    
 	
     initMapPanel: function() {
@@ -742,7 +768,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             } 
         });
         
- 		
+
         
     },
     
@@ -1236,7 +1262,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         this.on("ready", function(){
             if (!this.fromLayer && !this.mapID) {
                 //this.showCapabilitiesGrid();
-            	this.showMetadataForm();
+            	//this.showMetadataForm();
             }
         }, this);
 

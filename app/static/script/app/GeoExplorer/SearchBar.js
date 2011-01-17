@@ -7,7 +7,7 @@ Ext.namespace("gxp");
 gxp.SearchBar =  function(target) {
     
 		this.target = target;
-		
+
 		var getQueryableLayers = function() {
 			    return target.mapPanel.layers.queryBy(function(x){
                 return x.get("queryable");
@@ -29,11 +29,27 @@ gxp.SearchBar =  function(target) {
         var searchTB = new Ext.form.TextField({
 			id:'search-tb',
 			width:150,
-			emptyText:'Enter search...'
+			emptyText:'Enter search...',
+            handleMouseEvents: true,
+            enableKeyEvents: true,
+            listeners: {
+                render: function(el)
+                {
+                    el.getEl().on('keypress', function(e)
+                    {
+                        var charpress = e.keyCode;
+                        if (charpress == 13)
+                        {
+                            performSearch();
+                        }
+                    }
+                );
+                }
+            }
 		});
         
         var psHandler = function() {
-        	performSearch.call();
+        	performSearch();
         	};
         
         var searchBtn = new Ext.Button({
@@ -82,15 +98,18 @@ gxp.SearchBar =  function(target) {
             	}
     		
             //show searching modal
+            /*
             if (!target.busyMask) {
+                alert('make busyMask')
                 target.busyMask = new Ext.LoadMask(
                     target.mapPanel.map.div, {
                         msg: 'Searching...'
                     }
                 );
             }
+
             target.busyMask.show();
-    		
+    		*/
             try{
             //Get rid of any existing highlight layers
             removeHighlightLayers();
@@ -167,8 +186,9 @@ gxp.SearchBar =  function(target) {
             						{'layers': dl.params.LAYERS,'format':'image/png', SLD_BODY: sld, TRANSPARENT: 'true'},
             						{'isBaseLayer': false,'displayInLayerSwitcher' : false}
                     		);
+
+                            target.registerEvents(wmsHighlight);
                     		layers.push(wmsHighlight);
-        					
             				}
             		}
             });
@@ -177,9 +197,7 @@ gxp.SearchBar =  function(target) {
             } catch (e) {
             	//Suppress for now
             } finally {
-        		if (target.busyMask) {
-        			target.busyMask.hide();
-        		}
+
             }
             
 
