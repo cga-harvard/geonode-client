@@ -1578,6 +1578,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 initialSourceId = id;
             }
            if (source.store) {
+                source.setDefaultSort('title', 'asc');
                 data.push([id, this.layerSources[id].title || id]);                
             }
         }
@@ -1751,6 +1752,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 select: function(combo, record, index) {
                     var source = this.layerSources[record.get("id")];
                     var store = source.store;
+                    store.setDefaultSort('title', 'asc');
                     store.filterBy(function(r) {
                         return !!source.getProjection(r);
                     }, this);
@@ -2946,8 +2948,8 @@ listeners: {
             bodyStyle: {padding: "5px"},          
             labelAlign: "top",
             preventBodyReset: true,
-            autoScroll:true,
-            autoHeight:true,
+            autoScroll:false,
+            height:400,
             html: this.about['introtext']
         });
 
@@ -2959,8 +2961,8 @@ listeners: {
             closeAction: 'hide',
             items: this.infoTextPanel,
             modal: true,
-            width: 600,
-            height:500,
+            width: 500,
+            height:400,
             autoScroll: true
         });        
     },
