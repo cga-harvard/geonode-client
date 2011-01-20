@@ -1578,7 +1578,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 initialSourceId = id;
             }
            if (source.store) {
-                source.setDefaultSort('title', 'asc');
                 data.push([id, this.layerSources[id].title || id]);                
             }
         }

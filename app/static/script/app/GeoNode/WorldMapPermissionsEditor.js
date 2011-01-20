@@ -163,12 +163,16 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
             border: false,
             items: [
                 this.buildGroupPermissionCombo(
-                    {displayname: gettext('Anyone'), identifier: 'anonymous'},
-                    this.permissions.anonymous
+                    {displayname: gettext('Harvard Users'), identifier: 'harvard'},
+                    this.permissions.harvard
                 ),
                 this.buildGroupPermissionCombo(
                     {displayname: gettext('Authenticated Users'), identifier: 'authenticated'},
                     this.permissions.authenticated
+                ),
+                this.buildGroupPermissionCombo(
+                    {displayname: gettext('Anyone'), identifier: 'anonymous'},
+                    this.permissions.anonymous
                 ),
                 {html: '<hr/>', border: false},
                 this.userPanel,
