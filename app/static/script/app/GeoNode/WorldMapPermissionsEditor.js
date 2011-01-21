@@ -163,8 +163,8 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
             border: false,
             items: [
                 this.buildGroupPermissionCombo(
-                    {displayname: gettext('Harvard Users'), identifier: 'harvard'},
-                    this.permissions.harvard
+                    {displayname: this.customGroup, identifier: 'customgroup'},
+                    this.permissions.customgroup
                 ),
                 this.buildGroupPermissionCombo(
                     {displayname: gettext('Authenticated Users'), identifier: 'authenticated'},
