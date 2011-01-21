@@ -2637,6 +2637,8 @@ listeners: {
             items: [{
                 xtype: "gx_linkembedmapdialog",
                 linkUrl: this.rest + (this.about["urlsuffix"] ? this.about["urlsuffix"]: this.mapID),
+                linkMessage: '<span style="font-size:large;">Paste link in email or IM:</span>',
+                publishMessage: '<span style="font-size:large;">Paste HTML to embed in website:</span>',
                 url: this.rest + (this.about["urlsuffix"] ? this.about["urlsuffix"]: this.mapID) + "/embed" 
             }]
         }).show();
