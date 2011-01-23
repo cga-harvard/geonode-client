@@ -1230,7 +1230,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             })
         });
         
-		this.gxSearchBar = new gxp.SearchBar(this);
+		this.gxSearchBar = new GeoExplorer.SearchBar(this);
 		var searchPanel = new Ext.Panel({
 			anchor: "100% 5%",
 			items: [this.gxSearchBar]
@@ -1994,135 +1994,12 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var mapPanel = this.mapPanel;
         var busyMask = null;
         var geoEx = this;
+        
+        var picasaOverlay = new GeoExplorer.PicasaFeedOverlay(this);        
         var picasaRecord = null;  
-    	var createPicasaOverlay = function()
-    	{
-    		var keywords = geoEx.about["keywords"] ? geoEx.about["keywords"] : "of";
-            picasaConfig = {name: "Picasa", source: "0", group: "Overlays", buffer: "0", type: "OpenLayers.Layer.WFS",  
-            		args: ["Picasa Pictures", "/picasa/", 
-                           { 'kind': 'photo', 'max-results':'50', 'q' : keywords},
-                           {  format: OpenLayers.Format.GeoRSS, projection: "EPSG:4326", displayInLayerSwitcher: false, 
-                              formatOptions: {
-                                              createFeatureFromItem: function(item) {
-                                                                     var feature = OpenLayers.Format.GeoRSS.prototype
-                                                                                   .createFeatureFromItem.apply(this, arguments);
-                                                                                    feature.attributes.thumbnail = this.getElementsByTagNameNS(item, "http://search.yahoo.com/mrss/", "thumbnail")[0].getAttribute("url");
-                                                                                    feature.attributes.content = OpenLayers.Util.getXmlNodeValue(this.getElementsByTagNameNS(item, "*","summary")[0]);
-                                                                                    return feature;
-                                                                                    }
-                                             },
-                              styleMap: new OpenLayers.StyleMap({
-                                                                 "default": new OpenLayers.Style({externalGraphic: "${thumbnail}", pointRadius: 14}),
-                                                                 "select": new OpenLayers.Style({pointRadius: 20})
-                                                               })
-                      }]
-             };
-
-            
-            
-                                                                                                                       
-             feedSource = Ext.ComponentMgr.createPlugin(
-                          picasaConfig, "gx_olsource"
-             );
-             picasaRecord = feedSource.createLayerRecord(picasaConfig);
-             picasaRecord.group = picasaConfig.group;
-             
-             
-     		popupControl = new OpenLayers.Control.SelectFeature(picasaRecord.getLayer(), {
- 			   //hover:true,
- 			   clickout: true,
- 			   onSelect: function(feature) {
- 			      
- 			      var pos = feature.geometry;
- 			      popup = new OpenLayers.Popup("popup",
- 			                                         new OpenLayers.LonLat(pos.x, pos.y),
- 			                                         new OpenLayers.Size(160,160),
- 			                                         "<a target='_blank' href=" + 
- 			                                         $(feature.attributes.content).find("a").attr("href") +"><img title='" +
- 			                                         feature.attributes.title +"' src='" + feature.attributes.thumbnail +"' /></a>",
- 			                                         false);
- 			      popup.closeOnMove = true;
- 			      popup.keepInMap = true;
- 			      mapPanel.map.addPopup(popup);
- 	        },
- 	        
- 	        onUnselect: function(feature) {
- 	        	mapPanel.map.removePopup(popup);
- 	            popup = null;
- 	        }
- 	       }); 
-             
-    		mapPanel.map.addControl(popupControl);
-    	    popupControl.activate();
-             
-             return picasaRecord;
-    	};
-
-   	
-    	
-    	
+		var youtubeOverlay = new GeoExplorer.YouTubeFeedOverlay(this);
         var youtubeRecord = null;  
-    	var createYouTubeOverlay = function()
-    	{
-    		var keywords = geoEx.about["keywords"] ? geoEx.about["keywords"] : "of";
-            youtubeConfig = {name: "YouTube", source: "0", group: "Overlays", buffer: "0", type: "OpenLayers.Layer.WFS",  
-            		args: ["YouTube Videos", "/youtube/", 
-                           {  'max-results':'50', 'q' : 'africa', 'bbox' : mapPanel.map.getExtent().transform(mapPanel.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326")).toBBOX()},
-                           { format:OpenLayers.Format.GeoRSS, projection: "EPSG:4326", displayInLayerSwitcher: false, 
-                               formatOptions: {
-                                  createFeatureFromItem: function(item) {
-                                     var feature = OpenLayers.Format.GeoRSS.prototype
-                                             .createFeatureFromItem.apply(this, arguments);
-                                     feature.attributes.thumbnail = this.getElementsByTagNameNS(item, "http://search.yahoo.com/mrss/", "thumbnail")[4].getAttribute("url");
-                                     feature.attributes.content = OpenLayers.Util.getXmlNodeValue(this.getElementsByTagNameNS(item, "*","summary")[0]);
-                                     return feature;
-                                 }
-                               },
-                               styleMap: new OpenLayers.StyleMap({
-                                 "default": new OpenLayers.Style({externalGraphic: "${thumbnail}", pointRadius: 24}),
-                                 "select": new OpenLayers.Style({pointRadius: 30})
-                             })
-
-                      }]
-             };
-
-                                                                                                                       
-             feedSource = Ext.ComponentMgr.createPlugin(
-            		 youtubeConfig, "gx_olsource"
-             );
-             youtubeRecord = feedSource.createLayerRecord(youtubeConfig);
-             youtubeRecord.group = youtubeConfig.group;
-             
-      		popupControl = new OpenLayers.Control.SelectFeature(youtubeRecord.getLayer(), {
-  			   //hover:true,
-  			   clickout: true,
-  			   onSelect: function(feature) {
-  			      
-  			      var pos = feature.geometry;
-  			      popup = new OpenLayers.Popup("popup",
-                          new OpenLayers.LonLat(pos.x, pos.y),
-                          new OpenLayers.Size(240,180),
-                          "<a target='_blank' href=" + 
-                          feature.attributes.link +"><img height='180', width='240' title='" +
-                          feature.attributes.title +"' src='" + feature.attributes.thumbnail +"' /></a>",
-                          false);
-  			      popup.closeOnMove = true;
-  			      popup.keepInMap = true;
-  			      mapPanel.map.addPopup(popup);
-  	        },
-  	        
-  	        onUnselect: function(feature) {
-  	        	mapPanel.map.removePopup(popup);
-  	            popup = null;
-  	        }
-  	       }); 
-              
-     		mapPanel.map.addControl(popupControl);
-     	    popupControl.activate();             
-             
-             return youtubeRecord;
-    	};    	
-    	
+ 
     	
         var printButton = new Ext.Button({
             tooltip: this.printTipText,
@@ -2248,13 +2125,12 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             	 scope:this,
             	 checkHandler: function(menuItem, checked) {
             					if(checked) {
-            						if (picasaRecord !== null) {
-            							this.mapPanel.layers.remove(picasaRecord, true);
+            						if (picasaOverlay.picasaRecord !== null) {
+            							picasaOverlay.removeOverlay();
             						}
-									createPicasaOverlay();
-            						this.mapPanel.layers.insert(mapPanel.layers.data.items.length, [picasaRecord] );
+									picasaOverlay.createOverlay();
             					} else {
-            						this.mapPanel.layers.remove(picasaRecord, true);
+            						picasaOverlay.removeOverlay();
             			            //picasaRecord.getLayer().setVisibility(false);
             					}
             			}   	
@@ -2262,36 +2138,22 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         
         
         var youtubeMenuItem = {
-        	text: 'YouTube',
-        	scope: this,
-        	checkHandler: function(menuItem, checked) {
-        					if(checked) {
-        						if (youtubeRecord !== null) {
-        								this.mapPanel.layers.remove(youtubeRecord, true);
-        						}
-        						else { 
-        							createYouTubeOverlay();
-        							mapPanel.layers.insert(mapPanel.layers.data.items.length, [youtubeRecord] );
-        						}
-        					} else {
-        			            this.mapPanel.layers.remove(youtubeRecord, true);
-        					}
-        			}   	
+            	 text: 'YouTube',
+            	 scope:this,
+            	 checkHandler: function(menuItem, checked) {
+            					if(checked) {
+            						if (youtubeOverlay.youtubeRecord !== null) {
+            							youtubeOverlay.removeOverlay();
+            						}
+									youtubeOverlay.createOverlay();
+            					} else {
+            						youtubeOverlay.removeOverlay();
+            			            //youtubeRecord.getLayer().setVisibility(false);
+            					}
+            			}   	
         };
-        
-        var googleEarthMenuItem = {
-            text: 'Google Earth',
-            scope: this,
-            checkHandler: function(menuItem, checked) {
-                if (checked) {
-                    this.mapPanelContainer.getLayout().setActiveItem(1);
-                } else {
-                    this.mapPanelContainer.getLayout().setActiveItem(0);
-                }
-            }
-        };        
-        
-        
+       
+                
        var moreButton = new Ext.Button({
        	text: 'More...',
         cls: "more-overlay-element",

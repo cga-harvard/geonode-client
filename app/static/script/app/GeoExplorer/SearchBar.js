@@ -1,10 +1,11 @@
 
-Ext.namespace("gxp");
+Ext.namespace("GeoExplorer");
 
 /** api: constructor
- *  .. class:: SearchBar(target)
+ *  Create a tool to search all searchable layers (layers with searchable columns) for user-specified text.
+ *  target: GeoExplorer instance
  */   
-gxp.SearchBar =  function(target) {
+GeoExplorer.SearchBar =  function(target) {
     
 		this.target = target;
 
@@ -159,7 +160,7 @@ gxp.SearchBar =  function(target) {
             			for (i = 0; i < queryFields.length; i++)
             				{
             					if (queryFields[i] != "")
-            						featureQuery = featureQuery + '<ogc:PropertyIsLike wildCard="*" singleChar="." escapeChar="!"><ogc:PropertyName>' + queryFields[i] + '</ogc:PropertyName><ogc:Literal>*' + searchTerm + '*</ogc:Literal></ogc:PropertyIsLike>';
+            						featureQuery = featureQuery + '<ogc:PropertyIsLike wildCard="*" singleChar="." escapeChar="!"><ogc:PropertyName>' + queryFields[i] + '</ogc:PropertyName><ogc:Literal>' + searchTerm + '*</ogc:Literal></ogc:PropertyIsLike>';
             				}
             			if (queryFields.length > 1)
             				{
