@@ -402,7 +402,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         if (!config.map) {
             config.map = {};
         }
-        config.map.numZoomLevels = config.map.numZoomLevels || 22;
+        config.map.numZoomLevels = 22;
 
         GeoExplorer.superclass.constructor.apply(this, arguments);
 
@@ -2499,8 +2499,8 @@ listeners: {
             items: [{
                 xtype: "gx_linkembedmapdialog",
                 linkUrl: this.rest + (this.about["urlsuffix"] ? this.about["urlsuffix"]: this.mapID),
-                linkMessage: '<span style="font-size:large;">Paste link in email or IM:</span>',
-                publishMessage: '<span style="font-size:large;">Paste HTML to embed in website:</span>',
+                linkMessage: '<span style="font-size:10pt;">Paste link in email or IM:</span>',
+                publishMessage: '<span style="font-size:10pt;">Paste HTML to embed in website:</span>',
                 url: this.rest + (this.about["urlsuffix"] ? this.about["urlsuffix"]: this.mapID) + "/embed" 
             }]
         }).show();

@@ -162,17 +162,17 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
             renderTo: this.renderTo,
             border: false,
             items: [
-                this.buildGroupPermissionCombo(
-                    {displayname: this.customGroup, identifier: 'customgroup'},
-                    this.permissions.customgroup
+				this.buildGroupPermissionCombo(
+                    {displayname: gettext('Anyone'), identifier: 'anonymous'},
+                    this.permissions.anonymous
                 ),
                 this.buildGroupPermissionCombo(
                     {displayname: gettext('Authenticated Users'), identifier: 'authenticated'},
                     this.permissions.authenticated
                 ),
                 this.buildGroupPermissionCombo(
-                    {displayname: gettext('Anyone'), identifier: 'anonymous'},
-                    this.permissions.anonymous
+                    {displayname: this.customGroup, identifier: 'customgroup'},
+                    this.permissions.customgroup
                 ),
                 {html: '<hr/>', border: false},
                 this.userPanel,
