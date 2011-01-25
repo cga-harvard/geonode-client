@@ -2183,21 +2183,15 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 		        autoLoad: false
 		      });		
 
-       var jumpBar = new Ext.Toolbar({
+       var jumpBar = new Ext.form.ComboBox({
     	   id: 'jumpbar',
-    	   items: [
-	{
-	   xtype:'label',
-	   html:'<div style="color:#653117">&nbsp; Jump To:  &nbsp;</div>'
-	},{
-	   xtype:'combo',
-	   store: jumpstore,
+		store: jumpstore,
 displayField: 'displayFieldName',   // what the user sees in the popup
 valueField: 'dataFieldName',        // what is passed to the 'change' event
 typeAhead: true,
 forceSelection: true,
 fieldLabel: 'ComboBox',
-emptyText:'Select a Web Site...',
+emptyText:'Jump to...',
 mode: 'local',
 triggerAction: 'all',
 selectOnFocus: true,
@@ -2236,7 +2230,7 @@ listeners: {
    } else {}
    
  }
-} }   	           ]
+}
 });
 
        
@@ -2353,9 +2347,8 @@ listeners: {
             "-",
             publishAction,
             "-",
-            window.printCapabilities ? printButton : "",
+            window.printCapabilities ? (printButton, "-", infoButton) : infoButton,
             "-",
-            infoButton,
             jumpBar,
             '->',
             shareMapButton,"-",
