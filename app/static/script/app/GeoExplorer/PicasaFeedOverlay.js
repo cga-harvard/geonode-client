@@ -10,6 +10,8 @@ GeoExplorer.PicasaFeedOverlay = function(target){
 		this.picasaRecord = null;
 			
 		this.popupControl = null;
+
+        this.popup = null;
 		
 		this.createOverlay = function() {
 			var keywords = target.about["keywords"] ? target.about["keywords"] : "of";
@@ -49,21 +51,21 @@ GeoExplorer.PicasaFeedOverlay = function(target){
  			   onSelect: function(feature) {
  			      
  			      var pos = feature.geometry;
- 			      popup = new OpenLayers.Popup("popup",
+ 			      this.popup = new OpenLayers.Popup("popup",
  			                                         new OpenLayers.LonLat(pos.x, pos.y),
  			                                         new OpenLayers.Size(160,160),
  			                                         "<a target='_blank' href=" + 
  			                                         $(feature.attributes.content).find("a").attr("href") +"><img title='" +
  			                                         feature.attributes.title +"' src='" + feature.attributes.thumbnail +"' /></a>",
  			                                         false);
- 			      popup.closeOnMove = true;
- 			      popup.keepInMap = true;
- 			      target.mapPanel.map.addPopup(popup);
+ 			      this.popup.closeOnMove = true;
+ 			      this.popup.keepInMap = true;
+ 			      target.mapPanel.map.addPopup(this.popup);
  	        },
  	        
  	        onUnselect: function(feature) {
- 	        	target.mapPanel.map.removePopup(popup);
- 	            popup = null;
+ 	        	target.mapPanel.map.removePopup(this.popup);
+ 	            this.popup = null;
  	        }
  	       }); 
              
