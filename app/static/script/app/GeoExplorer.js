@@ -25,11 +25,12 @@
 
 var dataLayers = [];
 
-var LayerData = function(iid, isearchFields, icount)
+var LayerData = function(iid, isearchFields, icount, ieditable)
 	{
 		this.id = iid;
 		this.searchFields = isearchFields;
 		this.count = icount;
+		this.editable = ieditable
 //		alert(this.id+":"+this.category+":"+this.count);
 		
 	};
@@ -179,7 +180,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     saveMapBtnText: "UT: Save",    
     saveMapAsText: "UT: Save Map As",
     saveNotAuthorizedMessage: "UT: You Must be logged in to save this map.",
-    shareLayerText: 'UT: Metadata',
+    shareLayerText: 'UT: Share Layer',
     shareMapText: 'UT: Share Map',
     smallSizeLabel: 'UT: Small',
     sourceLoadFailureMessage: 'UT: Error contacting server.\n Please check the url and try again.',
@@ -229,10 +230,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                 waitMsg: "Logging in...",
                                 success: function(form, action) {
                                     this.loginWin.close();
-                                    this.updateLogin();
+                                    this.propDlgCache = {};
+                                    this.stylesDlgCache = {};
                                     document.cookie = action.response.getResponseHeader("Set-Cookie");
                                     // resend the original request
-                                    Ext.Ajax.request(options);
+                                    //Ext.Ajax.request(options);
                                 },
                                 failure: function(form, action) {
                                     var username = form.items.get(0);
@@ -983,19 +985,43 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     if (layer.params.LAYERS.indexOf("geonode") === 0) {
                     	prop.items.get(0).items.get(0).add({html: "<a href='/data/" + layer.params.LAYERS + "'>" + this.shareLayerText + "</a>", xtype: "panel"});
                     }
-                    var stylesPanel = this.createStylesPanel({
-                        layerRecord: record
+
+                    var geoEx = this;
+
+                    Ext.Ajax.request({
+                    		url: "/data/" + layer.name + "/ajax_layer_edit_check/",
+                    		method: "POST",
+                    		params: {layername:layer.name},
+                    		success: function(result,request) {
+                                if (result.responseText == "True") {
+                                    var stylesPanel = geoEx.createStylesPanel({
+                                        layerRecord: record
+                                    });
+                                    stylesPanel.items.get(0).on({
+                                        "styleselected": function() {
+                                            this.modified |= 1;
+                                        },
+                                        "modified": function() {
+                                            this.modified |= 2;
+                                        },
+                                        scope: this
+                                    });
+                                    stylesPanel.setTitle("Styles");
+                                    // add styles tab
+                                    prop.items.get(0).add(stylesPanel)
+                                }
+                                prop.show();
+                            },
+                            failure: function (result,request){
+                                prop.show();
+                            }
                     });
-                    stylesPanel.items.get(0).on({
-                        "styleselected": function() {this.modified |= 1;},
-                        "modified": function() {this.modified |= 2;},
-                        scope: this
-                    });
-                    stylesPanel.setTitle("Styles");
-                    // add styles tab
-                    prop.items.get(0).add(stylesPanel)
-                }
-                prop.show();
+
+
+
+
+                } else prop.show();
+
             }
         };
 
@@ -1008,31 +1034,32 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 var node = layerTree.getSelectionModel().getSelectedNode();
                 this.propDlgCache[node.layer.id].items.get(0).setActiveTab(1);
             }, this),
-            scope: this,
-            listeners: {
-                "enable": function() {showStylesAction.enable()},
-                "disable": function() {showStylesAction.disable()}
-            }
-        });
-        
-        var showStylesAction = new Ext.Action({
-            text: this.layerStylesText,
-            iconCls: "icon-layerstyles",
-            disabled: true,
-            tooltip: this.layerStylesTipText,
-            handler: createPropertiesDialog.createSequence(function() {
-                var node = layerTree.getSelectionModel().getSelectedNode();
-                this.propDlgCache[node.layer.id].items.get(0).setActiveTab(2);
-            }, this),
             scope: this
+//            listeners: {
+//                "enable": function() {showStylesAction.enable()},
+//                "disable": function() {showStylesAction.disable()}
+//            }
         });
+
+
+//        var showStylesAction = new Ext.Action({
+//            text: this.layerStylesText,
+//            iconCls: "icon-layerstyles",
+//            disabled: true,
+//            tooltip: this.layerStylesTipText,
+//            handler: createPropertiesDialog.createSequence(function() {
+//                var node = layerTree.getSelectionModel().getSelectedNode();
+//                this.propDlgCache[node.layer.id].items.get(0).setActiveTab(2);
+//            }, this),
+//            scope: this
+//        });
 
         var updateLayerActions = function(sel, node) {
             if(node && node.layer) {
             	removeLayerAction.show();
             	zoomLayerAction.show();
             	showPropertiesAction.show();
-            	showStylesAction.show();
+//            	showStylesAction.show();
                 // allow removal if more than one non-vector layer
                 var count = this.mapPanel.layers.queryBy(function(r) {
                     return !(r.getLayer() instanceof OpenLayers.Layer.Vector);
@@ -1056,7 +1083,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             	
                 removeLayerAction.hide();
                 showPropertiesAction.hide();
-                showStylesAction.hide();
+//                showStylesAction.hide();
                 zoomLayerAction.hide();
                 if (node  && !node.parentNode.isRoot)
                 	{
@@ -1223,7 +1250,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 items: [ zoomLayerAction,
                     removeLayerAction,
                     showPropertiesAction,
-                    showStylesAction,
+                    //showStylesAction,
                     renameAction,
                     removeCategoryAction
             ]
@@ -1436,6 +1463,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 });
             }
             var modified = false;
+
+
             stylesDialog = this.stylesDlgCache[layer.id] =
                                             new gxp.WMSStylesDialog(Ext.apply({
                 style: "padding: 10px 10px 0 10px;",
@@ -1454,6 +1483,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     this.urlPortRegEx, "$1/").indexOf(
                     this.localGeoServerBaseUrl.replace(
                     this.urlPortRegEx, "$1/")) === 0,
+                hasPermission: true,
                 plugins: [{
                     ptype: "gx_geoserverstylewriter",
                     baseUrl: layerUrl.split(
@@ -1505,7 +1535,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                             });
                         }
                         stylesPanel.ownerCt instanceof Ext.Window ?
-                            stylesPanel.ownerCt.close() : 
+                            stylesPanel.ownerCt.close() :
                             createStylesDialog();
                     },
                     scope: this
@@ -1516,9 +1546,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 stylesPanel.doLayout();
             }
         }.bind(this);
-        
+
         var layerUrl = layer.url;
-        
+
         // remember the layer's current style
         var initialStyle = layer.params.STYLES;
 
@@ -2042,7 +2072,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                             }
                         },
                         printProvider: {
-                            capabilities: window.printCapabilities,
+                            capabilities: true,
                             listeners: {
                                 "beforeprint": function() {
                                     // The print module does not like array params.
@@ -2347,7 +2377,7 @@ listeners: {
             "-",
             publishAction,
             "-",
-            window.printCapabilities ? (printButton, "-", infoButton) : infoButton,
+            printButton, "-", infoButton,
             "-",
             jumpBar,
             '->',
