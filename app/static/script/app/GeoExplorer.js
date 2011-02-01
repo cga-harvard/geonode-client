@@ -25,12 +25,11 @@
 
 var dataLayers = [];
 
-var LayerData = function(iid, isearchFields, icount, ieditable)
+var LayerData = function(iid, isearchFields, icount)
 	{
 		this.id = iid;
 		this.searchFields = isearchFields;
 		this.count = icount;
-		this.editable = ieditable
 //		alert(this.id+":"+this.category+":"+this.count);
 		
 	};
@@ -265,81 +264,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     var url = options.url;
                     if (response.status == 401 && url.indexOf("http" != 0) &&
                                             url.indexOf(this.proxy) === -1) {
-                        var submit = function() {
-                            form.getForm().submit({
-                                waitMsg: "Logging in...",
-                                success: function(form, action) {
-                                    this.loginWin.close();
-                                    this.propDlgCache = {};
-                                    this.stylesDlgCache = {};
-                                    document.cookie = action.response.getResponseHeader("Set-Cookie");
-                                    // resend the original request
-                                    Ext.Ajax.request(options);
-                                },
-                                failure: function(form, action) {
-                                    var username = form.items.get(0);
-                                    var password = form.items.get(1);
-                                    username.markInvalid();
-                                    password.markInvalid();
-                                    username.focus(true);
-                                },
-                                scope: this
-                            });
-                        }.bind(this);
-                        this.loginWin = new Ext.Window({
-                            title: "WorldMap Login",
-                            modal: true,
-                            width: 230,
-                            autoHeight: true,
-                            layout: "fit",
-                            items: [{
-                                xtype: "form",
-                                autoHeight: true,
-                                labelWidth: 55,
-                                border: false,
-                                bodyStyle: "padding: 10px;",
-                                url: "/accounts/ajax_login",
-                                waitMsgTarget: true,
-                                errorReader: {
-                                    // teach ExtJS a bit of RESTfulness
-                                    read: function(response) {
-                                        return {
-                                            success: response.status == 200,
-                                            records: []
-                                        }
-                                    }
-                                },
-                                defaults: {
-                                    anchor: "100%"
-                                },
-                                items: [{
-                                    xtype: "textfield",
-                                    name: "username",
-                                    fieldLabel: "Username"
-                                }, {
-                                    xtype: "textfield",
-                                    name: "password",
-                                    fieldLabel: "Password",
-                                    inputType: "password"
-                                }, {
-                                    xtype: "hidden",
-                                    name: "csrfmiddlewaretoken",
-                                    value: this.csrfToken
-                                }, {
-                                    xtype: "button",
-                                    text: "Login",
-                                    inputType: "submit",
-                                    handler: submit
-                                }]
-                            }],
-                            keys: {
-                                "key": Ext.EventObject.ENTER,
-                                "fn": submit
-                            }
-                        });
-                        this.loginWin.show();
-                        var form = this.loginWin.items.get(0);
-                        form.items.get(0).focus(false, 100);
+                        this.showLoginWindow(options);
                     } else {
                         this.displayXHRTrouble(response);
                     }
@@ -667,7 +592,90 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         });
     },
 
+    showLoginWindow: function(options){
+        if (this.loginWin == null) {
 
+                   var submit = function() {
+                            form = this.loginWin.items.get(0);
+                            form.getForm().submit({
+                                waitMsg: "Logging in...",
+                                success: function(form, action) {
+                                    this.loginWin.close();
+                                    this.propDlgCache = {};
+                                    this.stylesDlgCache = {};
+                                    document.cookie = action.response.getResponseHeader("Set-Cookie");
+                                    if (options) {
+                                        // resend the original request
+                                        Ext.Ajax.request(options);
+                                    }
+                                },
+                                failure: function(form, action) {
+                                    var username = form.items.get(0);
+                                    var password = form.items.get(1);
+                                    username.markInvalid();
+                                    password.markInvalid();
+                                    username.focus(true);
+                                },
+                                scope: this
+                            });
+                        }.bind(this);
+
+                            this.loginWin = new Ext.Window({
+                            title: "WorldMap Login",
+                            modal: true,
+                            width: 230,
+                            autoHeight: true,
+                            layout: "fit",
+                            items: [{
+                                xtype: "form",
+                                autoHeight: true,
+                                labelWidth: 55,
+                                border: false,
+                                bodyStyle: "padding: 10px;",
+                                url: "/accounts/ajax_login",
+                                waitMsgTarget: true,
+                                errorReader: {
+                                    // teach ExtJS a bit of RESTfulness
+                                    read: function(response) {
+                                        return {
+                                            success: response.status == 200,
+                                            records: []
+                                        }
+                                    }
+                                },
+                                defaults: {
+                                    anchor: "100%"
+                                },
+                                items: [{
+                                    xtype: "textfield",
+                                    name: "username",
+                                    fieldLabel: "Username"
+                                }, {
+                                    xtype: "textfield",
+                                    name: "password",
+                                    fieldLabel: "Password",
+                                    inputType: "password"
+                                }, {
+                                    xtype: "hidden",
+                                    name: "csrfmiddlewaretoken",
+                                    value: this.csrfToken
+                                }, {
+                                    xtype: "button",
+                                    text: "Login",
+                                    inputType: "submit",
+                                    handler: submit
+                                }]
+                            }],
+                            keys: {
+                                "key": Ext.EventObject.ENTER,
+                                "fn": submit
+                            }
+                        });
+        }
+        var form = this.loginWin.items.get(0);
+        form.items.get(0).focus(false, 100);
+        this.loginWin.show();
+    },
     
     addInfo : function() {
            var queryableLayers = this.mapPanel.layers.queryBy(function(x){
@@ -1003,17 +1011,14 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                     // add styles tab
                                     prop.items.get(0).add(stylesPanel)
                                 }
-                                prop.show();
+
                             },
                             failure: function (result,request){
-                                prop.show();
+
                             }
                     });
-
-
-
-
-                } else prop.show();
+                }
+                prop.show();
 
             }
         };
@@ -2066,7 +2071,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                             }
                         },
                         printProvider: {
-                            capabilities: true,
+                            capabilities: window.printCapabilities,
                             listeners: {
                                 "beforeprint": function() {
                                     // The print module does not like array params.
@@ -2952,7 +2957,7 @@ listeners: {
                 }, 
                 failure: function(response, options)
                 {	if (response.status === 401)
-                		this.loginWin.show();
+                		this.showLoginWindow(options);
                 	else
                 		Ext.Msg.alert('Error', response.responseText);
                 }, 
@@ -2972,7 +2977,7 @@ listeners: {
                 }, 
                 failure: function(response, options)
                 {	if (response.status === 401)
-                		this.loginWin.show();
+                		this.showLoginWindow(options);
                 	else
                 		Ext.Msg.alert('Error', response.responseText);
                 },                
