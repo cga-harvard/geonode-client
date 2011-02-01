@@ -9,4 +9,4 @@
 	url = git@github.com:GeoNode/PrintPreview.git
 [submodule "app/static/externals/gxp"]
 	path = app/static/externals/gxp
-	url = git://github.com/cga-harvard/gxp.git
+	url = git@github.com:cga-harvard/gxp.git

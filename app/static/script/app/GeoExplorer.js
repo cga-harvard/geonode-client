@@ -223,92 +223,13 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
              */
             "beforeunload"
         );
+
+        // add old ptypes
+        Ext.preg("gx_wmssource", gxp.plugins.WMSSource);
+        Ext.preg("gx_olsource", gxp.plugins.OLSource);
+        Ext.preg("gx_googlesource", gxp.plugins.GoogleSource);
         
-        
-            var submitLogin = function() {
-                            loginForm.getForm().submit({
-                                waitMsg: "Logging in...",
-                                success: function(form, action) {
-                                    this.loginWin.close();
-                                    this.propDlgCache = {};
-                                    this.stylesDlgCache = {};
-                                    document.cookie = action.response.getResponseHeader("Set-Cookie");
-                                    // resend the original request
-                                    //Ext.Ajax.request(options);
-                                },
-                                failure: function(form, action) {
-                                    var username = form.items.get(0);
-                                    var password = form.items.get(1);
-                                    username.markInvalid();
-                                    password.markInvalid();
-                                    username.focus(true);
-                                },
-                                scope: this
-                            });
-                        }.bind(this);
-                        
-             this.loginWin = new Ext.Window({
-                            title: "WorldMap" +
-                            		" Login",
-                            modal: true,
-                            width: 230,
-                            autoHeight: true,
-                            closeAction: 'hide',
-                            layout: "fit",
-                            id: "wm_login_window",
-                            items: [{
-                                xtype: "form",
-                                autoHeight: true,
-                                labelWidth: 55,
-                                border: false,
-                                bodyStyle: "padding: 10px;",
-                                url: "/accounts/ajax_login",
-                                waitMsgTarget: true,
-                                errorReader: {
-                                    // teach ExtJS a bit of RESTfulness
-                                    read: function(response) {
-                                        return {
-                                            success: response.status == 200,
-                                            records: []
-                                        }
-                                    }
-                                },
-                                defaults: {
-                                    anchor: "100%"
-                                },
-                                items: [{
-                                    xtype: "textfield",
-                                    name: "username",
-                                    fieldLabel: "Username"
-                                }, {
-                                    xtype: "textfield",
-                                    name: "password",
-                                    fieldLabel: "Password",
-                                    inputType: "password"
-                                },
-                                {
-                                    xtype: "hidden",
-                                    name: "csrfmiddlewaretoken",
-                                    value: this.csrfToken
-                                },
-                                {
-                                    xtype: "button",
-                                    text: "Login",
-                                    inputType: "submit",
-                                    handler: submitLogin
-                                }/*,
-                                {
-                                	html:'<div style="padding-top:5px;text-align:right;font-size:8pt;"><a href="#" onClick="Ext.getCmp(\'wm_login_window\').hide();return false;">Register</a><div>',
-                                	xtype: 'box'
-                                }*/
-                                ]
-                            }],
-                            keys: {
-                                "key": Ext.EventObject.ENTER,
-                                "fn": submitLogin
-                            }
-                        });
-        				var loginForm = this.loginWin.items.get(0);
+
 
 
         // global request proxy and error handling
@@ -344,8 +265,80 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     var url = options.url;
                     if (response.status == 401 && url.indexOf("http" != 0) &&
                                             url.indexOf(this.proxy) === -1) {
+                        var submit = function() {
+                            form.getForm().submit({
+                                waitMsg: "Logging in...",
+                                success: function(form, action) {
+                                    this.loginWin.close();
+                                    this.propDlgCache = {};
+                                    this.stylesDlgCache = {};
+                                    document.cookie = action.response.getResponseHeader("Set-Cookie");
+                                    // resend the original request
+                                    Ext.Ajax.request(options);
+                                },
+                                failure: function(form, action) {
+                                    var username = form.items.get(0);
+                                    var password = form.items.get(1);
+                                    username.markInvalid();
+                                    password.markInvalid();
+                                    username.focus(true);
+                                },
+                                scope: this
+                            });
+                        }.bind(this);
+                        this.loginWin = new Ext.Window({
+                            title: "WorldMap Login",
+                            modal: true,
+                            width: 230,
+                            autoHeight: true,
+                            layout: "fit",
+                            items: [{
+                                xtype: "form",
+                                autoHeight: true,
+                                labelWidth: 55,
+                                border: false,
+                                bodyStyle: "padding: 10px;",
+                                url: "/accounts/ajax_login",
+                                waitMsgTarget: true,
+                                errorReader: {
+                                    // teach ExtJS a bit of RESTfulness
+                                    read: function(response) {
+                                        return {
+                                            success: response.status == 200,
+                                            records: []
+                                        }
+                                    }
+                                },
+                                defaults: {
+                                    anchor: "100%"
+                                },
+                                items: [{
+                                    xtype: "textfield",
+                                    name: "username",
+                                    fieldLabel: "Username"
+                                }, {
+                                    xtype: "textfield",
+                                    name: "password",
+                                    fieldLabel: "Password",
+                                    inputType: "password"
+                                }, {
+                                    xtype: "hidden",
+                                    name: "csrfmiddlewaretoken",
+                                    value: this.csrfToken
+                                }, {
+                                    xtype: "button",
+                                    text: "Login",
+                                    inputType: "submit",
+                                    handler: submit
+                                }]
+                            }],
+                            keys: {
+                                "key": Ext.EventObject.ENTER,
+                                "fn": submit
+                            }
+                        });
                         this.loginWin.show();
-                        var form = win.items.get(0);
+                        var form = this.loginWin.items.get(0);
                         form.items.get(0).focus(false, 100);
                     } else {
                         this.displayXHRTrouble(response);
@@ -963,7 +956,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         autoHeight: true,
                         closeAction: "hide",
                         items: [{
-                            xtype: "gx_wmslayerpanel",
+                            xtype: "gxp_wmslayerpanel",
                             autoHeight: true,
                             layerRecord: record,
                             defaults: {
@@ -1305,6 +1298,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var westPanel = new Ext.Panel({
 			layout: "anchor",
             collapseMode: "mini",
+            header: false,
             split: true,
             items: [layersTabPanel,searchPanel],
             region: "west",
@@ -1485,11 +1479,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     this.urlPortRegEx, "$1/")) === 0,
                 hasPermission: true,
                 plugins: [{
-                    ptype: "gx_geoserverstylewriter",
+                    ptype: "gxp_geoserverstylewriter",
                     baseUrl: layerUrl.split(
                         "?").shift().replace(/\/(wms|ows)\/?$/, "/rest")
                 }, {
-                    ptype: "gx_wmsrasterstylesdialog"
+                    ptype: "gxp_wmsrasterstylesdialog"
                 }],
                 autoScroll: true,
                 listeners: Ext.apply(options.listeners || {}, {
@@ -1835,7 +1829,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 "server-added": function(url) {
                     newSourceWindow.setLoading();
                     this.addLayerSource({
-                        config: {url: url}, // assumes default of gx_wmssource
+                        config: {url: url}, // assumes default of gxp_wmssource
                         callback: function(id) {
                             // add to combo and select
                             var record = new sources.recordType({
@@ -2524,7 +2518,7 @@ listeners: {
                 linkUrl: this.rest + (this.about["urlsuffix"] ? this.about["urlsuffix"]: this.mapID),
                 linkMessage: '<span style="font-size:10pt;">Paste link in email or IM:</span>',
                 publishMessage: '<span style="font-size:10pt;">Paste HTML to embed in website:</span>',
-                url: this.rest + (this.about["urlsuffix"] ? this.about["urlsuffix"]: this.mapID) + "/embed" 
+                url: this.rest + (this.about["urlsuffix"] ? this.about["urlsuffix"]: this.mapID) + "/embed"
             }]
         }).show();
         
