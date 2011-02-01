@@ -116,8 +116,8 @@
         </war>
     </target>
     
-<!-- war with ringo
-    <target name="war" depends="dist" description="create web archive">
+
+    <target name="wmwar" depends="dist" description="create web archive">
         <echo>Creating WAR file.</echo>
         <war destfile="build/${ant.project.name}.war" webxml="src/main/webapp/WEB-INF/web.xml">
             <fileset dir="${build}/${ant.project.name}">
@@ -125,7 +125,7 @@
             </fileset>
         </war>
     </target>
--->
+
 
     <target name="zip" depends="dist" description="create zip with static files">
         <echo>Creating ZIP file of static files</echo>

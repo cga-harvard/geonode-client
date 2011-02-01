@@ -2954,7 +2954,7 @@ listeners: {
                 {	if (response.status === 401)
                 		this.loginWin.show();
                 	else
-                		Ext.Msg.alert('Error', response.responseText, this.showMetadataForm);
+                		Ext.Msg.alert('Error', response.responseText);
                 }, 
                 scope: this
             });
@@ -2974,7 +2974,7 @@ listeners: {
                 {	if (response.status === 401)
                 		this.loginWin.show();
                 	else
-                		Ext.Msg.alert('Error', response.responseText, this.showMetadataForm);
+                		Ext.Msg.alert('Error', response.responseText);
                 },                
                 scope: this
             });         
