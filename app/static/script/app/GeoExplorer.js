@@ -991,9 +991,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     var geoEx = this;
 
                     Ext.Ajax.request({
-                    		url: "/data/" + layer.name + "/ajax_layer_edit_check/",
+                    		url: "/data/" + layer.params.LAYERS + "/ajax_layer_edit_check/",
                     		method: "POST",
-                    		params: {layername:layer.name},
+                    		params: {layername:layer.params.LAYERS},
                     		success: function(result,request) {
                                 if (result.responseText == "True") {
                                     var stylesPanel = geoEx.createStylesPanel({
