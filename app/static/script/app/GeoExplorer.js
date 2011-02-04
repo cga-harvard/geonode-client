@@ -504,7 +504,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     								if (dataLayers[dl.params.LAYERS] && dataLayers[dl.params.LAYERS].searchFields.length > 0) {
     									featureInfo.queryfields = dataLayers[dl.params.LAYERS].searchFields;
     									featureInfo.nameField = featureInfo.queryfields[0].attribute;
-    								} else {
+    								} else if (featureInfo.length > 0){
 
                                             var qfields = [];
                                             for (var fname in featureInfo[0].attributes)
