@@ -465,11 +465,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         	if (dl.getVisibility()){
         	wfs_url = dl.url;
         	//Try to guess WFS url
-        	if (wfs_url.indexOf("wms")!= -1)
-        		{
-        			wfs_url = wfs_url.substring(0, wfs_url.indexOf("wms"));
-        			
-        		}
+
         	
         	var clickTolerance = 10;
         	pixel = e.xy;
@@ -480,23 +476,21 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         	var bounds = new OpenLayers.Bounds(ll.lon, ll.lat, ur.lon, ur.lat);
         	
 
-        	
-        	wfs_url+="wfs?request=GetFeature&version=1.1.0&srsName=EPSG:900913&outputFormat=json&typeName=" + dl.params.LAYERS + "&BBOX=" + bounds.toBBOX() + ",EPSG:900913";  	
+            wfs_url = wfs_url.substring(0, wfs_url.indexOf("?"));
+            wfs_url = wfs_url.replace("WMS","WFS").replace("wms","wfs");
 
-    					//alert(wfs_url);
-    							
-    							
+            wfs_url+="?service=WFS&request=GetFeature&version=1.1.0&srsName=EPSG:900913&outputFormat=json&typeName=" + dl.params.LAYERS + "&BBOX=" + bounds.toBBOX() + ",EPSG:900913";
     					Ext.Ajax.request({
     						'url':wfs_url,
     						'success':function(resp, opts) {
     							successCount++;
     							
-    							if(resp.responseText != '' && resp.responseText.substr(0,1) != "{") {
-//    								msg = resp.responseText;
+//    							if(dl.params.LAYERS.indexOf("geonode") == -1 &&  resp.responseText != '') {
+//       								msg = resp.responseText;
 //    								Ext.Msg.alert('Results for ' + x.get("title"),msg);
-    								return;
-    							}
-    							
+//    							}
+//    							else
+                                {
     							if(resp.responseText != '') {			
     							    var featureInfo = new OpenLayers.Format.GeoJSON().read(resp.responseText);
     							    if (featureInfo) {
@@ -511,8 +505,16 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     									featureInfo.queryfields = dataLayers[dl.params.LAYERS].searchFields;
     									featureInfo.nameField = featureInfo.queryfields[0].attribute;
     								} else {
-    									featureInfo.queryFields = [];
-    									featureInfo.nameField = [];
+    									featureInfo.queryfields = function() {
+                                            var qfields = [];
+                                            for (var fname in featureInfo[0].attributes)
+                                            {
+                                                qfields.push(fname);
+                                            }
+                                            return qfields;
+                                        }
+                                        if (featureInfo.queryfields.length > 0)
+    									    featureInfo.nameField = featureInfo.queryfields[0];
     								}
     	                        	for(var f = 0; f < featureInfo.length; f++)
     	                        		{
@@ -529,10 +531,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     								
     	                        	}
     	                        	featureMeta[dl.params.LAYERS] = featureInfo.queryfields;
+                                }
     							}
     							
     							//alert(featureMeta);
-    							
+
     							if(successCount == count) {
     								if(features.length == 0) {
     									Ext.Msg.alert('Map Results','No features found at this location.');
@@ -542,9 +545,17 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     							}
     						},
     						'failure':function(resp, opts) {
-    							var msg = 'The feature request failed.';
-    							msg += '<br />details: ' + resp.responseText;
-    							Ext.Msg.alert('Request Failed',msg);
+                                successCount++;
+    							if(successCount == count) {
+    								if(features.length == 0) {
+    									Ext.Msg.alert('Map Results','No features found at this location.');
+    								} else {
+    									GeoExplorer.Results.displayXYResults(features, featureMeta, e.xy);
+    								}
+    							}                                
+    							//var msg = 'The feature request failed.';
+    							//msg += '<br />details: ' + resp.responseText;
+    							//Ext.Msg.alert('Request Failed',msg);
     						},
     						'headers':{},
     						'params':{}
