@@ -476,7 +476,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         	var bounds = new OpenLayers.Bounds(ll.lon, ll.lat, ur.lon, ur.lat);
         	
 
-            wfs_url = wfs_url.substring(0, wfs_url.indexOf("?"));
+            if (wfs_url.indexOf("?") > -1)
+                wfs_url = wfs_url.substring(0, wfs_url.indexOf("?"));
             wfs_url = wfs_url.replace("WMS","WFS").replace("wms","wfs");
 
             wfs_url+="?service=WFS&request=GetFeature&version=1.1.0&srsName=EPSG:900913&outputFormat=json&typeName=" + dl.params.LAYERS + "&BBOX=" + bounds.toBBOX() + ",EPSG:900913";
@@ -499,22 +500,22 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     							        } 
 
     								featureInfo.title = x.get("title");
-    								
-    								
-    								if (dataLayers[dl.params.LAYERS].searchFields.length > 0) {
+
+    								if (dataLayers[dl.params.LAYERS] && dataLayers[dl.params.LAYERS].searchFields.length > 0) {
     									featureInfo.queryfields = dataLayers[dl.params.LAYERS].searchFields;
     									featureInfo.nameField = featureInfo.queryfields[0].attribute;
     								} else {
-    									featureInfo.queryfields = function() {
+
                                             var qfields = [];
                                             for (var fname in featureInfo[0].attributes)
                                             {
-                                                qfields.push(fname);
+                                                qfields.push(fname.toString());
                                             }
-                                            return qfields;
-                                        }
-                                        if (featureInfo.queryfields.length > 0)
-    									    featureInfo.nameField = featureInfo.queryfields[0];
+
+                                            featureInfo.queryfields = qfields;
+
+                                            if (featureInfo.queryfields.length > 0)
+    									        featureInfo.nameField = featureInfo.queryfields[0];
     								}
     	                        	for(var f = 0; f < featureInfo.length; f++)
     	                        		{
@@ -3148,12 +3149,17 @@ GeoExplorer.Results = {
 	
 	createHTML: function(feature, metaColumns) {
 		html = '<ul class="featureDetailList" id="featureDetailList">';
+
 		for(c=0; c < metaColumns.length; c++)
 			{
 				column = metaColumns[c];
-				html+= "<li><label>" + column.label + "</label><span>" + feature.attributes[column.attribute] + "</span></li>";
+                if (column.label)
+				    html+= "<li><label>" + column.label + "</label><span>" + feature.attributes[column.attribute] + "</span></li>";
+                else
+                    html+= "<li><label>" + column + "</label><span>" + feature.attributes[column] + "</span></li>";
 			}
-		html += "</ul>";
+
+        html += "</ul>";
 		return html;
 	}
 	
