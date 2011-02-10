@@ -87,17 +87,19 @@ GeoExplorer.CapabilitiesRowExpander = Ext.extend(Ext.grid.RowExpander, {
             '<p><b>' + this.abstractText + '</b> {abstract}</p>' +
             '<p><b>' + this.attributionText + '</b> {attribution:this.attributionLink}</p>'  +
             '<p><b>' + this.metadataText + '</b> {metadataURLs:this.metadataLinks}</p>'  +
-            '<p><b>' + this.keywordText + '</b> {keywords:this.keywordList}</p>'  +
-            '<span class="{formats:this.showDownload}">'  +
-            '<p><b>' + this.downloadText + '</b> ' +
-            '<a class="download pdf" target="_blank" href="{name:this.pdfUrl}">PDF</a>, ' +
-            '<a class="download kml" target="_blank" href="{name:this.kmlUrl}">KML</a>, ' +
-            '<a class="download geotiff" target="_blank" href="{name:this.geoTiffUrl}">GeoTIFF</a>' +
-            '<span class="wfs nodisplay">, '  +
-            '<a class="download shp" target="_blank" href="{name:this.shpUrl}">SHP (ZIP)</a>'  +
-            '</span>' +
-            '</p>' +
-            '</span>'
+            '<p><b>' + this.keywordText + '</b> {keywords:this.keywordList}</p>'
+             
+//            '<span class="{formats:this.showDownload}">'  +
+//            '<p><b>' + this.downloadText + '</b> ' +
+//            '<a class="download pdf" target="_blank" href="{name:this.pdfUrl}">PDF</a>, ' +
+//            '<a class="download kml" target="_blank" href="{name:this.kmlUrl}">KML</a>, ' +
+//            '<a class="download geotiff" target="_blank" href="{name:this.geoTiffUrl}">GeoTIFF</a>' +
+//            '<span class="wfs nodisplay">, '  +
+//            '<a class="download shp" target="_blank" href="{name:this.shpUrl}">SHP (ZIP)</a>'  +
+//            '</span>' +
+//            '</p>' +
+//            '</span>'
+
         );
     },
 

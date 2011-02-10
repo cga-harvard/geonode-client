@@ -8,6 +8,8 @@ GeoNode.BoundingBoxWidget = Ext.extend(Ext.util.Observable, {
      * gxp.Viewer instance enclosed by this BoundingBoxWidget.
      */
     viewerConfig: null,
+    height: 300,
+    isEnabled: false,
 
     constructor: function(config) {
         Ext.apply(this, config);
@@ -18,6 +20,8 @@ GeoNode.BoundingBoxWidget = Ext.extend(Ext.util.Observable, {
 
         var el = Ext.get(this.renderTo);
 
+        this.enabledCB = el.query('.bbox-enabled input')[0];
+
         var viewerConfig = {
             proxy: this.proxy,
             useCapabilities: false,
@@ -27,12 +31,18 @@ GeoNode.BoundingBoxWidget = Ext.extend(Ext.util.Observable, {
             portalConfig: {
                 collapsed: true,
                 border: false,
-                height: 300,
+                height: this.height,
                 renderTo: el.query('.bbox-expand')[0]
             },
             listeners: {
                 "ready": function() {
                     this._ready = true;
+                    if (this.isEnabled)
+                    {
+                        this.enable();
+//                        if (this.bounds)
+//                            this.viewer.mapPanel.map.zoomToExtent(this.bounds);
+                    }
                 },
                 scope: this
             }
@@ -42,9 +52,11 @@ GeoNode.BoundingBoxWidget = Ext.extend(Ext.util.Observable, {
 
         this.viewer = new GeoExplorer.Viewer(viewerConfig);
 
-        this.enabledCB = el.query('.bbox-enabled input')[0];        
-        this.disable();
-         
+
+
+        if (!this.isEnabled)
+            this.disable();
+
         Ext.get(this.enabledCB).on('click', function() {
             if (this.enabledCB.checked == true) {
                 this.enable();
@@ -55,7 +67,12 @@ GeoNode.BoundingBoxWidget = Ext.extend(Ext.util.Observable, {
         }, this);
 
     },
-    
+
+    updateBBox: function(bounds) {
+        var bbmap = this.viewer.mapPanel.map;
+        bbmap.zoomToExtent(bounds);
+    },
+
     isActive: function() {
         return this.enabledCB.checked == true; 
     },

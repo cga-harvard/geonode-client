@@ -132,7 +132,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     helpLabel: 'UT: Help',
     infoButtonText: "UT:Info",
     largeSizeLabel: 'UT:Large',
-    layerAdditionLabel: "UT:+",
+    layerAdditionLabel: "UT: Add WMS server",
     layerLocalLabel: 'UT:Upload your own data',
     layerContainerText: "UT:Map Layers",
     layerPropertiesText: 'UT: Layer Properties',
@@ -685,7 +685,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             tooltip : this.addLayersButtonText,
             disabled: false,
             text: '<span class="x-btn-text">' + this.addLayersButtonText + '</span>',
-            handler : this.showCapabilitiesGrid,
+            handler : this.showSearchWindow,
             scope: this
         });
         
@@ -1469,6 +1469,102 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         return stylesPanel;
     },
 
+
+
+    addWorldMapLayers: function(records){
+        var wmSource = null;
+        var key = null;
+        for (var id in this.layerSources) {
+            source = this.layerSources[id];
+            if ( source instanceof gxp.plugins.WMSSource &&
+                    source.url.replace(this.urlPortRegEx, "$1/").indexOf(
+                        this.localGeoServerBaseUrl.replace(
+                            this.urlPortRegEx, "$1/")) === 0) {
+                            wmSource = source;
+                            key = id;
+            }
+        }
+        if (wmSource)
+            this.addLayerAjax(wmSource, key, records);
+
+    },
+
+
+    addLayerAjax: function (dataSource, dataKey, dataRecords){
+            var geoEx = this;
+            var key = dataKey;
+            var records = dataRecords;
+            var source = dataSource;
+            var layerStore = this.mapPanel.layers;
+            for (var i=0, ii=records.length; i<ii; ++i) {
+            			var layer = records[i].get("name");
+                    	Ext.Ajax.request({
+                    		url: "/maps/searchfields/?" + records[i].get("name"),
+                    		method: "POST",
+                    		params: {layername:records[i].get("name")},
+                    		success: function(result,request)
+                    		{
+                    				var layer = request.params["layername"];
+                    			    var record = source.createLayerRecord({
+                    					name: layer,
+                    					source: key,
+                    					buffer: 0
+                					});
+                					//alert(layer + " created");
+                					if (record) {
+                    					if (record.get("group") === "background") {
+                        					var pos = layerStore.queryBy(function(rec) {
+                            					return rec.get("group") === "background"
+                        					}).getCount();
+                        					layerStore.insert(pos, [record]);
+
+                    					} else {
+
+                    						//alert("Success searching fields for " + layer + ":" + result.ResponseText);
+                                			var jsonData = Ext.util.JSON.decode(result.responseText);
+                                			category = jsonData.category;
+	                                		if (!category || category == '')
+	                                			category = "General";
+                                			dataLayers[layer] = new LayerData(dataLayers[layer], jsonData.searchFields, jsonData.scount);
+                                			record.set("group",category);
+                                			layerStore.add([record]);
+                                			geoEx.addCategoryFolder(record.get("group"), "true");
+                                			geoEx.reorderNodes();
+                                			//alert("Success adding " + layer);
+                    					}
+                					}
+                    		},
+                    		failure: function(result,request) {
+                    				var layer = request.params["layername"];
+                    			    var record = source.createLayerRecord({
+                    					name: layer,
+                    					source: key,
+                    					buffer: 0
+                					});
+                					//alert(layer + " created after FAIL");
+                					if (record) {
+                    					if (record.get("group") === "background") {
+                        					var pos = layerStore.queryBy(function(rec) {
+                            					return rec.get("group") === "background"
+                        					}).getCount();
+                        					layerStore.insert(pos, [record]);
+                    					} else {
+	                                		category = "General";
+                                			record.set("group",category);
+                                			layerStore.add([record]);
+                                			geoEx.addCategoryFolder(record.get("group"), "true");
+                    					}
+                					}
+                    		}
+
+                    	});
+
+
+                    }
+
+    },
+
+
     /**
      * Method: initCapGrid
      * Constructs a window with a capabilities grid.
@@ -1478,21 +1574,22 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var initialSourceId, source, data = [];        
         for (var id in this.layerSources) {
             source = this.layerSources[id];
-            if (initialSourceId === undefined &&
-                    source instanceof gxp.plugins.WMSSource &&
+            if ( source instanceof gxp.plugins.WMSSource &&
                     source.url.replace(this.urlPortRegEx, "$1/").indexOf(
                         this.localGeoServerBaseUrl.replace(
                             this.urlPortRegEx, "$1/")) === 0) {
-                initialSourceId = id;
-            }
-           if (source.store) {
-                data.push([id, this.layerSources[id].title || id]);                
+                            //do nothing
+            } else
+            {
+                 if (source.store) {
+                    data.push([id, this.layerSources[id].title || id]);
+                 }
             }
         }
-        // fall back to 1st source if the local GeoServer WMS is not used
-        if (initialSourceId === undefined) {
-            initialSourceId = data[0][0];
-        }
+
+
+        initialSourceId = data[0][0];
+
 
         var sources = new Ext.data.ArrayStore({
             fields: ["id", "title"],
@@ -1550,78 +1647,17 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 //                }
 //            }));        	
 //        };        
-        
+
+
+
+
         var addLayers = function() {
             var key = sourceComboBox.getValue();
             var layerStore = this.mapPanel.layers;
             var source = this.layerSources[key];
             var records = capGridPanel.getSelectionModel().getSelections();
             //alert(records.length);
-            for (var i=0, ii=records.length; i<ii; ++i) {
-            			var layer = records[i].get("name");
-                    	Ext.Ajax.request({
-                    		url: "/maps/searchfields/?" + records[i].get("name"),
-                    		method: "POST",
-                    		params: {layername:records[i].get("name")},
-                    		success: function(result,request)
-                    		{
-                    				var layer = request.params["layername"];
-                    			    var record = source.createLayerRecord({
-                    					name: layer,
-                    					source: key,
-                    					buffer: 0
-                					});
-                					//alert(layer + " created");
-                					if (record) {                	
-                    					if (record.get("group") === "background") {
-                        					var pos = layerStore.queryBy(function(rec) {
-                            					return rec.get("group") === "background"
-                        					}).getCount();
-                        					layerStore.insert(pos, [record]);
-                        					
-                    					} else {
-
-                    						//alert("Success searching fields for " + layer + ":" + result.ResponseText);
-                                			var jsonData = Ext.util.JSON.decode(result.responseText);      
-                                			category = jsonData.category;
-	                                		if (!category || category == '')
-	                                			category = "General";
-                                			dataLayers[layer] = new LayerData(dataLayers[layer], jsonData.searchFields, jsonData.scount);
-                                			record.set("group",category);                                			
-                                			layerStore.add([record]);
-                                			geoEx.addCategoryFolder(record.get("group"), "true");
-                                			geoEx.reorderNodes();
-                                			//alert("Success adding " + layer);
-                    					}
-                					}
-                    		},
-                    		failure: function(result,request) {
-                    				var layer = request.params["layername"];
-                    			    var record = source.createLayerRecord({
-                    					name: layer,
-                    					source: key,
-                    					buffer: 0
-                					});
-                					//alert(layer + " created after FAIL");
-                					if (record) {                	
-                    					if (record.get("group") === "background") {
-                        					var pos = layerStore.queryBy(function(rec) {
-                            					return rec.get("group") === "background"
-                        					}).getCount();
-                        					layerStore.insert(pos, [record]);
-                    					} else {
-	                                		category = "General";
-                                			record.set("group",category);                               			
-                                			layerStore.add([record]);
-                                			geoEx.addCategoryFolder(record.get("group"), "true");
-                    					}
-                					}
-                    		}
-                    		
-                    	});                    	
-                    	
-                        
-                    }
+            this.addLayerAjax(source, key, records);
         };
 
         var source = this.layerSources[initialSourceId];
@@ -1630,8 +1666,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         }, this);
         var capGridPanel = new Ext.grid.GridPanel({
             store: source.store,
-            layout: 'fit',
-            region: 'center',
+            height:300,
+            region:'center',
             autoScroll: true,
             autoExpandColumn: "title",
             plugins: [expander],
@@ -1673,38 +1709,15 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             }
         });
 
-        var capGridToolbar = null;
 
-        if (this.proxy || this.layerSources.getCount() > 1) {
-            capGridToolbar = [
-                new Ext.Toolbar.TextItem({
-                    text: this.layerSelectionLabel
-                }),
-                sourceComboBox
-            ];
-            
-        }
-
-        if (this.proxy) {
-            capGridToolbar.push(new Ext.Button({
+        var addWmsButton = new Ext.Button({
                 text: this.layerAdditionLabel,
+                iconCls: 'icon-add',
+                cls: 'x-btn-link-medium x-btn-text',
                 handler: function() {
                     newSourceWindow.show();
                 }
-            }));
-        }
-        
-        capGridToolbar.push({xtype: 'tbspacer', width: 50});
-        capGridToolbar.push("->")
-        capGridToolbar.push(new Ext.Button({
-            text: this.layerLocalLabel,
-            iconCls: 'icon-add',
-            handler: addLocalLayers,
-            cls: 'x-btn-link-medium x-btn-text',
-            scope: this
-        }));        
-
-        capGridToolbar.width = 600;
+            });
         
         var app = this;
         var newSourceWindow = new gxp.NewSourceWindow({
@@ -1739,42 +1752,88 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 app.busyMask = scope.loadMask;
             }
         });
-        
-        this.capGrid = new Ext.Window({
-            title: this.capGridText,
-            closeAction: 'hide',
-            layout: 'border',
-            height: 300,
-            width: 600,
-            modal: true,
-            items: [
-                capGridPanel
-            ],
-            tbar: capGridToolbar,
-            bbar: [
-                "->",
-                new Ext.Button({
-                    text: this.capGridAddLayersText,
-                    iconCls: "icon-addlayers",
-                    cls:'x-btn-text',
+
+
+        var addLayerButton = new Ext.Button({
+                    text: "Add Layers",
+                    iconCls: "gxp-icon-addlayers",
                     handler: addLayers,
                     scope : this
-                }),
-                new Ext.Button({
-                    text: this.capGridDoneText,
-                    cls:'x-btn-text',
-                    handler: function() {
-                        this.capGrid.hide();
-                    },
-                    scope: this
-                })
-            ],
+                });
+
+
+        var sourceAdditionLabel = { xtype: 'box', autoEl: { tag: 'span',  html: this.layerSelectionLabel }};
+
+        var sourceForm = new Ext.Panel({
+             frame:false,
+             border: false,
+             region: 'north',
+             height:40,
+             layout: new Ext.layout.HBoxLayout({
+                 defaultMargins: {
+                     top: 10,
+                     bottom: 10,
+                     left: 0,
+                     right: 0
+                  }
+             }),
+             items: [sourceAdditionLabel, sourceComboBox, {xtype: 'spacer', width:20 }, addWmsButton]
+         });
+
+
+        var addLayerForm = new Ext.Panel({
+             frame:false,
+             border: false,
+             region: 'south',
+             layout: new Ext.layout.HBoxLayout({
+                 defaultMargins: {
+                     top: 10,
+                     bottom: 10,
+                     left: 0,
+                     right: 0
+                  }
+             }),
+             items: [addLayerButton]
+         });
+
+        this.capGrid = new Ext.Panel({
+            autoScroll: true,
+            title: 'External Data',
+            header: false,
+            layout: 'border',
+            border: false,
+            renderTo: 'externalDiv',
+            padding:'2 0 0 20',
+            items: [sourceForm, capGridPanel, addLayerForm],
             listeners: {
                 hide: function(win){
                     capGridPanel.getSelectionModel().clearSelections();
                 }
             }
         });
+
+
+//        this.capGrid = new Ext.Panel({
+//            title: this.availableLayersText,
+//            renderTo: 'externalDiv',
+//            anchor: '100% 100%',
+//            items: [capGridPanel],
+//            tbar: capGridToolbar,
+//            bbar: [
+//                "->",
+//                new Ext.Button({
+//                    text: "Add Layers",
+//                    iconCls: "gxp-icon-addlayers",
+//                    handler: addLayers,
+//                    scope : this
+//                })
+//            ],
+//            listeners: {
+//                hide: function(win){
+//                    capGridPanel.getSelectionModel().clearSelections();
+//                }
+//            }
+//        });
     },
 
     /**
@@ -2704,6 +2763,126 @@ listeners: {
          autoScroll: true
        }); 
     },
+
+
+    initUploadPanel: function() {
+        this.uploadTabPanel = new Ext.Panel({
+        title: 'Upload Layer',
+        header: false,
+        autoLoad: '/data/upload',
+        scripts:true,
+        listeners:{
+            activate : function(panel){
+                panel.getUpdater().refresh();
+            }
+        },
+        renderTo: 'uploadDiv',
+        autoScroll: true
+        });
+    },
+    
+
+    initTabPanel: function() {
+    this.dataTabPanel = new Ext.TabPanel({
+                renderTo: 'dataTabs',
+                activeTab: 0,
+                region:'center',
+                items: [
+                    {contentEl: 'searchDiv', title: 'WorldMap Data', autoScroll: true},
+                    this.capGrid,
+                    {contentEl: 'uploadDiv', title: 'Upload Data', autoScroll: true},
+                ]
+            });
+
+
+    },
+
+
+
+
+    initSearchWindow: function(){
+
+        var mapBounds = this.mapPanel.map.getExtent();
+        var llbounds = mapBounds.transform(
+                new OpenLayers.Projection(this.mapPanel.map.projection),
+                new OpenLayers.Projection("EPSG:4326"));
+        this.bbox = new GeoNode.BoundingBoxWidget({
+         proxy: "/proxy/?url=",
+         viewerConfig: this.getState(),
+         renderTo: 'refine',
+         height: 250,
+         isEnabled: true
+        });
+
+        this.searchTable = new GeoNode.SearchTable({
+            renderTo: 'search_results',
+            trackSelection: true,
+            permalinkURL: '/data/search',
+            searchURL: '/data/search/api',
+            layerDetailURL: '/data/search/detail',
+            constraints: [this.bbox],
+            searchParams: {'limit':10, 'bbox': llbounds.toBBOX()},
+            searchOnLoad: false
+        });
+
+        this.searchTable.hookupSearchButtons('refine');
+
+        var dataCart = new GeoNode.DataCart({
+            store: this.searchTable.dataCart,
+            renderTo: 'data_cart',
+            addToMapButtonFunction: this.addWorldMapLayers,
+            addToMapButtonTarget: this
+        });
+
+
+
+
+        if (!this.capGrid) {
+            this.initCapGrid();
+        }
+
+//        if (!this.uploadTabPanel)
+//        {
+//            this.initUploadPanel();
+//        }
+
+        if (!this.dataTabPanel) {
+            this.initTabPanel();
+        }
+
+        this.searchWindow = new Ext.Window({
+            id: 'ge_searchWindow',
+            title: "Search Available Layers",
+            closeAction: 'hide',
+            layout: 'fit',
+            width: 850,
+            height:600,
+            items: [this.dataTabPanel],
+            modal: true,
+            autoScroll: true,
+            bodyStyle: 'background-color:#FFF'
+        });
+
+    },
+
+
+    /** private: method[showInfoWindow]
+     *  Shows the search window
+     */
+    showSearchWindow: function() {
+        if(!this.searchWindow) {
+            this.initSearchWindow();
+        } else {
+            this.bbox.updateBBox(this.mapPanel.map.getExtent());
+
+        }
+        this.searchWindow.show();
+        this.searchTable.doSearch();
+
+
+
+    },
+
 
     /** private: method[showInfoWindow]
      *  Shows the window with intro text

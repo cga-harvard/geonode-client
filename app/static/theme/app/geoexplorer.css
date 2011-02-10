@@ -9,6 +9,7 @@
     white-space: nowrap;
 }
 
+
 /* get images on buttons with text to line up with those with no text */
 .x-btn-text-icon .x-btn-center .x-btn-text {
     background-position: 0 3px;

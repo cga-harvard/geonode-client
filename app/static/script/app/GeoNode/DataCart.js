@@ -7,7 +7,12 @@ GeoNode.DataCart = Ext.extend(Ext.util.Observable, {
     titleText: 'UT: Title',
     clearSelectedButtonText: 'UT: Clear Selected',
     clearAllButtonText: 'UT: Clear All',
-    
+    addLayersButtonText: 'UT: Add Layers',
+
+
+    addToMapButtonFunction: null,
+    addToMapButtonTarget: null,
+
     constructor: function(config) {
         Ext.apply(this, config);
         this.doLayout();
@@ -42,7 +47,7 @@ GeoNode.DataCart = Ext.extend(Ext.util.Observable, {
                 emptyText: this.emptySelectionText,
                 deferEmptyText: false
             },
-            height: 150,
+            height: 100,
             renderTo: table_el,
             selModel: sm,
             hideHeaders: true,
@@ -58,6 +63,26 @@ GeoNode.DataCart = Ext.extend(Ext.util.Observable, {
         this.store.on('add', function(store, records, index) {
             sm.selectRow(index, true);
         })
+
+
+        var addToMapButton = new Ext.Button({
+            text: this.addLayersButtonText,
+            iconCls: 'icon-add',
+            cls: 'x-btn-link-medium x-btn-text'
+        });
+
+
+
+        if (this.addToMapButtonFunction) {
+            var addToMapFunction = this.addToMapButtonFunction;
+            var addToMapTarget = this.addToMapButtonTarget;
+            var dataGrid = this.grid;
+            
+            addToMapButton.on('click', function() {
+                alert(addToMapFunction + ":" + addToMapTarget);
+            addToMapFunction.call(addToMapTarget, dataGrid.getSelectionModel().getSelections());
+        });
+        }
 
 
         var clearSelectedButton = new Ext.Button({
@@ -82,6 +107,10 @@ GeoNode.DataCart = Ext.extend(Ext.util.Observable, {
             this.store.reselect();
         }, this);
 
+        var spacer = new Ext.Spacer({
+            width:20
+        })
+
         var controlsForm = new Ext.Panel({
              frame:false,
              border: false,
@@ -93,8 +122,10 @@ GeoNode.DataCart = Ext.extend(Ext.util.Observable, {
                      right: 0
                   }
              }),
-             items: [clearSelectedButton, clearAllButton]
+             items: [this.addToMapButtonFunction ? addToMapButton : "", this.addToMapButtonFunction ? spacer : "", clearSelectedButton, clearAllButton]
          });
+
+
          controlsForm.render(controls_el);
     }
 });

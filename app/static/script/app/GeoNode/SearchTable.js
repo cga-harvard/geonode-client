@@ -19,6 +19,8 @@ GeoNode.SearchTable = Ext.extend(Ext.util.Observable, {
     unviewableTooltip: 'UT: Unviewable Data',
     remoteTooltip: 'UT: Remote Data',
 
+    searchOnLoad: true,
+
     constructor: function(config) {
         this.addEvents('load'); 
         Ext.apply(this, config);
@@ -58,7 +60,9 @@ GeoNode.SearchTable = Ext.extend(Ext.util.Observable, {
         }, this);
         
         this.doLayout();
-        this.doSearch();
+
+        if (this.searchOnLoad)
+            this.doSearch();
     },
     
     initFromQuery: function() {
