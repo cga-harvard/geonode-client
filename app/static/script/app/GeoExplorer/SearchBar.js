@@ -125,7 +125,7 @@ GeoExplorer.SearchBar =  function(target) {
             layers = [];
 
 
-             alert(firstLayer.params.LAYERS);
+
             //Create a WMS search results layer for each searchable layer
             //queryableLayers.each(function(x)
 
