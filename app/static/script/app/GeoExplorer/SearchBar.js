@@ -59,16 +59,16 @@ GeoExplorer.SearchBar =  function(target) {
 		});
         
 		
-//		var slReader = new Ext.data.ArrayReader({}, searchLayerStore); 
+//		var slReader = new Ext.data.ArrayReader({}, searchLayerStore);
 //
 //		var slProxy = new Ext.data.MemoryProxy(slReader);
-//		
-//		 var slStore = new Ext.data.Store({                                    
+//
+//		 var slStore = new Ext.data.Store({
 //     		reader : slReader,
 //     		autoLoad: true,
 //     		proxy  : slProxy
 // 		});
-//		
+//
 //		var searchLayerCombo = new Ext.form.ComboBox({
 //    		store:slStore,
 //    		displayField:'title',
@@ -76,7 +76,7 @@ GeoExplorer.SearchBar =  function(target) {
 //    		selectOnFocus:true
 //		});
 //
-//		
+//
 //		var updateSearchLayers = function() {
 //			searchLayerCombo.store.reload();
 //		}
@@ -86,10 +86,13 @@ GeoExplorer.SearchBar =  function(target) {
     		// Find queryable layers (visible with searchable fields)
     		var searchCount = 0;
             var queryableLayers = getQueryableLayers();
+            var firstLayer;
             queryableLayers.each(function(x){
             	dl = x.getLayer();
             	if (!dl.getVisibility() || dataLayers[dl.params.LAYERS].count == 0)
             		{queryableLayers.remove(x, true);}
+                else
+                    firstLayer = dl;
             });
             if (queryableLayers.length == 0)
             	{
@@ -97,20 +100,7 @@ GeoExplorer.SearchBar =  function(target) {
                 return;
             	
             	}
-    		
-            //show searching modal
-            /*
-            if (!target.busyMask) {
-                alert('make busyMask')
-                target.busyMask = new Ext.LoadMask(
-                    target.mapPanel.map.div, {
-                        msg: 'Searching...'
-                    }
-                );
-            }
 
-            target.busyMask.show();
-    		*/
             try{
             //Get rid of any existing highlight layers
             removeHighlightLayers();
@@ -133,10 +123,13 @@ GeoExplorer.SearchBar =  function(target) {
             otherSearchTerm = otherSearchTerm.replace(whitespace_re, ' ');
             terms = terms.concat(otherSearchTerm.split(' '));
             layers = [];
-            
+
+
+             alert(firstLayer.params.LAYERS);
             //Create a WMS search results layer for each searchable layer
-            queryableLayers.each(function(x){
-            	dl = x.getLayer();
+            //queryableLayers.each(function(x)
+
+            	dl = firstLayer;
             	if (dl.getVisibility())
             		{
             		
@@ -192,7 +185,7 @@ GeoExplorer.SearchBar =  function(target) {
                     		layers.push(wmsHighlight);
             				}
             		}
-            });
+
             
             target.mapPanel.map.addLayers(layers);  
             } catch (e) {
