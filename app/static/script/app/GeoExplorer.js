@@ -1587,8 +1587,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             }
         }
 
-
-        initialSourceId = data[0][0];
+        if (data[0] && data[0][0])
+            initialSourceId = data[0][0];
 
 
         var sources = new Ext.data.ArrayStore({
@@ -1608,47 +1608,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         		document.location.href="/data/upload?map=" + this.mapID;
         };
         
-//        var treeRoot = this.treeRoot;
-//        var mapPanel = this.mapPanel;
-//        
-//        var addCategoryFolder = function(category, isExpanded){
-//        	//if(treeRoot.findChild("text", category) == null)
-//        	alert("tree " + category);
-//            treeRoot.findChild("id","maplayerroot").appendChild(new GeoExt.tree.LayerContainer({
-//                text: category,
-//                iconCls: "gx-folder",
-//                expanded: isExpanded,
-//                loader: new GeoExt.tree.LayerLoader({
-//                    store: mapPanel.layers,
-//                    filter: function(record) {
-//                        return record.get("group") == category &&
-//                            record.getLayer().displayInLayerSwitcher == true;
-//                    },
-//                    createNode: function(attr) {
-//                        var layer = attr.layer;
-//                        var store = attr.layerStore;
-//                        if (layer && store) {
-//                            var record = store.getAt(store.findBy(function(r) {
-//                                return r.getLayer() === layer;
-//                            }));
-//                            if (record && !record.get("queryable")) {
-//                                attr.iconCls = "gx-tree-rasterlayer-icon";
-//                            }
-//                        }
-//                        return GeoExt.tree.LayerLoader.prototype.createNode.apply(this, [attr]);
-//                    }
-//                }),
-//                singleClickExpand: true,
-//                allowDrag: false,
-//                listeners: {
-//                    append: function(tree, node) {
-//                        node.expand();
-//                    }
-//                }
-//            }));        	
-//        };        
-
-
 
 
         var addLayers = function() {
@@ -1660,12 +1619,17 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             this.addLayerAjax(source, key, records);
         };
 
-        var source = this.layerSources[initialSourceId];
-        source.store.filterBy(function(r) {
-            return !!source.getProjection(r);
-        }, this);
+        var source = null;
+
+        if (initialSourceId) {
+            source = this.layerSources[initialSourceId];
+            source.store.filterBy(function(r) {
+                return !!source.getProjection(r);
+            }, this);
+        }
+
         var capGridPanel = new Ext.grid.GridPanel({
-            store: source.store,
+            store: source != null ? source.store: [],
             height:300,
             region:'center',
             autoScroll: true,
@@ -1811,29 +1775,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 }
             }
         });
-
-
-//        this.capGrid = new Ext.Panel({
-//            title: this.availableLayersText,
-//            renderTo: 'externalDiv',
-//            anchor: '100% 100%',
-//            items: [capGridPanel],
-//            tbar: capGridToolbar,
-//            bbar: [
-//                "->",
-//                new Ext.Button({
-//                    text: "Add Layers",
-//                    iconCls: "gxp-icon-addlayers",
-//                    handler: addLayers,
-//                    scope : this
-//                })
-//            ],
-//            listeners: {
-//                hide: function(win){
-//                    capGridPanel.getSelectionModel().clearSelections();
-//                }
-//            }
-//        });
     },
 
     /**
@@ -2766,11 +2707,11 @@ listeners: {
 
 
     initUploadPanel: function() {
-        this.uploadTabPanel = new Ext.Panel({
+        this.uploadPanel = new Ext.Panel({
+        id: 'worldmap_update_panel',
         title: 'Upload Layer',
         header: false,
-        autoLoad: '/data/upload',
-        scripts:true,
+        autoLoad: {url: '/data/upload', scripts: true},
         listeners:{
             activate : function(panel){
                 panel.getUpdater().refresh();
@@ -2779,6 +2720,7 @@ listeners: {
         renderTo: 'uploadDiv',
         autoScroll: true
         });
+
     },
     
 
@@ -2790,7 +2732,7 @@ listeners: {
                 items: [
                     {contentEl: 'searchDiv', title: 'WorldMap Data', autoScroll: true},
                     this.capGrid,
-                    {contentEl: 'uploadDiv', title: 'Upload Data', autoScroll: true},
+                    this.uploadPanel
                 ]
             });
 
@@ -2841,10 +2783,10 @@ listeners: {
             this.initCapGrid();
         }
 
-//        if (!this.uploadTabPanel)
-//        {
-//            this.initUploadPanel();
-//        }
+        if (!this.uploadPanel)
+        {
+            this.initUploadPanel();
+        }
 
         if (!this.dataTabPanel) {
             this.initTabPanel();
