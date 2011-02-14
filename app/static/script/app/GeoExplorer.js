@@ -23,21 +23,22 @@
  * title - {String} Optional title to display for layer.
  */
 
-var dataLayers = [];
-
-var LayerData = function(iid, isearchFields, icount)
+    var LayerData = function(iid, isearchFields, icount)
 	{
 		this.id = iid;
 		this.searchFields = isearchFields;
 		this.count = icount;
 //		alert(this.id+":"+this.category+":"+this.count);
-		
+
 	};
 
 
 	
 var GeoExplorer = Ext.extend(gxp.Viewer, {
-    
+
+    dataLayers : [],
+
+
     /**
      * api: config[localGeoServerBaseUrl]
      * ``String`` url of the local GeoServer instance
@@ -117,7 +118,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     loginWin: null,
     
     registerWin: null,
-    
+
+    worldMapSourceKey: null,
+
     //public variables for string literals needed for localization
     addLayersButtonText: "UT:Add Layers",
     areaActionText: "UT:Area",
@@ -566,7 +569,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
            queryableLayers.each(function(x){           	
            	var dl = x.getLayer();
-               if (dl.name != "HighlightWMS" && !dataLayers[dl.params.LAYERS]){
+               if (dl.name != "HighlightWMS" && !geoEx.dataLayers[dl.params.LAYERS]){
                	  Ext.Ajax.request({
                		url: "/maps/searchfields/?" + dl.params.LAYERS,
                		method: "POST",
@@ -579,7 +582,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                            if (category == "")
                         	   category = "General";
                            x.set("group", category);
-                           dataLayers[dl.params.LAYERS] = new LayerData(dl.params.LAYERS, jsonData.searchFields, jsonData.scount);
+                           geoEx.dataLayers[dl.params.LAYERS] = new LayerData(dl.params.LAYERS, jsonData.searchFields, jsonData.scount);
                            geoEx.addCategoryFolder(category, true); 
                		},
                		failure: function(result,request) {
@@ -1470,22 +1473,35 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     },
 
 
+    reloadWorldMapSource : function(){
+        if (this.worldMapSourceKey == null)
+            this.setWorldMapSourceKey();
+        var wmsource = this.layerSources[this.worldMapSourceKey];
+        wmsource.getStore().reload();
+    },
 
-    addWorldMapLayers: function(records){
-        var wmSource = null;
-        var key = null;
+    setWorldMapSourceKey : function(){
         for (var id in this.layerSources) {
             source = this.layerSources[id];
             if ( source instanceof gxp.plugins.WMSSource &&
                     source.url.replace(this.urlPortRegEx, "$1/").indexOf(
                         this.localGeoServerBaseUrl.replace(
-                            this.urlPortRegEx, "$1/")) === 0) {
-                            wmSource = source;
-                            key = id;
+                            this.urlPortRegEx, "$1/")) === 0)
+            {
+                this.worldMapSourceKey = id;
             }
         }
+
+    },
+
+    addWorldMapLayers: function(records){
+        if (this.worldMapSourceKey == null)
+            this.setWorldMapSourceKey();
+                
+        var wmSource = this.layerSources[this.worldMapSourceKey];
         if (wmSource)
-            this.addLayerAjax(wmSource, key, records);
+            this.addLayerAjax(wmSource, this.worldMapSourceKey, records);
+
 
     },
 
@@ -1502,6 +1518,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     		url: "/maps/searchfields/?" + records[i].get("name"),
                     		method: "POST",
                     		params: {layername:records[i].get("name")},
+
                     		success: function(result,request)
                     		{
                     				var layer = request.params["layername"];
@@ -1510,6 +1527,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     					source: key,
                     					buffer: 0
                 					});
+                                    alert(layer + ":" + key );
                 					//alert(layer + " created");
                 					if (record) {
                     					if (record.get("group") === "background") {
@@ -1525,12 +1543,12 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                 			category = jsonData.category;
 	                                		if (!category || category == '')
 	                                			category = "General";
-                                			dataLayers[layer] = new LayerData(dataLayers[layer], jsonData.searchFields, jsonData.scount);
+                                			geoEx.dataLayers[layer] = new LayerData(geoEx.dataLayers[layer], jsonData.searchFields, jsonData.scount);
                                 			record.set("group",category);
                                 			layerStore.add([record]);
                                 			geoEx.addCategoryFolder(record.get("group"), "true");
                                 			geoEx.reorderNodes();
-                                			//alert("Success adding " + layer);
+                                			alert("Success adding " + layer);
                     					}
                 					}
                     		},
@@ -2711,7 +2729,7 @@ listeners: {
         id: 'worldmap_update_panel',
         title: 'Upload Layer',
         header: false,
-        autoLoad: {url: '/data/upload', scripts: true},
+        autoLoad: {url: '/data/upload/?tab=true', scripts: true},
         listeners:{
             activate : function(panel){
                 panel.getUpdater().refresh();
