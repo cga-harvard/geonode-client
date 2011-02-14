@@ -1473,11 +1473,18 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     },
 
 
-    reloadWorldMapSource : function(){
+    reloadWorldMapSource : function(layerRecords){
+        var geoEx = this;
         if (this.worldMapSourceKey == null)
             this.setWorldMapSourceKey();
         var wmsource = this.layerSources[this.worldMapSourceKey];
-        wmsource.getStore().reload();
+
+        if (layerRecords)
+            wmsource.on("ready", function() {geoEx.addWorldMapLayers(layerRecords);});
+        
+        var wmStore = wmsource.getStore();
+        wmStore.reload();
+
     },
 
     setWorldMapSourceKey : function(){
@@ -1527,8 +1534,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     					source: key,
                     					buffer: 0
                 					});
-                                    alert(layer + ":" + key );
-                					//alert(layer + " created");
+
                 					if (record) {
                     					if (record.get("group") === "background") {
                         					var pos = layerStore.queryBy(function(rec) {
@@ -1537,8 +1543,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         					layerStore.insert(pos, [record]);
 
                     					} else {
-
-                    						//alert("Success searching fields for " + layer + ":" + result.ResponseText);
                                 			var jsonData = Ext.util.JSON.decode(result.responseText);
                                 			category = jsonData.category;
 	                                		if (!category || category == '')
@@ -1548,7 +1552,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                 			layerStore.add([record]);
                                 			geoEx.addCategoryFolder(record.get("group"), "true");
                                 			geoEx.reorderNodes();
-                                			alert("Success adding " + layer);
                     					}
                 					}
                     		},
@@ -1571,6 +1574,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                 			record.set("group",category);
                                 			layerStore.add([record]);
                                 			geoEx.addCategoryFolder(record.get("group"), "true");
+                                            geoEx.reorderNodes();
                     					}
                 					}
                     		}
