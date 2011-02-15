@@ -1165,14 +1165,14 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             },
             defaults: {cls: 'legend-item'}
         });
-
+/*
         this.on("ready", function(){
             if (!this.fromLayer && !this.mapID) {
                 //this.showCapabilitiesGrid();
             	//this.showMetadataForm();
             }
         }, this);
-
+*/
         var layersTabPanel = new Ext.TabPanel({
         	anchor: "100% 95%",
             border: false,
@@ -2756,7 +2756,7 @@ listeners: {
                 region:'center',
                 items: [
                     {contentEl: 'searchDiv', title: 'WorldMap Data', autoScroll: true},
-                    this.capGrid,
+                    this.capGrid
                 ]
             });
             if (this.config["edit_map"])

@@ -40,8 +40,6 @@ GeoNode.BoundingBoxWidget = Ext.extend(Ext.util.Observable, {
                     if (this.isEnabled)
                     {
                         this.enable();
-//                        if (this.bounds)
-//                            this.viewer.mapPanel.map.zoomToExtent(this.bounds);
                     }
                 },
                 scope: this
@@ -50,7 +48,7 @@ GeoNode.BoundingBoxWidget = Ext.extend(Ext.util.Observable, {
 
         viewerConfig = Ext.apply(viewerConfig, this.viewerConfig)
 
-        this.viewer = new GeoExplorer.Viewer(viewerConfig);
+        this.viewer = new gxp.Viewer(viewerConfig);
 
 
 
