@@ -1759,7 +1759,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                  defaultMargins: {
                      top: 10,
                      bottom: 10,
-                     left: 0,
+                     left: 10,
                      right: 0
                   }
              }),
@@ -1775,7 +1775,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                  defaultMargins: {
                      top: 10,
                      bottom: 10,
-                     left: 0,
+                     left: 10,
                      right: 0
                   }
              }),
@@ -2272,6 +2272,7 @@ listeners: {
                 tooltip: this.saveMapText,
                 handler: this.showMetadataForm,
                 scope: this,
+                disabled: !this.config["edit_map"],
             	text: '<span class="x-btn-text">' + this.saveMapBtnText + '</span>'
             }),
             "-",
@@ -2452,12 +2453,12 @@ listeners: {
             listeners: {
                 "valid": function() {
                 	if (urlField.isValid()) {
-                    saveAsButton.enable();
+                    //saveAsButton.enable();
                     saveButton.enable();
                 	}
                 },
                 "invalid": function() {
-                    saveAsButton.disable();
+                    //saveAsButton.disable();
                     saveButton.disable();
                 }
             }
@@ -2525,12 +2526,12 @@ listeners: {
                 "valid": function() {
                 	if (titleField.isValid())
                 	{
-                    saveAsButton.enable();
+                    //saveAsButton.enable();
                     saveButton.enable();
                 	}
                 },
                 "invalid": function() {
-                    saveAsButton.disable();
+                    //saveAsButton.disable();
                     saveButton.disable();
                 }
             }
@@ -2538,7 +2539,7 @@ listeners: {
 
         var checkUrlBeforeSave =  function(as) {
             Ext.getCmp('gx_saveButton').disable();
-            Ext.getCmp('gx_saveAsButton').disable();
+            //Ext.getCmp('gx_saveAsButton').disable();
 
             Ext.Ajax.request({
                     url: "/maps/checkurl/",
@@ -2563,7 +2564,7 @@ listeners: {
                     		if (!isValid) {
                     			urlField.markInvalid(rt);
                                 Ext.getCmp('gx_saveButton').enable();
-                                Ext.getCmp('gx_saveAsButton').enable();
+                                //Ext.getCmp('gx_saveAsButton').enable();
                     			return false;
                     		}
                     			
@@ -2581,7 +2582,7 @@ listeners: {
                     failure: function(response, options)
                     {
                         Ext.getCmp('gx_saveButton').enable();
-                        Ext.getCmp('gx_saveAsButton').enable();
+                        //Ext.getCmp('gx_saveAsButton').enable();
                     	return false;
                     	//Ext.Msg.alert('Error', response.responseText, geoEx.showMetadataForm);
                     },                
@@ -2622,7 +2623,7 @@ listeners: {
         });
 
         metaDataPanel.enable();
-        
+       /*
         var saveAsButton = new Ext.Button({
             id: 'gx_saveAsButton',
             text: this.metadataFormSaveAsCopyText,
@@ -2639,6 +2640,8 @@ listeners: {
             },
             scope: this
         });
+        */
+
         var saveButton = new Ext.Button({
             id: 'gx_saveButton',
             text: this.metadataFormSaveText,
@@ -2660,7 +2663,7 @@ listeners: {
             autoHeight: true,
             bbar: [
                 "->",
-                saveAsButton,
+                //saveAsButton,
                 saveButton,
                 new Ext.Button({
                     text: this.metadataFormCancelText,
@@ -2876,7 +2879,7 @@ listeners: {
 
         this.metadataForm.show();
         Ext.getCmp('gx_saveButton').enable();
-        Ext.getCmp('gx_saveAsButton').enable();
+        //Ext.getCmp('gx_saveAsButton').enable();
     },
     
 
@@ -2954,7 +2957,7 @@ listeners: {
                     this.fireEvent("saved", this.mapID);
                     this.metadataForm.hide();
                     Ext.getCmp('gx_saveButton').enable();
-                    Ext.getCmp('gx_saveAsButton').enable();
+                    //Ext.getCmp('gx_saveAsButton').enable();
                 }, 
                 failure: function(response, options)
                 {	if (response.status === 401)
@@ -2962,7 +2965,7 @@ listeners: {
                 	else {
                 		Ext.Msg.alert('Error', response.responseText);
                         Ext.getCmp('gx_saveButton').enable();
-                        Ext.getCmp('gx_saveAsButton').enable();
+                        //Ext.getCmp('gx_saveAsButton').enable();
                     }
                 },                
                 scope: this
