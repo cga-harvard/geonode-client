@@ -2757,10 +2757,12 @@ listeners: {
                 items: [
                     {contentEl: 'searchDiv', title: 'WorldMap Data', autoScroll: true},
                     this.capGrid,
-                    this.uploadPanel
                 ]
             });
-
+            if (this.config["edit_map"])
+            {
+                this.dataTabPanel.add(this.uploadPanel)
+            }
 
     },
 
@@ -2808,7 +2810,7 @@ listeners: {
             this.initCapGrid();
         }
 
-        if (!this.uploadPanel)
+        if (!this.uploadPanel && this.config["edit_map"])
         {
             this.initUploadPanel();
         }
