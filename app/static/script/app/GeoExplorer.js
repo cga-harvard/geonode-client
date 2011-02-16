@@ -677,7 +677,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         // TODO: make a proper component out of this
         var mapOverlay = this.createMapOverlay();
         this.mapPanel.add(mapOverlay);
-        
+
 
 //        var overlayTools = this.createOverlayTools();
 //    	this.mapPanel.add(overlayTools);
@@ -2779,8 +2779,9 @@ listeners: {
          proxy: "/proxy/?url=",
          viewerConfig: this.getState(),
          renderTo: 'refine',
-         height: 250,
-         isEnabled: true
+         height: 275,
+         isEnabled: true,
+         useGxpViewer: true
         });
 
         this.searchTable = new GeoNode.SearchTable({

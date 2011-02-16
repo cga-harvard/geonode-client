@@ -68,7 +68,7 @@ GeoExplorer.Viewer = Ext.extend(GeoExplorer, {
             this.mapPanelContainer
         ];
         
-        GeoExplorer.superclass.initPortal.apply(this, arguments);        
+        GeoExplorer.superclass.initPortal.apply(this, arguments);
 
     },
     
