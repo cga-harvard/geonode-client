@@ -20,6 +20,7 @@ GeoNode.SearchTable = Ext.extend(Ext.util.Observable, {
     remoteTooltip: 'UT: Remote Data',
 
     searchOnLoad: true,
+    linkableTitle: true,
 
     constructor: function(config) {
         this.addEvents('load'); 
@@ -237,7 +238,7 @@ GeoNode.SearchTable = Ext.extend(Ext.util.Observable, {
                             detail = '';
                         }
                     }
-                    if (detail) {
+                    if (detail && this.linkableTitle) {
                         detail = '<a href="' + detail + '">' + value + '</a>';
                     }
                     else {

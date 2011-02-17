@@ -2822,7 +2822,7 @@ listeners: {
 
         this.searchWindow = new Ext.Window({
             id: 'ge_searchWindow',
-            title: "Search Available Layers",
+            title: "Add Layers",
             closeAction: 'hide',
             layout: 'fit',
             width: 850,
