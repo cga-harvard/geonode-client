@@ -2435,7 +2435,7 @@ listeners: {
                                         linkUrl: this.rest + 'permalink/' + encodedPermalinkId,
                                         linkMessage: '<span style="font-size:10pt;">Paste link in email or IM:</span>',
                                         publishMessage: '<span style="font-size:10pt;">Paste HTML to embed in website:</span>',
-                                        url: this.rest + this.rest + 'permalink/' + encodedPermalinkId + "/embed"
+                                        url: this.rest + 'permalink/' + encodedPermalinkId + "/embed"
                                     }]
                                     }).show();
                     	}
