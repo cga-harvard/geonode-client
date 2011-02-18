@@ -2264,7 +2264,6 @@ listeners: {
                 handler: this.makeExportDialog,
                 scope: this,
                 text: '<span class="x-btn-text">' + this.publishBtnText + '</span>',
-                disabled: !this.mapID
             });
 
         var tools = [
@@ -2414,24 +2413,40 @@ listeners: {
      * Create a dialog providing the HTML snippet to use for embedding the 
      * (persisted) map, etc. 
      */
-    makeExportDialog: function() { 
-        new Ext.Window({
-            title: this.publishActionText,
-            layout: "fit",
-            width: 380,
-            autoHeight: true,
-            items: [{
-                xtype: "gx_linkembedmapdialog",
-                linkUrl: this.rest + (this.about["urlsuffix"] ? this.about["urlsuffix"]: this.mapID),
-                linkMessage: '<span style="font-size:10pt;">Paste link in email or IM:</span>',
-                publishMessage: '<span style="font-size:10pt;">Paste HTML to embed in website:</span>',
-                url: this.rest + (this.about["urlsuffix"] ? this.about["urlsuffix"]: this.mapID) + "/embed"
-            }]
-        }).show();
-        
-       if (this.modified){
-       	  Ext.Msg.alert('Your Map Is Not Saved', 'You have unsaved changes to your map.  This link will display your map only in it\'s last saved state');
-       }
+    makeExportDialog: function() {
+
+        var mapConfig = this.getState();
+        mapConfig['mapid'] = this.UniqueMapId ? this.uniqueMapId : 0;
+
+     		   Ext.Ajax.request({
+                    url: "/maps/permalink/create",
+                    method: 'POST',
+                    jsonData: mapConfig,
+                    success: function(response, options) {
+                    	var encodedPermalinkId = response.responseText;
+                    	if (encodedPermalinkId != null) {
+                                    new Ext.Window({
+                                    title: this.publishActionText,
+                                    layout: "fit",
+                                    width: 380,
+                                    autoHeight: true,
+                                    items: [{
+                                        xtype: "gx_linkembedmapdialog",
+                                        linkUrl: this.rest + 'permalink/' + encodedPermalinkId,
+                                        linkMessage: '<span style="font-size:10pt;">Paste link in email or IM:</span>',
+                                        publishMessage: '<span style="font-size:10pt;">Paste HTML to embed in website:</span>',
+                                        url: this.rest + this.rest + 'permalink/' + encodedPermalinkId + "/embed"
+                                    }]
+                                    }).show();
+                    	}
+                    },
+                    failure: function(response, options)
+                    {
+                    	return false;
+                    	Ext.Msg.alert('Error', response.responseText, this.showMetadataForm);
+                    },
+                    scope: this
+                });
     },
 
 
