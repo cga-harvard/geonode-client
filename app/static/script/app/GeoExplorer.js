@@ -2422,7 +2422,6 @@ listeners: {
         for (x = 0; x < this.treeRoot.firstChild.childNodes.length; x++)
         {
         	node = this.treeRoot.firstChild.childNodes[x];
-            if (node.firstChild != null)
         	    treeConfig.push({group : node.text, expanded:  node.expanded.toString()  });
         }
 
@@ -2940,7 +2939,6 @@ listeners: {
         for (x = 0; x < this.treeRoot.firstChild.childNodes.length; x++)
         {
         	node = this.treeRoot.firstChild.childNodes[x];
-            if (node.firstChild != null)
         	    treeConfig.push({group : node.text, expanded:  node.expanded.toString()  });
         }
 
