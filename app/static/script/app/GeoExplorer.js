@@ -2418,6 +2418,19 @@ listeners: {
         var mapConfig = this.getState();
         mapConfig['mapid'] = this.UniqueMapId ? this.uniqueMapId : 0;
 
+        var treeConfig = [];
+        for (x = 0; x < this.treeRoot.firstChild.childNodes.length; x++)
+        {
+        	node = this.treeRoot.firstChild.childNodes[x];
+            if (node.firstChild != null)
+        	    treeConfig.push({group : node.text, expanded:  node.expanded.toString()  });
+        }
+
+
+
+        mapConfig['treeconfig'] = treeConfig;
+
+
      		   Ext.Ajax.request({
                     url: "/maps/permalink/create",
                     method: 'POST',
@@ -2927,7 +2940,8 @@ listeners: {
         for (x = 0; x < this.treeRoot.firstChild.childNodes.length; x++)
         {
         	node = this.treeRoot.firstChild.childNodes[x];
-        	treeConfig.push({group : node.text, expanded:  node.expanded.toString()  });
+            if (node.firstChild != null)
+        	    treeConfig.push({group : node.text, expanded:  node.expanded.toString()  });
         }
 
 
