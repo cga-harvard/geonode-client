@@ -613,7 +613,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         GeoExplorer.superclass.initMapPanel.apply(this, arguments);
         var searchFields = this.searchFields;
         var layerCount = 0;
-        
+
 
 
         
@@ -677,10 +677,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         // TODO: make a proper component out of this
         var mapOverlay = this.createMapOverlay();
         this.mapPanel.add(mapOverlay);
-
-
-//        var overlayTools = this.createOverlayTools();
-//    	this.mapPanel.add(overlayTools);
 
 
     	
@@ -915,24 +911,10 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 this.propDlgCache[node.layer.id].items.get(0).setActiveTab(1);
             }, this),
             scope: this
-//            listeners: {
-//                "enable": function() {showStylesAction.enable()},
-//                "disable": function() {showStylesAction.disable()}
-//            }
         });
 
 
-//        var showStylesAction = new Ext.Action({
-//            text: this.layerStylesText,
-//            iconCls: "icon-layerstyles",
-//            disabled: true,
-//            tooltip: this.layerStylesTipText,
-//            handler: createPropertiesDialog.createSequence(function() {
-//                var node = layerTree.getSelectionModel().getSelectedNode();
-//                this.propDlgCache[node.layer.id].items.get(0).setActiveTab(2);
-//            }, this),
-//            scope: this
-//        });
+
 
         var updateLayerActions = function(sel, node) {
             if(node && node.layer) {
@@ -1312,7 +1294,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         ];
         
         GeoExplorer.superclass.initPortal.apply(this, arguments);
-        
+
         if (this.config.treeconfig != undefined)
     	{
     		for (x = 0; x < this.config.treeconfig.length; x++)
@@ -2264,8 +2246,18 @@ listeners: {
                 handler: this.makeExportDialog,
                 scope: this,
                 text: '<span class="x-btn-text">' + this.publishBtnText + '</span>',
+                disabled: !this.mapID
             });
 
+/*
+        var historyAction = new Ext.Action({
+                tooltip: 'Map History',
+                handler: this.showHistory,
+                scope: this,
+                text: '<span class="x-btn-text">' + 'History' + '</span>',
+                disabled: !this.mapID
+            });
+*/
         var tools = [
             new Ext.Button({
                 tooltip: this.saveMapText,
@@ -2416,8 +2408,6 @@ listeners: {
     makeExportDialog: function() {
 
         var mapConfig = this.getState();
-        mapConfig['mapid'] = this.UniqueMapId ? this.uniqueMapId : 0;
-
         var treeConfig = [];
         for (x = 0; x < this.treeRoot.firstChild.childNodes.length; x++)
         {
@@ -2431,12 +2421,12 @@ listeners: {
 
 
      		   Ext.Ajax.request({
-                    url: "/maps/permalink/create",
+                    url: "/maps/snapshot/create",
                     method: 'POST',
                     jsonData: mapConfig,
                     success: function(response, options) {
-                    	var encodedPermalinkId = response.responseText;
-                    	if (encodedPermalinkId != null) {
+                    	var encodedSnapshotId = response.responseText;
+                    	if (encodedSnapshotId != null) {
                                     new Ext.Window({
                                     title: this.publishActionText,
                                     layout: "fit",
@@ -2444,10 +2434,10 @@ listeners: {
                                     autoHeight: true,
                                     items: [{
                                         xtype: "gx_linkembedmapdialog",
-                                        linkUrl: this.rest + 'permalink/' + encodedPermalinkId,
+                                        linkUrl: this.rest + (this.about["urlsuffix"] ? this.about["urlsuffix"]: this.mapID) +  '/' + encodedSnapshotId,
                                         linkMessage: '<span style="font-size:10pt;">Paste link in email or IM:</span>',
                                         publishMessage: '<span style="font-size:10pt;">Paste HTML to embed in website:</span>',
-                                        url: this.rest + 'permalink/' + encodedPermalinkId + "/embed"
+                                        url: this.rest + (this.about["urlsuffix"] ? this.about["urlsuffix"]: this.mapID) + '/' + encodedSnapshotId + "/embed"
                                     }]
                                     }).show();
                     	}
@@ -2460,9 +2450,29 @@ listeners: {
                     scope: this
                 });
     },
+/*
+    showHistory: function() {
+                var map_id = this.mapID;
+             	Ext.Ajax.request({
+                    url: "/maps/history/",
+                    method: 'POST',
+                    params : {mapid: map_id},
+                    success: function(response, options) {
+                    	var snapshots = response.responseText;
+                    	if (snapshots != null) {
+                               Ext.Msg.alert('History', response.responseText)
+                    	}
+                    },
+                    failure: function(response, options)
+                    {
+                    	return false;
+                    	Ext.Msg.alert('Error', response.responseText);
+                    },
+                    scope: this
+                });
 
-
-    
+    },
+*/
     /** private: method[initMetadataForm]
      *
      * Initialize metadata entry form.
@@ -2577,7 +2587,7 @@ listeners: {
                     	var rt = "";
                     	var isValid=true;
                     	if (urlcount > 0) {
-                    		rt = "The following URL's are already taken:";
+                    		rt = "The following URL's are unavailable:";
                     		var urls = Ext.decode(response.responseText).urls;
                     		
                     		for (var u in urls) {
