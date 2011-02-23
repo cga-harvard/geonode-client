@@ -2269,10 +2269,11 @@ listeners: {
             "-",
             publishAction,
             "-",
-            printButton, "-", infoButton,"-",historyAction,
-            "-",
+            printButton, "-", infoButton,"-",
             jumpBar,
             '->',
+            historyAction,
+            "-",
             shareMapButton,"-",
             helpButton
             ];

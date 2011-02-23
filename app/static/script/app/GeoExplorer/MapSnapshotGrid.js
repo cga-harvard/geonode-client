@@ -30,7 +30,11 @@ var store = new Ext.data.JsonStore({
     url: '/maps/history/' + mapid,
     fields: [{name:'created', type: 'date'}, 'user', 'url', 'map'],
     idProperty: 'url',
-    root: ''
+    root: '',
+    sortInfo: {
+        field: 'created',
+        direction: 'DESC' // or 'DESC' (case sensitive for local sorting)
+    }
 });
 
     var renderDate = function(value, p, record){
@@ -49,7 +53,6 @@ var store = new Ext.data.JsonStore({
 var grid = new Ext.grid.GridPanel({
         width:400,
         height:300,
-        title:'Map Revision History',
         store: store,
         trackMouseOver:false,
 
