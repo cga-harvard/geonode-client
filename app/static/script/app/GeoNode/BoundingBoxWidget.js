@@ -55,7 +55,7 @@ GeoNode.BoundingBoxWidget = Ext.extend(Ext.util.Observable, {
             viewerConfig.mapItems = [{
                 xtype: "gx_zoomslider",
                 vertical: true,
-                height: 100,
+                height: 100
             }];
             this.viewer = new gxp.Viewer(viewerConfig);
         }

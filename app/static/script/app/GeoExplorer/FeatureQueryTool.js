@@ -82,8 +82,8 @@ GeoExplorer.FeatureQueryTool =  function(geoExplorer, queryPanelName, gridPanelN
 
     								featureInfo.title = x.get("title");
 
-    								if (dataLayers[dl.params.LAYERS] && dataLayers[dl.params.LAYERS].searchFields.length > 0) {
-    									featureInfo.queryfields = dataLayers[dl.params.LAYERS].searchFields;
+    								if (target.dataLayers[dl.params.LAYERS] && target.dataLayers[dl.params.LAYERS].searchFields.length > 0) {
+    									featureInfo.queryfields = target.dataLayers[dl.params.LAYERS].searchFields;
     									featureInfo.nameField = featureInfo.queryfields[0].attribute;
     								} else if (featureInfo.length > 0){
 
