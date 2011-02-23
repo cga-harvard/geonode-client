@@ -2233,7 +2233,7 @@ listeners: {
         var shareMapButton = new Ext.Button({
                 id: 'shareMapButton',
                 text: '<span class="x-btn-text">' + this.shareMapText + '</span>',
-                handler: advancedToolsLink,
+                handler: this.initMapShareWindow,
                 cls: 'x-btn-link-medium',
                 hidden: !this.config["edit_map"],
                 disabled: !this.mapID,
@@ -2454,26 +2454,6 @@ listeners: {
 
     showHistory: function() {
         historyWindow = new GeoExplorer.MapSnapshotGrid(this.mapID);
-        /*        var map_id = this.mapID;
-             	Ext.Ajax.request({
-                    url: "/maps/history/",
-                    method: 'POST',
-                    params : {mapid: map_id},
-                    success: function(response, options) {
-                    	var snapshots = response.responseText;
-                    	if (snapshots != null) {
-                               Ext.Msg.alert('History', response.responseText)
-                    	}
-                    },
-                    failure: function(response, options)
-                    {
-                    	return false;
-                    	Ext.Msg.alert('Error', response.responseText);
-                    },
-                    scope: this
-                });
-                */
-
     },
 
     /** private: method[initMetadataForm]
@@ -2806,6 +2786,32 @@ listeners: {
 
     },
 
+    initMapShareWindow: function() {
+
+        
+        var mapSharePanel = new Ext.Panel({
+            id: 'worldmap_mapshare_panel',
+            title: 'Share Map',
+            header: false,
+            autoLoad: {url: '/maps/' + this.mapID + '/share/', scripts: true},
+            autoScroll: true
+        });
+
+        var mapShareWindow = new Ext.Window({
+            title: "Share Map",
+            closeAction: 'destroy',
+            layout: 'fit',
+            width: 300,
+            height:400,
+            items: [mapSharePanel],
+            modal: true,
+            autoScroll: false,
+            bodyStyle: 'background-color:#FFF'
+        });
+
+        mapShareWindow.show();
+
+    },
 
 
 
