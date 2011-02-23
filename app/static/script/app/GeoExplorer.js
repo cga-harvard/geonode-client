@@ -2249,7 +2249,7 @@ listeners: {
                 disabled: !this.mapID
             });
 
-/*
+
         var historyAction = new Ext.Action({
                 tooltip: 'Map History',
                 handler: this.showHistory,
@@ -2257,7 +2257,7 @@ listeners: {
                 text: '<span class="x-btn-text">' + 'History' + '</span>',
                 disabled: !this.mapID
             });
-*/
+
         var tools = [
             new Ext.Button({
                 tooltip: this.saveMapText,
@@ -2269,7 +2269,7 @@ listeners: {
             "-",
             publishAction,
             "-",
-            printButton, "-", infoButton,
+            printButton, "-", infoButton,"-",historyAction,
             "-",
             jumpBar,
             '->',
@@ -2450,9 +2450,10 @@ listeners: {
                     scope: this
                 });
     },
-/*
+
     showHistory: function() {
-                var map_id = this.mapID;
+        historyWindow = new GeoExplorer.MapSnapshotGrid(this.mapID);
+        /*        var map_id = this.mapID;
              	Ext.Ajax.request({
                     url: "/maps/history/",
                     method: 'POST',
@@ -2470,9 +2471,10 @@ listeners: {
                     },
                     scope: this
                 });
+                */
 
     },
-*/
+
     /** private: method[initMetadataForm]
      *
      * Initialize metadata entry form.
