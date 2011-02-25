@@ -2272,8 +2272,6 @@ listeners: {
             printButton, "-", infoButton,"-",
             jumpBar,
             '->',
-            historyAction,
-            "-",
             shareMapButton,"-",
             helpButton
             ];
