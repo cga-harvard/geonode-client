@@ -1460,9 +1460,15 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         if (this.worldMapSourceKey == null)
             this.setWorldMapSourceKey();
         var wmsource = this.layerSources[this.worldMapSourceKey];
+        
+
+        var addUploadedLayer = function() {
+            geoEx.addWorldMapLayers(layerRecords);
+            wmsource.un('ready', addUploadedLayer, this)
+        }
 
         if (layerRecords)
-            wmsource.on("ready", function() {geoEx.addWorldMapLayers(layerRecords);});
+            wmsource.on("ready", addUploadedLayer, this);
         
         var wmStore = wmsource.getStore();
         wmStore.reload();
@@ -1619,7 +1625,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             var layerStore = this.mapPanel.layers;
             var source = this.layerSources[key];
             var records = capGridPanel.getSelectionModel().getSelections();
-            //alert(records.length);
             this.addLayerAjax(source, key, records);
         };
 
