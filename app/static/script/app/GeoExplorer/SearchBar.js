@@ -89,7 +89,7 @@ GeoExplorer.SearchBar =  function(target) {
             var firstLayer;
             queryableLayers.each(function(x){
             	dl = x.getLayer();
-            	if (!dl.getVisibility() || dataLayers[dl.params.LAYERS].count == 0)
+            	if (!dl.getVisibility() || target.dataLayers[dl.params.LAYERS].count == 0)
             		{queryableLayers.remove(x, true);}
                 else
                     firstLayer = dl;
@@ -135,9 +135,9 @@ GeoExplorer.SearchBar =  function(target) {
             		
             		var wms_url = dl.url;
             			queryFields = [];
-            			for (f=0; f < dataLayers[dl.params.LAYERS].searchFields.length; f++)
+            			for (f=0; f < target.dataLayers[dl.params.LAYERS].searchFields.length; f++)
             			{
-            				field = dataLayers[dl.params.LAYERS].searchFields[f]
+            				field = target.dataLayers[dl.params.LAYERS].searchFields[f]
             				
             				if (field.searchable == "True") {
             					queryFields.push(field.attribute);
