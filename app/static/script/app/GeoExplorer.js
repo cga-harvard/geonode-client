@@ -1480,8 +1480,13 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var wmsource = this.layerSources[this.worldMapSourceKey];
 
 
+        var addUploadedLayer = function() {
+            geoEx.addWorldMapLayers(layerRecords);
+            wmsource.un('ready', addUploadedLayer, this)
+        }
+
         if (layerRecords)
-            wmsource.on("ready", function() {geoEx.addWorldMapLayers(layerRecords);});
+            wmsource.on("ready", addUploadedLayer, this);
 
         var wmStore = wmsource.getStore();
         wmStore.reload();
@@ -1509,7 +1514,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var wmSource = this.layerSources[this.worldMapSourceKey];
         if (wmSource)
             this.addLayerAjax(wmSource, this.worldMapSourceKey, records);
-
 
 
     },
@@ -1585,7 +1589,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
 
                     }
-                    this.searchTable.dataCart.removeAll();
 
     },
 
@@ -1640,7 +1643,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             var layerStore = this.mapPanel.layers;
             var source = this.layerSources[key];
             var records = capGridPanel.getSelectionModel().getSelections();
-            //alert(records.length);
             this.addLayerAjax(source, key, records);
         };
 
@@ -2254,7 +2256,7 @@ listeners: {
         var shareMapButton = new Ext.Button({
                 id: 'shareMapButton',
                 text: '<span class="x-btn-text">' + this.shareMapText + '</span>',
-                handler: advancedToolsLink,
+                handler: this.initMapShareWindow,
                 cls: 'x-btn-link-medium',
                 hidden: !this.config["edit_map"],
                 disabled: !this.mapID,
@@ -2418,25 +2420,50 @@ listeners: {
      * (persisted) map, etc.
      */
     makeExportDialog: function() {
-        new Ext.Window({
-            title: this.publishActionText,
-            layout: "fit",
-            width: 380,
-            autoHeight: true,
-            items: [{
-                xtype: "gx_linkembedmapdialog",
-                linkUrl: this.rest + (this.about["urlsuffix"] ? this.about["urlsuffix"]: this.mapID),
-                linkMessage: '<span style="font-size:10pt;">Paste link in email or IM:</span>',
-                publishMessage: '<span style="font-size:10pt;">Paste HTML to embed in website:</span>',
-                url: this.rest + (this.about["urlsuffix"] ? this.about["urlsuffix"]: this.mapID) + "/embed"
-            }]
-        }).show();
 
-       if (this.modified){
-       	  Ext.Msg.alert('Your Map Is Not Saved', 'You have unsaved changes to your map.  This link will display your map only in it\'s last saved state');
-       }
+        var mapConfig = this.getState();
+        var treeConfig = [];
+        for (x = 0; x < this.treeRoot.firstChild.childNodes.length; x++)
+        {
+        	node = this.treeRoot.firstChild.childNodes[x];
+        	    treeConfig.push({group : node.text, expanded:  node.expanded.toString()  });
+        }
+
+
+
+        mapConfig['treeconfig'] = treeConfig;
+
+
+     		   Ext.Ajax.request({
+                    url: "/maps/snapshot/create",
+                    method: 'POST',
+                    jsonData: mapConfig,
+                    success: function(response, options) {
+                    	var encodedSnapshotId = response.responseText;
+                    	if (encodedSnapshotId != null) {
+                                    new Ext.Window({
+                                    title: this.publishActionText,
+                                    layout: "fit",
+                                    width: 380,
+                                    autoHeight: true,
+                                    items: [{
+                                        xtype: "gx_linkembedmapdialog",
+                                        linkUrl: this.rest + (this.about["urlsuffix"] ? this.about["urlsuffix"]: this.mapID) +  '/' + encodedSnapshotId,
+                                        linkMessage: '<span style="font-size:10pt;">Paste link in email or IM:</span>',
+                                        publishMessage: '<span style="font-size:10pt;">Paste HTML to embed in website:</span>',
+                                        url: this.rest + (this.about["urlsuffix"] ? this.about["urlsuffix"]: this.mapID) + '/' + encodedSnapshotId + "/embed"
+                                    }]
+                                    }).show();
+                    	}
+                    },
+                    failure: function(response, options)
+                    {
+                    	return false;
+                    	Ext.Msg.alert('Error', response.responseText, this.showMetadataForm);
+                    },
+                    scope: this
+                });
     },
-
 
 
     /** private: method[initMetadataForm]
