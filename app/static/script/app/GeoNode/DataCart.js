@@ -71,15 +71,20 @@ GeoNode.DataCart = Ext.extend(Ext.util.Observable, {
             cls: 'x-btn-link-medium x-btn-text'
         });
 
-
+        var clearAll = function() {
+            this.store.removeAll();
+            this.store.reselect();
+        };
 
         if (this.addToMapButtonFunction) {
             var addToMapFunction = this.addToMapButtonFunction;
             var addToMapTarget = this.addToMapButtonTarget;
             var dataGrid = this.grid;
+            var dataCart = this;
             
             addToMapButton.on('click', function() {
             addToMapFunction.call(addToMapTarget, dataGrid.getSelectionModel().getSelections());
+            clearAll.call(dataCart);
         });
         }
 
@@ -97,14 +102,12 @@ GeoNode.DataCart = Ext.extend(Ext.util.Observable, {
             this.store.reselect();
         }, this);
 
+
         
         var clearAllButton = new Ext.Button({
             text: this.clearAllButtonText
         });
-        clearAllButton.on('click', function() {
-            this.store.removeAll();
-            this.store.reselect();
-        }, this);
+        clearAllButton.on('click', clearAll, this);
 
         var spacer = new Ext.Spacer({
             width:20

@@ -65,6 +65,7 @@ GeoNode.SearchTable = Ext.extend(Ext.util.Observable, {
         if (this.searchOnLoad)
             this.doSearch();
     },
+
     
     initFromQuery: function() {
         if (!this.searchParams) {
