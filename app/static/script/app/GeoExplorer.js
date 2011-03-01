@@ -2796,6 +2796,32 @@ listeners: {
 
     },
 
+    initMapShareWindow: function() {
+
+
+        var mapSharePanel = new Ext.Panel({
+            id: 'worldmap_mapshare_panel',
+            title: 'Share Map',
+            header: false,
+            autoLoad: {url: '/maps/' + this.mapID + '/share/', scripts: true},
+            autoScroll: true
+        });
+
+        var mapShareWindow = new Ext.Window({
+            title: "Share Map",
+            closeAction: 'destroy',
+            layout: 'fit',
+            width: 300,
+            height:400,
+            items: [mapSharePanel],
+            modal: true,
+            autoScroll: false,
+            bodyStyle: 'background-color:#FFF'
+        });
+
+        mapShareWindow.show();
+
+    },
 
 
 
