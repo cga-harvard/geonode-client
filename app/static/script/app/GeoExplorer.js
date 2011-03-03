@@ -891,6 +891,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                     });
                                     stylesPanel.setTitle("Styles");
                                     // add styles tab
+                                    prop.items.get(0).remove(prop.items.get(0).items.get(2),true);
                                     prop.items.get(0).add(stylesPanel)
                                 }
 
