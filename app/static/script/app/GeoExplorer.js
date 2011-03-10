@@ -869,6 +869,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     	prop.items.get(0).items.get(0).add({html: "<a href='/data/" + layer.params.LAYERS + "'>" + this.shareLayerText + "</a>", xtype: "panel"});
                     }
 
+                    //Don't show style dialog unless editable for now
+                    prop.items.get(0).remove(prop.items.get(0).items.get(2),true);
+
                     var geoEx = this;
 
                     Ext.Ajax.request({
@@ -891,7 +894,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                     });
                                     stylesPanel.setTitle("Styles");
                                     // add styles tab
-                                    prop.items.get(0).remove(prop.items.get(0).items.get(2),true);
+
                                     prop.items.get(0).add(stylesPanel)
                                 }
 
