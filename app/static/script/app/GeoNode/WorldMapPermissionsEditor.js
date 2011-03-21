@@ -204,10 +204,11 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
     // write out permissions to a JSON string, suitable for sending back to the mothership
     writePermissions: function() {
         var anonymousPermissions, authenticatedPermissions, customPermissions, perUserPermissions;
+
         if (this.viewMode === 'ANYONE') {
             anonymousPermissions = this.levels['readonly'];
         } else {
-            anonymousPermissions = this.levels['_none'];
+            anonymousPermissions = this.levels['none'];
         }
 
 
@@ -215,16 +216,16 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
         if (this.editMode === 'CUSTOM') {
             customPermissions = this.levels['readwrite'];
             if (this.viewMode === 'CUSTOM') {
-                authenticatedPermissions = this.levels['_none'];
+                authenticatedPermissions = this.levels['none'];
             } else if (this.viewMode === 'REGISTERED') {
                 authenticatedPermissions = this.levels['readonly'];
             } else {
-                authenticatedPermissions = this.levels['_none'];
+                authenticatedPermissions = this.levels['none'];
             }
         }
         else if (this.viewMode === 'CUSTOM') {
             customPermissions = this.levels['readonly'];
-            authenticatedPermissions = this.levels['_none'];
+            authenticatedPermissions = this.levels['none'];
         }
         else if (this.editMode === 'REGISTERED') {
             authenticatedPermissions = this.levels['readwrite'];
@@ -235,8 +236,8 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
             customPermissions = this.levels['readonly'];
         }
         else {
-            authenticatedPermissions = this.levels['_none'];
-            customPermissions = this.levels['_none'];
+            authenticatedPermissions = this.levels['none'];
+            customPermissions = this.levels['none'];
         }
 
 

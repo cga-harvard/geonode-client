@@ -27,7 +27,7 @@ GeoNode.UserEmailSelector = Ext.extend(Ext.util.Observable, {
             this.store = new Ext.data.ArrayStore({
                 idIndex: 0,
                 fields: ['email'],
-                data: [],
+                data: []
             });
         }
     },
