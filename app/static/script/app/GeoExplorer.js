@@ -3039,7 +3039,7 @@ listeners: {
         }
 
         this.metadataForm.show();
-        Ext.getCmp('gx_saveButton').enable();
+        //Ext.getCmp('gx_saveButton').enable();
         //Ext.getCmp('gx_saveAsButton').enable();
     },
 

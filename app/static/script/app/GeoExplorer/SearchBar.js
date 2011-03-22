@@ -153,7 +153,7 @@ GeoExplorer.SearchBar =  function(target) {
             			for (i = 0; i < queryFields.length; i++)
             				{
             					if (queryFields[i] != "")
-            						featureQuery = featureQuery + '<ogc:PropertyIsLike wildCard="*" singleChar="." escapeChar="!"><ogc:PropertyName>' + queryFields[i] + '</ogc:PropertyName><ogc:Literal>' + searchTerm + '*</ogc:Literal></ogc:PropertyIsLike>';
+            						featureQuery = featureQuery + '<ogc:PropertyIsLike wildCard="*" singleChar="." escapeChar="!"><ogc:PropertyName>' + queryFields[i] + '</ogc:PropertyName><ogc:Literal>*' + searchTerm + '*</ogc:Literal></ogc:PropertyIsLike>';
             				}
             			if (queryFields.length > 1)
             				{
@@ -186,8 +186,8 @@ GeoExplorer.SearchBar =  function(target) {
             				}
             		}
 
-            
-            target.mapPanel.map.addLayers(layers);  
+
+            target.mapPanel.map.addLayers(layers);
             } catch (e) {
             	//Suppress for now
             } finally {
