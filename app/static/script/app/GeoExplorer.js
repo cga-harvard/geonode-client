@@ -567,7 +567,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
 
 
-           queryableLayers.each(function(x){           	
+           queryableLayers.each(function(x){
            	var dl = x.getLayer();
                if (dl.name != "HighlightWMS" && !geoEx.dataLayers[dl.params.LAYERS]){
                	  Ext.Ajax.request({
@@ -2036,6 +2036,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var picasaRecord = null;
 		var youtubeOverlay = new GeoExplorer.YouTubeFeedOverlay(this);
         var youtubeRecord = null;
+        var hglPointsOverlay = new GeoExplorer.HglFeedOverlay(this);
+        var hglRecord= null;
+
 
 
         var printButton = new Ext.Button({
@@ -2190,6 +2193,21 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             			}
         };
 
+        var hglMenuItem = {
+            	 text: 'Harvard Geospatial Library',
+            	 scope:this,
+            	 checkHandler: function(menuItem, checked) {
+            					if(checked) {
+            						if (hglPointsOverlay.hglRecord !== null) {
+            							hglPointsOverlay.removeOverlay();
+            						}
+									hglPointsOverlay.createOverlay();
+            					} else {
+            						hglPointsOverlay.removeOverlay();
+            			            //picasaRecord.getLayer().setVisibility(false);
+            					}
+            			}
+        };
 
        var moreButton = new Ext.Button({
        	text: 'More...',
@@ -2202,7 +2220,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
        		items: [
        			picasaMenuItem,
-    			youtubeMenuItem
+    			youtubeMenuItem,
+                hglMenuItem
        		]
        	}
        });
