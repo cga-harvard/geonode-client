@@ -7,7 +7,7 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
     // CUSTOMGROUP - all uses in the custom group can view
     viewMode: 'EDITORS',
 
-    customGroup: 'Organization',
+    customGroup: '',
 
     // how do we determine permissions for editing? one of:
     // REGISTERED - all logged-in users can edit
@@ -81,17 +81,26 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
     },
 
     buildViewPermissionChooser: function() {
+
+        var radioItems = [
+                    { xtype: 'radio', name: 'viewmode', inputValue: 'ANYONE', boxLabel: gettext( 'Anyone')},
+                    { xtype: 'radio', name: 'viewmode', inputValue: 'REGISTERED', boxLabel: gettext('Any registered user')}
+        ];
+
+        if (this.customGroup)
+        {
+            radioItems.push({ xtype: 'radio', name: 'viewmode', inputValue: 'CUSTOM', boxLabel: this.customGroup});
+        }
+
+        radioItems.push({ xtype: 'radio', name: 'viewmode', inputValue: 'EDITORS', boxLabel: gettext('Only users who can edit')});
+
+
         return new Ext.Panel({
             border: false,
             bwrapCfg: { tag: 'p' },
             items: [
                 {html: "<strong>" + gettext("Who can view or download this?") + "</strong>", flex: 1, border: false},
-                { xtype: 'radiogroup', columns: 1, value: this.viewMode, items: [
-                    { xtype: 'radio', name: 'viewmode', inputValue: 'ANYONE', boxLabel: gettext( 'Anyone')},
-                    { xtype: 'radio', name: 'viewmode', inputValue: 'REGISTERED', boxLabel: gettext('Any registered user')},
-                    { xtype: 'radio', name: 'viewmode', inputValue: 'CUSTOM', boxLabel: this.customGroup},
-                    { xtype: 'radio', name: 'viewmode', inputValue: 'EDITORS', boxLabel: gettext('Only users who can edit')}
-                ], listeners: {
+                { xtype: 'radiogroup', columns: 1, value: this.viewMode, items: radioItems, listeners: {
                     change: function(grp, checked) {
                         this.viewMode = checked.inputValue;
                         this.fireEvent("updated", this);
@@ -120,16 +129,26 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
 
         this.editorChooser.setDisabled(this.editMode !== 'LIST');
 
+        var radioItems = [
+                    { xtype: 'radio', name: 'editmode', inputValue: 'ANYONE', boxLabel: gettext( 'Anyone')},
+                    { xtype: 'radio', name: 'editmode', inputValue: 'REGISTERED', boxLabel: gettext('Any registered user')}
+        ];
+
+        if (this.customGroup)
+        {
+            radioItems.push({ xtype: 'radio', name: 'editmode', inputValue: 'CUSTOM', boxLabel: this.customGroup});
+        }
+
+        radioItems.push({ xtype: 'radio', name: 'editmode', inputValue: 'EDITORS', boxLabel: gettext('Only users who can edit')});
+
+
         return new Ext.Panel({
             border: false,
             bwrapCfg: { tag: 'p' },
             items: [
                 {html: "<strong>" +  gettext('Who can edit this?') + "</strong>", flex: 1, border: false},
-                { xtype: 'radiogroup', columns: 1, value: this.editMode, items: [
-                    { xtype: 'radio', name: 'editmode', inputValue: 'REGISTERED', boxLabel: gettext('Any registered user')},
-                    { xtype: 'radio', name: 'editmode', inputValue: 'CUSTOM', boxLabel: this.customGroup},
-                    { xtype: 'radio', name: 'editmode', inputValue: 'LIST', boxLabel: gettext('Only the following users or groups:')}
-                ], listeners: {
+                { xtype: 'radiogroup', columns: 1, value: this.editMode, items: radioItems,
+                  listeners: {
                     change: function(grp, checked) {
                         this.editMode = checked.inputValue;
                         this.editorChooser.setDisabled(this.editMode !== 'LIST');
@@ -175,7 +194,8 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
             this.editMode = 'REGISTERED';
         } else if (json['customgroup'] == this.levels['readwrite']) {
             this.editMode = 'CUSTOM';
-        }
+        } else
+            this.editMode = 'EDITORS'
 
         if (json['anonymous'] == this.levels['readonly']) {
             this.viewMode = 'ANYONE';
