@@ -1200,8 +1200,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             activeTab: 0
         });
 
-        //needed for Safari
+
         var westPanel = new Ext.Panel({
+            id: 'gx_westPanel',
 			layout: "anchor",
             collapseMode: "mini",
             header: false,
@@ -1318,6 +1319,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 layout: "fit",
                 border: false,
                 hideBorders: true,
+                minHeight:600,
                 items: {
                     layout: "border",
                     deferredRender: false,
@@ -2940,7 +2942,9 @@ listeners: {
             this.bbox.updateBBox(this.mapPanel.map.getExtent());
 
         }
+
         this.searchWindow.show();
+        this.searchWindow.alignTo(document, 'tl-tl');
         this.searchTable.doSearch();
 
 
