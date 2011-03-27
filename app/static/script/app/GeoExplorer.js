@@ -1304,6 +1304,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 layout: "fit",
                 border: false,
                 hideBorders: true,
+                minHeight: 600,
+                autoScroll: true,
                 items: {
                     layout: "border",
                     deferredRender: false,
@@ -3025,6 +3027,7 @@ listeners: {
 
         }
         this.searchWindow.show();
+        this.searchWindow.alignTo(document, 'tl-tl');
         this.searchTable.doSearch();
 
 
