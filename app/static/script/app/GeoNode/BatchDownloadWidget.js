@@ -80,7 +80,7 @@ GeoNode.BatchDownloadWidget = Ext.extend(Ext.util.Observable, {
                     }
                 },
                 failure: function(result) { 
-                    //console.log(result); 
+                    ////console.log(result); 
                     clearInterval(checkStatus);
                     win.close();
                 }});

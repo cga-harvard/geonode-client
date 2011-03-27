@@ -47,8 +47,7 @@ GeoNode.BoundingBoxWidget = Ext.extend(Ext.util.Observable, {
             }
         }
 
-        console.log('VIEWERCONFIG:' + JSON.stringify(this.viewerConfig));
-
+        
         viewerConfig = Ext.apply(viewerConfig, this.viewerConfig)
 
         /* Use regular gxp.Viewer if displaying in window on map page, to avoid confusion/conflict with main GeoExplorer instance */

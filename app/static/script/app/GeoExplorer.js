@@ -568,7 +568,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     addInfo : function() {
 
            var queryableLayers = this.mapPanel.layers.queryBy(function(x){
-               console.log(x.get("queryable"));
+               //console.log(x.get("queryable"));
                return x.get("queryable");
            });
            var geoEx = this;
@@ -877,7 +877,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     isLocal = layer.url.replace(
                     this.urlPortRegEx, "$1/").indexOf(
                     this.localGeoServerBaseUrl.replace(
-                    this.urlPortRegEx, "$1/")) === 1;
+                    this.urlPortRegEx, "$1/")) === 0;
 
                     if (isLocal) {
                     	prop.items.get(0).items.get(0).add({html: "<a href='/data/" + layer.params.LAYERS + "'>" + this.shareLayerText + "</a>", xtype: "panel"});
@@ -1355,7 +1355,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
      */
     createStylesPanel: function(options) {
         
-        console.log('enter createStylesPanel');
+        //console.log('enter createStylesPanel');
         var layer = options.layerRecord.getLayer();
 
         var stylesPanel, stylesDialog;
@@ -1368,7 +1368,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             }
             var modified = false;
 
-            console.log('about to create WMSStylesDialog');
+            //console.log('about to create WMSStylesDialog');
 
             stylesDialog = this.stylesDlgCache[layer.id] =
                                             new gxp.WMSStylesDialog(Ext.apply({
@@ -1448,10 +1448,10 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             }, options));
 
 
-            console.log(stylesPanel);
+            //console.log(stylesPanel);
 
             if (stylesPanel) {
-                console.log(stylesPanel.editable)
+                //console.log(stylesPanel.editable)
                 stylesPanel.add(stylesDialog);
                 stylesPanel.doLayout();
             }
@@ -1502,45 +1502,32 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     },
 
 
-    reloadWorldMapSource : function(layerRecords){
-        var geoEx = this;
-        if (this.worldMapSourceKey == null)
-            this.setWorldMapSourceKey();
-        var wmsource = this.layerSources[this.worldMapSourceKey];
 
-
-        var addUploadedLayer = function() {
-            geoEx.addWorldMapLayers(layerRecords);
-            wmsource.un('ready', addUploadedLayer, this)
-        }
-
-        if (layerRecords)
-            wmsource.on("ready", addUploadedLayer, this);
-
-        var wmStore = wmsource.getStore();
-        wmStore.reload();
-
-    },
 
     setWorldMapSourceKey : function(){
         for (var id in this.layerSources) {
             source = this.layerSources[id];
-            if ( source instanceof gxp.plugins.WMSSource &&
+            //console.log('SOURCE ID: ' + id);
+            //console.log('SOURCE' + source.title);
+            if ( source instanceof gxp.plugins.GeoNodeSource &&
                     source.url.replace(this.urlPortRegEx, "$1/").indexOf(
                         this.localGeoServerBaseUrl.replace(
                             this.urlPortRegEx, "$1/")) === 0)
             {
                 this.worldMapSourceKey = id;
             }
+            //console.log('WM KEY: ' + this.worldMapSourceKey);
         }
 
     },
 
     addWorldMapLayers: function(records){
-        if (this.worldMapSourceKey == null)
+        //if (this.worldMapSourceKey == null)
             this.setWorldMapSourceKey();
 
         var wmSource = this.layerSources[this.worldMapSourceKey];
+
+        //console.log('WMSOURCE: ' + wmSource.title);
         if (wmSource)
             this.addLayerAjax(wmSource, this.worldMapSourceKey, records);
 
@@ -1567,21 +1554,25 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             var source = dataSource;
             var layerStore = this.mapPanel.layers;
             for (var i=0, ii=records.length; i<ii; ++i) {
-            			var layer = records[i].get("name");
+            			var thisRecord = records[i];
+                        //console.log('RECORDNAME:' + thisRecord.get("name"));
                     	Ext.Ajax.request({
-                    		url: "/maps/searchfields/?" + records[i].get("name"),
+                    		url: "/maps/addgeonodelayer/?" + thisRecord.get("name"),
                     		method: "POST",
-                    		params: {layername:records[i].get("name")},
+                    		params: {layername:thisRecord.get("name")},
 
                     		success: function(result,request)
                     		{
-                    				var layer = request.params["layername"];
-                    			    var record = source.createLayerRecord({
-                    					name: layer,
-                    					source: key,
-                    					buffer: 0
-                					});
-
+                    		        var jsonData = Ext.util.JSON.decode(result.responseText);
+                                    layer = jsonData.layer;
+                                    //console.log('layername:' + layer.name);
+                                    //console.log('source:' + source.title + '; key=' + key);
+                                    layer.source = key;
+                                    layer.buffer = 0;
+                                    //console.log('BBOX:' + layer.llbbox);
+                    			    var record = source.createLayerRecord(layer);
+                                    //console.log('Created record');
+                                    ////console.log('GROUP:' + record.get("group"));
                 					if (record) {
                     					if (record.get("group") === "background") {
                         					var pos = layerStore.queryBy(function(rec) {
@@ -1590,12 +1581,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         					layerStore.insert(pos, [record]);
 
                     					} else {
-                                			var jsonData = Ext.util.JSON.decode(result.responseText);
-                                			category = jsonData.category;
+
+                                			category = record.get("group");
 	                                		if (!category || category == '')
-	                                			category = "General";
-                                			geoEx.dataLayers[layer] = new LayerData(geoEx.dataLayers[layer], jsonData.searchFields, jsonData.scount);
-                                			record.set("group",category);
+	                                			record.set("group", "General");
+                                			geoEx.dataLayers[layer] = new LayerData(geoEx.dataLayers[layer.name], jsonData.searchFields, jsonData.scount);
                                 			layerStore.add([record]);
                                 			geoEx.addCategoryFolder(record.get("group"), "true");
                                 			geoEx.reorderNodes();
@@ -1623,7 +1613,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var initialSourceId, source, data = [];
         for (var id in this.layerSources) {
             source = this.layerSources[id];
-            if ( source instanceof gxp.plugins.WMSSource &&
+            if ( source instanceof gxp.plugins.GeoNodeSource &&
                     source.url.replace(this.urlPortRegEx, "$1/").indexOf(
                         this.localGeoServerBaseUrl.replace(
                             this.urlPortRegEx, "$1/")) === 0) {
@@ -2970,7 +2960,7 @@ listeners: {
     },
     
 
-    /** private: method[showMetadataForm]
+    /** private: method[shosourceetadataForm]
      *  Shows the window with a metadata form
      */
     showMetadataForm: function() {
