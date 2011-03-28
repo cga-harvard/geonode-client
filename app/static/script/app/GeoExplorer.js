@@ -566,7 +566,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     },
     
     addInfo : function() {
-
            var queryableLayers = this.mapPanel.layers.queryBy(function(x){
                //console.log(x.get("queryable"));
                return x.get("queryable");
@@ -574,12 +573,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
            var geoEx = this;
 
 
-
            queryableLayers.each(function(x){
            	var dl = x.getLayer();
                if (dl.name != "HighlightWMS" && !geoEx.dataLayers[dl.params.LAYERS]){
                	  Ext.Ajax.request({
-               		url: "/maps/searchfields/?" + dl.params.LAYERS,
+               		url: "/maps/lds/?" + dl.params.LAYERS,
                		method: "POST",
                		params: {layername:dl.params.LAYERS},
                		success: function(result,request)
@@ -600,7 +598,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                	  });
                	   
                 }
-               
            }, this);
 
        },    
