@@ -1142,7 +1142,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         });
 
 		this.gxSearchBar = new GeoExplorer.SearchBar(this);
-
 		var searchPanel = new Ext.Panel({
 			anchor: "100% 5%",
 			items: [this.gxSearchBar]
@@ -1304,8 +1303,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 layout: "fit",
                 border: false,
                 hideBorders: true,
-                minHeight: 600,
-                autoScroll: true,
                 items: {
                     layout: "border",
                     deferredRender: false,
@@ -1523,104 +1520,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             this.addLayerAjax(wmSource, this.worldMapSourceKey, records);
 
 
-    },
-
-        /** private: method[getMapProjection]
-     *  :returns: ``OpenLayers.Projection``
-     */
-    getMapProjection: function() {
-        var projConfig = this.mapPanel.map.projection;
-        return this.target.mapPanel.map.getProjectionObject() ||
-            (projConfig && new OpenLayers.Projection(projConfig)) ||
-            new OpenLayers.Projection("EPSG:4326");
-    },
-
-    createLayerRecord: function(layer) {
-        var record;
-        var index = this.store.findExact("name", layer.name);
-        if (index > -1) {
-            var original = this.store.getAt(index);
-
-            var layer = original.getLayer();
-
-            /**
-             * TODO: The WMSCapabilitiesReader should allow for creation
-             * of layers in different SRS.
-             */
-            var projection = this.getMapProjection();
-
-            // If the layer is not available in the map projection, find a
-            // compatible projection that equals the map projection. This helps
-            // us in dealing with the different EPSG codes for web mercator.
-            var layerProjection = this.getProjection(original);
-
-            var nativeExtent = original.get("bbox")[projection.getCode()];
-            var swapAxis = OpenLayers.Layer.WMS.prototype.reverseAxisOrder.call(
-                Ext.applyIf({map: this.target.mapPanel.map}, layer)
-            );
-            var maxExtent =
-                (nativeExtent && OpenLayers.Bounds.fromArray(nativeExtent.bbox, swapAxis)) ||
-                OpenLayers.Bounds.fromArray(original.get("llbbox")).transform(new OpenLayers.Projection("EPSG:4326"), projection);
-
-            // make sure maxExtent is valid (transform does not succeed for all llbbox)
-            if (!(1 / maxExtent.getHeight() > 0) || !(1 / maxExtent.getWidth() > 0)) {
-                // maxExtent has infinite or non-numeric width or height
-                // in this case, the map maxExtent must be specified in the config
-                maxExtent = undefined;
-            }
-
-            // use all params from original
-            var params = Ext.applyIf({
-                STYLES: config.styles,
-                FORMAT: config.format,
-                TRANSPARENT: config.transparent
-            }, layer.params);
-
-            layer = new OpenLayers.Layer.WMS(
-                config.title || layer.name,
-                layer.url,
-                params, {
-                    attribution: layer.attribution,
-                    maxExtent: maxExtent,
-                    restrictedExtent: maxExtent,
-                    singleTile: ("tiled" in config) ? !config.tiled : false,
-                    ratio: config.ratio || 1,
-                    visibility: ("visibility" in config) ? config.visibility : true,
-                    opacity: ("opacity" in config) ? config.opacity : 1,
-                    buffer: ("buffer" in config) ? config.buffer : 1,
-                    projection: layerProjection
-                }
-            );
-
-            // data for the new record
-            var data = Ext.applyIf({
-                title: layer.name,
-                group: config.group,
-                source: config.source,
-                properties: "gxp_wmslayerpanel",
-                fixed: config.fixed,
-                selected: "selected" in config ? config.selected : false,
-                layer: layer
-            }, original.data);
-
-            // add additional fields
-            var fields = [
-                {name: "source", type: "string"},
-                {name: "group", type: "string"},
-                {name: "properties", type: "string"},
-                {name: "fixed", type: "boolean"},
-                {name: "selected", type: "boolean"}
-            ];
-            original.fields.each(function(field) {
-                fields.push(field);
-            });
-
-            var Record = GeoExt.data.LayerRecord.create(fields);
-            record = new Record(data, layer.id);
-
-        }
-
-        return record;
     },
 
 
@@ -2041,7 +1940,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var youtubeRecord = null;
         var hglPointsOverlay = new GeoExplorer.HglFeedOverlay(this);
         var hglRecord= null;
-
 
 
         var printButton = new Ext.Button({

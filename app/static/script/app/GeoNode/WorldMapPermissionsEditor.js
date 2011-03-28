@@ -97,7 +97,6 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
 
         return new Ext.Panel({
             border: false,
-            bwrapCfg: { tag: 'p' },
             items: [
                 {html: "<strong>" + gettext("Who can view or download this?") + "</strong>", flex: 1, border: false},
                 { xtype: 'radiogroup', columns: 1, value: this.viewMode, items: radioItems, listeners: {
@@ -144,7 +143,6 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
 
         return new Ext.Panel({
             border: false,
-            bwrapCfg: { tag: 'p' },
             items: [
                 {html: "<strong>" +  gettext('Who can edit this?') + "</strong>", flex: 1, border: false},
                 { xtype: 'radiogroup', columns: 1, value: this.editMode, items: radioItems,
@@ -178,7 +176,6 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
         });
         return new Ext.Panel({
             border: false,
-            bwrapCfg: { tag: 'p' },
             items: [
                 {html: "<strong>" +  gettext('Who can manage and edit this?') + "</strong>", flex: 1, border: false},
                 this.managerChooser.panel
