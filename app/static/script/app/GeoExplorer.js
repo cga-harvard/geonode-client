@@ -119,7 +119,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     
     registerWin: null,
 
-    worldMapSourceKey: null,
 
     //public variables for string literals needed for localization
     addLayersButtonText: "UT:Add Layers",
@@ -1405,21 +1404,16 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         // enable the cancel and save button
                         stylesPanel.buttons[0].enable();
                         stylesPanel.buttons[1].enable();
-                        // instant style preview
-                        layer.mergeNewParams({
-                            "STYLES": name,
-                            "SLD_BODY": cmp.createSLD({userStyles: [name]})
-                        });
                         modified = true;
                     },
                     "styleselected": function(cmp, name) {
                         // enable the cancel button
                         stylesPanel.buttons[0].enable();
-                        layer.mergeNewParams({
-                            "STYLES": name,
-                            "SLD_BODY": modified ?
-                                cmp.createSLD({userStyles: [name]}) : null
-                        });
+                        if (!modified) {
+                            layer.mergeNewParams({
+                                "STYLES": name
+                            });
+                        }
                     },
                     "saved": function() {
                         this.busyMask.hide();
@@ -1427,15 +1421,12 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         var rec = stylesDialog.selectedStyle;
                         var styleName = rec.get("userStyle").isDefault ?
                             "" : rec.get("name");
-                        if (options.applySelectedStyle === true ||
-                                    styleName === initialStyle ||
-                                    rec.get("name") === initialStyle) {
-                            layer.mergeNewParams({
+                        layer.mergeNewParams({
                                 "STYLES": styleName,
                                 "SLD_BODY": null,
                                 "_dc": Math.random()
                             });
-                        }
+
                         stylesPanel.ownerCt instanceof Ext.Window ?
                             stylesPanel.ownerCt.close() :
                             createStylesDialog();
@@ -1501,7 +1492,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
 
 
-    setWorldMapSourceKey : function(){
+    getWorldMapSourceKey : function(){
         for (var id in this.layerSources) {
             source = this.layerSources[id];
             //console.log('SOURCE ID: ' + id);
@@ -1511,22 +1502,20 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         this.localGeoServerBaseUrl.replace(
                             this.urlPortRegEx, "$1/")) === 0)
             {
-                this.worldMapSourceKey = id;
+                return id;
             }
-            //console.log('WM KEY: ' + this.worldMapSourceKey);
         }
 
     },
 
     addWorldMapLayers: function(records){
-        //if (this.worldMapSourceKey == null)
-            this.setWorldMapSourceKey();
 
-        var wmSource = this.layerSources[this.worldMapSourceKey];
+        var wmKey = this.getWorldMapSourceKey();
+        var wmSource = this.layerSources[wmKey];
 
         //console.log('WMSOURCE: ' + wmSource.title);
         if (wmSource)
-            this.addLayerAjax(wmSource, this.worldMapSourceKey, records);
+            this.addLayerAjax(wmSource, wmKey, records);
 
 
     },
@@ -1550,9 +1539,16 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             var records = dataRecords;
             var source = dataSource;
             var layerStore = this.mapPanel.layers;
+            var isLocal = source instanceof gxp.plugins.GeoNodeSource &&
+                    source.url.replace(this.urlPortRegEx, "$1/").indexOf(
+                        this.localGeoServerBaseUrl.replace(
+                            this.urlPortRegEx, "$1/")) === 0;
             for (var i=0, ii=records.length; i<ii; ++i) {
-            			var thisRecord = records[i];
+            	var thisRecord = records[i];
                         //console.log('RECORDNAME:' + thisRecord.get("name"));
+                if (isLocal) {
+                        //Get all the required WMS parameters from the GeoNode/Worldmap database
+                        // instead of GetCapabilities
                     	Ext.Ajax.request({
                     		url: "/maps/addgeonodelayer/?" + thisRecord.get("name"),
                     		method: "POST",
@@ -1594,9 +1590,33 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     		}
 
                     	});
+                } else {
+                      //Not a local GeoNode layer, use source's standard method for creating the layer.
+                      var layer = records[i].get("name");
+                      var record = source.createLayerRecord({
+                        name: layer,
+                    	source: key,
+                    	buffer: 0
+                	  });
+
+                	  if (record) {
+                        if (record.get("group") === "background") {
+                            var pos = layerStore.queryBy(function(rec) {
+                                return rec.get("group") === "background"
+                        	}).getCount();
+                        	layerStore.insert(pos, [record]);
+
+                    	} else {
+                            record.set("group","General");
+                            layerStore.add([record]);
+                            geoEx.addCategoryFolder(record.get("group"), "true");
+                            geoEx.reorderNodes();
+                    	}
+                	  }
+                }
 
 
-                    }
+            }
 
     },
 
@@ -1725,7 +1745,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 "server-added": function(url) {
                     newSourceWindow.setLoading();
                     this.addLayerSource({
-                        config: {url: url}, // assumes default of gxp_wmssource
+                        config: {url: url, ptype: "gxp_wmssource"},
                         callback: function(id) {
                             // add to combo and select
                             var record = new sources.recordType({
@@ -2986,10 +3006,7 @@ listeners: {
      *  any configuration before applyConfig is called.
      */
     save: function(as){
-        // save unsaved styles first
-        for (var id in this.stylesDlgCache) {
-            this.stylesDlgCache[id].saveStyles();
-        }
+
 
         var config = this.getState();
 
