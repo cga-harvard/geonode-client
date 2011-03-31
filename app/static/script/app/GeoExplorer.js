@@ -1348,8 +1348,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 });
             }
             var modified = false;
-
-
             stylesDialog = this.stylesDlgCache[layer.id] =
                                             new gxp.WMSStylesDialog(Ext.apply({
                 style: "padding: 10px 10px 0 10px;",
