@@ -2,12 +2,12 @@ Ext.namespace("GeoExplorer")
 
 
 /*
- *  Create a tool to display Picasa Feeds in GeoExplorer based on 1 or more keywords
+ *  Create a tool to display HGL Feeds in GeoExplorer based on 1 or more keywords
  *  target: GeoExplorer instance
  */
 GeoExplorer.HglFeedOverlay = function(target){
 		
-		this.picasaRecord = null;
+		this.hglRecord = null;
 			
 		this.popupControl = null;
 
