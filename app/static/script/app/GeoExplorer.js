@@ -231,9 +231,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         Ext.preg("gx_olsource", gxp.plugins.OLSource);
         Ext.preg("gx_googlesource", gxp.plugins.GoogleSource);
 
-
-
-
         // global request proxy and error handling
         Ext.util.Observable.observeClass(Ext.data.Connection);
         Ext.data.Connection.on({
@@ -241,6 +238,15 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 // use django's /geoserver endpoint when talking to the local
                 // GeoServer's RESTconfig API
                 var url = options.url.replace(this.urlPortRegEx, "$1/");
+                if (this.localGeoServerBaseUrl) {
+                    if (url.indexOf(this.localGeoServerBaseUrl) == 0) {
+                        // replace local GeoServer url with /geoserver/
+                        options.url = url.replace(
+                            new RegExp("^" + this.localGeoServerBaseUrl),
+                            "/geoserver/"
+                        );
+                        return;
+                    }
                 var localUrl = this.localGeoServerBaseUrl.replace(
                     this.urlPortRegEx, "$1/");
                 if(url.indexOf(localUrl + "rest/") === 0) {
@@ -248,6 +254,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         localUrl), "/geoserver/");
                     return;
                 };
+                }
                 // use the proxy for all non-local requests
                 if(this.proxy && options.url.indexOf(this.proxy) !== 0 &&
                         options.url.indexOf(window.location.protocol) === 0) {
@@ -327,7 +334,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         if (!config.map) {
             config.map = {};
         }
-        config.map.numZoomLevels = 22;
+        config.map.numZoomLevels = config.map.numZoomLevels || 22;
 
         GeoExplorer.superclass.constructor.apply(this, arguments);
 
@@ -702,7 +709,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             if (this.config.first_visit)
             	this.showInfoWindow();
         });
-
+        
         var getRecordFromNode = function(node) {
             if(node && node.layer) {
                 var layer = node.layer;
@@ -838,6 +845,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         closeAction: "hide",
                         items: [{
                             xtype: "gxp_wmslayerpanel",
+                            rasterStyling: true,
                             autoHeight: true,
                             layerRecord: record,
                             defaults: {
@@ -861,7 +869,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     }
 
                     //Don't show style dialog unless editable for now
-                    prop.items.get(0).remove(prop.items.get(0).items.get(2),true);
+                    prop.items.get(0).remove(prop.items.get(0).items.get(3),true);
 
                     var geoEx = this;
 
@@ -1146,7 +1154,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         });
 
 
-
         this.legendPanel = new GeoExt.LegendPanel({
             title: this.legendPanelText,
             border: false,
@@ -1160,14 +1167,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             },
             defaults: {cls: 'legend-item'}
         });
-/*
-        this.on("ready", function(){
-            if (!this.fromLayer && !this.mapID) {
-                //this.showCapabilitiesGrid();
-            	//this.showMetadataForm();
-            }
-        }, this);
-*/
+
         var layersTabPanel = new Ext.TabPanel({
         	anchor: "100% 95%",
             border: false,
@@ -1240,29 +1240,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             disabled.each(function(item) {
                 item.disable();
             });
-
         }, this);
 
-        this.googleEarthPanel = new gxp.GoogleEarthPanel({
-            mapPanel: this.mapPanel,
-            listeners: {
-                "beforeadd": function(record) {
-                    return record.get("group") !== "background";
-                },
-                "show": function() {
-                    addLayerButton.disable();
-                    removeLayerAction.disable();
-                    layerTree.getSelectionModel().un(
-                        "beforeselect", updateLayerActions, this);
-                },
-                "hide": function() {
-                    addLayerButton.enable();
-                    updateLayerActions();
-                    layerTree.getSelectionModel().on(
-                        "beforeselect", updateLayerActions, this);
-                }
-            }
-        });
 
         this.mapPanelContainer = new Ext.Panel({
             layout: "card",
@@ -1273,8 +1252,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 border:false
             },
             items: [
-                this.mapPanel,
-                this.googleEarthPanel
+                this.mapPanel
             ],
             activeItem: 0
         });
@@ -2962,11 +2940,6 @@ listeners: {
      *  any configuration before applyConfig is called.
      */
     save: function(as){
-        // save unsaved styles first
-        for (var id in this.stylesDlgCache) {
-            this.stylesDlgCache[id].saveStyles();
-        }
-
         var config = this.getState();
 
         var treeConfig = [];
