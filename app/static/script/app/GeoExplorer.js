@@ -33,7 +33,7 @@
 	};
 
 
-	
+
 var GeoExplorer = Ext.extend(gxp.Viewer, {
 
     dataLayers : [],
@@ -44,7 +44,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
      * ``String`` url of the local GeoServer instance
      */
     localGeoServerBaseUrl: "",
-    
+
     /**
      * api: config[fromLayer]
      * ``Boolean`` true if map view was loaded with layer parameters
@@ -62,7 +62,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
      * {GeoExt.LegendPanel} the legend for the main viewport's map
      */
     legendPanel: null,
-    
+
     /**
      * Property: toolbar
      * {Ext.Toolbar} the toolbar for the main viewport
@@ -74,7 +74,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
      * {<Ext.Window>} A window which includes a CapabilitiesGrid panel.
      */
     capGrid: null,
-    
+
     /**
      * Property: modified
      * ``Number``
@@ -83,40 +83,40 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
     /**
      * Property: popupCache
-     * {Object} An object containing references to visible popups so that 
+     * {Object} An object containing references to visible popups so that
      *     we can insert responses from multiple requests.
      */
     popupCache: null,
-    
+
     /** private: property[propDlgCache]
      *  ``Object``
      */
     propDlgCache: null,
-    
+
     /** private: property[stylesDlgCache]
      *  ``Object``
      */
     stylesDlgCache: null,
-    
+
     /** private: property[busyMask]
      *  ``Ext.LoadMask``
      */
     busyMask: null,
-    
+
     /** private: property[urlPortRegEx]
      *  ``RegExp``
      */
     urlPortRegEx: /^(http[s]?:\/\/[^:]*)(:80|:443)?\//,
-    
-    
+
+
     treeRoot : null,
-    
+
     searchFields : [],
 
     gxSearchBar : null,
-    
+
     loginWin: null,
-    
+
     registerWin: null,
 
     worldMapSourceKey: null,
@@ -148,7 +148,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     legendPanelText: "UT:Legend",
     lengthActionText: "UT:Length",
     loadingMapMessage: "UT:Loading Map...",
-    mapSizeLabel: 'UT: Map Size', 
+    mapSizeLabel: 'UT: Map Size',
     measureSplitText: "UT:Measure",
     metadataFormCancelText : "UT:Cancel",
     metadataFormSaveAsCopyText : "UT:Save as Copy",
@@ -161,9 +161,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     metaDataMapUrl: 'UT:UserUrl',
     miniSizeLabel: 'UT: Mini',
     renameCategoryActionText: 'UT: Rename Category',
-    renameCategoryActionTipText: 'UT: Rename this category',    
+    renameCategoryActionTipText: 'UT: Rename this category',
     removeCategoryActionText: 'UT: Remove Category',
-    removeCategoryActionTipText: 'UT: Remove this category and layers',       
+    removeCategoryActionTipText: 'UT: Remove this category and layers',
     navActionTipText: "UT:Pan Map",
     navNextAction: "UT:Zoom to Next Extent",
     navPreviousActionText: "UT:Zoom to Previous Extent",
@@ -179,7 +179,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     saveFailMessage: "UT: Sorry, your map could not be saved.",
     saveFailTitle: "UT: Error While Saving",
     saveMapText: "UT: Save Map",
-    saveMapBtnText: "UT: Save",    
+    saveMapBtnText: "UT: Save",
     saveMapAsText: "UT: Save Map As",
     saveNotAuthorizedMessage: "UT: You Must be logged in to save this map.",
     shareLayerText: 'UT: Share Layer',
@@ -203,7 +203,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     updateMapLogin: function() {
         Ext.getCmp("shareMapButton").show();
     },
-    
+
     constructor: function(config) {
     	this.config = config;
         this.popupCache = {};
@@ -230,7 +230,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         Ext.preg("gx_wmssource", gxp.plugins.WMSSource);
         Ext.preg("gx_olsource", gxp.plugins.OLSource);
         Ext.preg("gx_googlesource", gxp.plugins.GoogleSource);
-        
+
 
 
 
@@ -268,21 +268,23 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     if (response.status == 401 && url.indexOf("http" != 0) &&
                                             url.indexOf(this.proxy) === -1) {
                         this.showLoginWindow(options);
-                    } else {
+                    }  else if (response.status != 405 && url != "/geoserver/rest/styles") {
+                        // 405 from /rest/styles is ok because we use it to
+                        // test whether we're authenticated or not
                         this.displayXHRTrouble(response);
                     }
                 }
             },
             scope: this
         });
-        
+
         // global beforeunload handler
         window.onbeforeunload = (function() {
             if (this.fireEvent("beforeunload") === false) {
                 return "If you leave this page, unsaved changes will be lost.";
             }
         }).bind(this);
-        
+
         // register the color manager with every color field
         Ext.util.Observable.observeClass(gxp.form.ColorField);
         gxp.form.ColorField.on({
@@ -297,11 +299,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         Ext.form.ComboBox.prototype.getListParent = function() {
             return this.el.up(".x-window") || document.body;
         }
-        
+
         // don't draw window shadows - allows us to use autoHeight: true
         // without using syncShadow on the window
         Ext.Window.prototype.shadow = false;
-        
+
         // set SLD defaults for symbolizer
         OpenLayers.Renderer.defaultSymbolizer = {
             fillColor: "#808080",
@@ -318,7 +320,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             haloOpacity: 1,
             haloRadius: 1
         };
-        
+
         // set maxGetUrlLength to avoid non-compliant GET urls for WMS GetMap
         OpenLayers.Tile.Image.prototype.maxGetUrlLength = 2048;
 
@@ -331,7 +333,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
         this.mapID = this.initialConfig.id;
     },
-    
+
      getNodeRecord : function(node) {
             if(node && node.layer) {
                 var layer = node.layer;
@@ -343,14 +345,14 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             return record;
     },
 
-    
+
     reorderNodes : function(){
     		        var mpl = this.mapPanel.layers;
         	        nodes = '';
                   	x = 0;
                   	layerCount = this.mapPanel.layers.getCount()-1;
-                  	this.treeRoot.cascade(function(node) {  
-                  		if (node.isLeaf() && node.layer) 
+                  	this.treeRoot.cascade(function(node) {
+                  		if (node.isLeaf() && node.layer)
                   			{
                 		var layer = node.layer;
                 		var store = node.layerStore;
@@ -359,11 +361,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 		 }));
                    		 if (record.get("group") !== "background")
                   				{
-                  					nodes += node.text + ":" + x + ":" + record.get("name") + "\n"; 
+                  					nodes += node.text + ":" + x + ":" + record.get("name") + "\n";
                   					mpl.remove(record);
                   					mpl.insert(layerCount-x, [record]);
                   				}
-                  		x++;               		 
+                  		x++;
             			}
                   	});
         },
@@ -409,7 +411,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                       node.expand();
                   }
               }
-          }));     
+          }));
       		//mapRoot.getOwnerTree().reload();
       	} else if (isExpanded == "true"){
       		(mapRoot.findChild("text", category)).expand();
@@ -442,7 +444,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
 
 
-    
+
     displayXHRTrouble: function(response) {
         response.status && Ext.Msg.show({
             title: this.connErrorTitleText,
@@ -558,7 +560,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         form.items.get(0).focus(false, 100);
         this.loginWin.show();
     },
-    
+
     addInfo : function() {
            var queryableLayers = this.mapPanel.layers.queryBy(function(x){
                return x.get("queryable");
@@ -576,27 +578,27 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                		params: {layername:dl.params.LAYERS},
                		success: function(result,request)
                		{
-                           var jsonData = Ext.util.JSON.decode(result.responseText);                            
+                           var jsonData = Ext.util.JSON.decode(result.responseText);
                            layerfields = jsonData.searchFields;
                            category = x.get("group") != "" && x.get("group") != undefined && x.get("group")  ? x.get("group") : jsonData.category;
                            if (category == "")
                         	   category = "General";
                            x.set("group", category);
                            geoEx.dataLayers[dl.params.LAYERS] = new LayerData(dl.params.LAYERS, jsonData.searchFields, jsonData.scount);
-                           geoEx.addCategoryFolder(category, true); 
+                           geoEx.addCategoryFolder(category, true);
                		},
                		failure: function(result,request) {
                          // alert(result.responseText);
                		}
-               		
+
                	  });
-               	   
+
                 }
-               
+
            }, this);
 
-       },    
-	
+       },
+
     initMapPanel: function() {
         this.mapItems = [{
             xtype: "gx_zoomslider",
@@ -606,27 +608,22 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 template: "<div>"+this.zoomSliderTipText+": {zoom}<div>"
             })
         }];
-        
+
 	    OpenLayers.IMAGE_RELOAD_ATTEMPTS = 10;
 	    OpenLayers.Util.onImageLoadErrorColor = "transparent";
-        
+
         GeoExplorer.superclass.initMapPanel.apply(this, arguments);
         var searchFields = this.searchFields;
         var layerCount = 0;
 
-
-
-
-
-        this.mapPanel.map.events.register("addLayers", this, function(e) {
+        this.mapPanel.map.events.register("preaddlayer", this, function(e) {
             var layer = e.layer;
-            var layerfields = '';
-            //ge = self;
-
             if (layer instanceof OpenLayers.Layer.WMS ) {
-                !layer.singleTile && layer.maxExtent && layer.mergeNewParams({
-                    tiled: true,
-                    tilesOrigin: [layer.maxExtent.left, layer.maxExtent.bottom]
+                // we need to keep this until the default of tiled is true again
+                // in gxp for WMSCSource, see:
+                // https://github.com/opengeo/gxp/commit/6abb29b474c4296a4a3ddd52d2c14c267cac7d79
+                !layer.singleTile && layer.mergeNewParams({
+                    tiled: true
                 });
                 layer.events.on({
                     "loadstart": function() {
@@ -652,13 +649,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 })
             }
         });
-
-
-
     },
-
-
-
 
     /**
      * Method: initPortal
@@ -1481,7 +1472,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             this.setWorldMapSourceKey();
         var wmsource = this.layerSources[this.worldMapSourceKey];
 
-
         var addUploadedLayer = function() {
             geoEx.addWorldMapLayers(layerRecords);
             wmsource.un('ready', addUploadedLayer, this)
@@ -1498,10 +1488,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     setWorldMapSourceKey : function(){
         for (var id in this.layerSources) {
             source = this.layerSources[id];
-            if ( source instanceof gxp.plugins.WMSSource &&
-                    source.url.replace(this.urlPortRegEx, "$1/").indexOf(
-                        this.localGeoServerBaseUrl.replace(
-                            this.urlPortRegEx, "$1/")) === 0)
+            if ( source instanceof gxp.plugins.WMSCSource)
             {
                 this.worldMapSourceKey = id;
             }
@@ -1604,10 +1591,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var initialSourceId, source, data = [];
         for (var id in this.layerSources) {
             source = this.layerSources[id];
-            if ( source instanceof gxp.plugins.WMSSource &&
-                    source.url.replace(this.urlPortRegEx, "$1/").indexOf(
-                        this.localGeoServerBaseUrl.replace(
-                            this.urlPortRegEx, "$1/")) === 0) {
+            if ( source instanceof gxp.plugins.WMSCSource) {
                             //do nothing
             } else
             {
@@ -2947,7 +2931,7 @@ listeners: {
         }
         this.helpTextWindow.show();
     },
-    
+
 
     /** private: method[showMetadataForm]
      *  Shows the window with a metadata form
@@ -2996,7 +2980,7 @@ listeners: {
 
         config.treeconfig = treeConfig;
         if (!this.mapID || as) {
-            /* create a new map */ 
+            /* create a new map */
             Ext.Ajax.request({
                 url: this.rest,
                 method: 'POST',
@@ -3011,9 +2995,9 @@ listeners: {
                     this.fireEvent("saved", id);
                     this.metadataForm.hide();
                     Ext.Msg.wait('Saving Map', "Your new map is being saved...");
-                    
+
                     window.location = response.getResponseHeader("Location");
-                }, 
+                },
                 failure: function(response, options)
                 {	if (response.status === 401)
                 		this.showLoginWindow(options);
@@ -3022,7 +3006,7 @@ listeners: {
 
                     Ext.getCmp('gx_saveButton').enable();
                     Ext.getCmp('gx_saveAsButton').enable();
-                }, 
+                },
                 scope: this
             });
         }
@@ -3038,7 +3022,7 @@ listeners: {
                     this.metadataForm.hide();
                     Ext.getCmp('gx_saveButton').enable();
                     //Ext.getCmp('gx_saveAsButton').enable();
-                }, 
+                },
                 failure: function(response, options)
                 {	if (response.status === 401)
                 		this.showLoginWindow(options);
@@ -3047,9 +3031,9 @@ listeners: {
                         Ext.getCmp('gx_saveButton').enable();
                         //Ext.getCmp('gx_saveAsButton').enable();
                     }
-                },                
+                },
                 scope: this
-            });         
+            });
         }
     }
 });
