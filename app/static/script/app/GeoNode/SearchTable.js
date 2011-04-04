@@ -22,6 +22,9 @@ GeoNode.SearchTable = Ext.extend(Ext.util.Observable, {
     searchOnLoad: true,
     linkableTitle: true,
 
+    addToMapButtonFunction: null,
+    addToMapButtonTarget: null,
+
     constructor: function(config) {
         this.addEvents('load'); 
         Ext.apply(this, config);
@@ -54,9 +57,6 @@ GeoNode.SearchTable = Ext.extend(Ext.util.Observable, {
         });
         this.searchStore.on('load', function() {
             this.updateControls();
-            if (this.dataCart) {
-                this.dataCart.reselect();
-            }
             this.fireEvent('load', this);
         }, this);
         
@@ -203,14 +203,11 @@ GeoNode.SearchTable = Ext.extend(Ext.util.Observable, {
             store: this.searchStore, 
             plugins: [expander],
             autoExpandColumn: 'title',
-            viewConfig: {
-                autoFill: true, 
-                forceFit: true,
-                emptyText: this.noResultsText
-            },
-            autoHeight: true,
+            height: 150,
+            autoScroll: true,
             renderTo: table_el
-        };
+            }
+
 
         var unviewableTooltip = this.unviewableTooltip;
         var remoteTooltip = this.remoteTooltip;
@@ -227,6 +224,7 @@ GeoNode.SearchTable = Ext.extend(Ext.util.Observable, {
             {
                 header: this.titleHeaderText,
                 dataIndex: 'title',
+                sortable: true,
                 id: 'title',
                 renderer: function(value, metaData, record, rowIndex, colIndex, store) {
                     var is_local = record.get('_local');
@@ -280,36 +278,7 @@ GeoNode.SearchTable = Ext.extend(Ext.util.Observable, {
             }
         ];
         
-        if (this.trackSelection == true) {
-            sm = new Ext.grid.CheckboxSelectionModel({
-                checkOnly: true,
-                renderer: function(v, p, record){
-                    /*
-                     *  A bit of a hack. CheckboxSelectionModel's
-                     *  mousedown selection behavior
-                     *  is tied to rendered div's class.
-                     */
-                    var permissions = record.get('_permissions');
-                    if (permissions.view != true) {
-                        return '<div>&#160;</div>'
-                    } else {
-                        return '<div class="x-grid3-row-checker">&#160;</div>';
-                    }
-                },
-                listeners: {
-                    'beforerowselect' : function(sm, rowIndex, keepExisting, record){
-                        var permissions = record.get('_permissions');
-                        if (permissions.view != true) {
-                            return false;
-                        }
-                    }
-                }
-            });
 
-            this.dataCart = new GeoNode.DataCartStore({selModel: sm});
-            columns.push(sm);
-            tableCfg.selModel = sm;
-        }
         var colModel = new Ext.grid.ColumnModel({
             defaults: {sortable: false, menuDisabled: true},
             columns: columns
@@ -378,6 +347,30 @@ GeoNode.SearchTable = Ext.extend(Ext.util.Observable, {
               this.queryInput.setValue(this.searchParams.q);
           }
           this.updatePermalink();
+
+        if (this.addToMapButtonFunction) {
+            var addToMapFunction = this.addToMapButtonFunction;
+            var addToMapTarget = this.addToMapButtonTarget;
+            var dataGrid = this.table;
+
+            this.table.on('rowdblclick', function() {
+                var records = dataGrid.getSelectionModel().getSelections();
+                for each (record in records){
+                    var permissions = record.get('_permissions');
+                    alert(permissions.view);
+                    if (permissions.view != true) {
+                            Ext.Msg.alert("Unauthorized", 'You are not authorized to view this layer');
+                            return false;
+                    } else
+                    {
+                       addToMapFunction.call(addToMapTarget, [record]);
+                    }
+                }
+            });
+
+        }
+
+
 }
 
 });

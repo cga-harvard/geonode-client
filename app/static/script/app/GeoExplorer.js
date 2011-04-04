@@ -2818,19 +2818,12 @@ listeners: {
             layerDetailURL: '/data/search/detail',
             constraints: [this.bbox],
             searchParams: {'limit':10, 'bbox': llbounds.toBBOX()},
-            searchOnLoad: false
-        });
-
-        this.searchTable.hookupSearchButtons('refine');
-
-        var dataCart = new GeoNode.DataCart({
-            store: this.searchTable.dataCart,
-            renderTo: 'data_cart',
+            searchOnLoad: false,
             addToMapButtonFunction: this.addWorldMapLayers,
             addToMapButtonTarget: this
         });
 
-
+        this.searchTable.hookupSearchButtons('refine');
 
 
         if (!this.capGrid) {
