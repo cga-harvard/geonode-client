@@ -238,15 +238,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 // use django's /geoserver endpoint when talking to the local
                 // GeoServer's RESTconfig API
                 var url = options.url.replace(this.urlPortRegEx, "$1/");
-                if (this.localGeoServerBaseUrl) {
-                    if (url.indexOf(this.localGeoServerBaseUrl) == 0) {
-                        // replace local GeoServer url with /geoserver/
-                        options.url = url.replace(
-                            new RegExp("^" + this.localGeoServerBaseUrl),
-                            "/geoserver/"
-                        );
-                        return;
-                    }
                 var localUrl = this.localGeoServerBaseUrl.replace(
                     this.urlPortRegEx, "$1/");
                 if(url.indexOf(localUrl + "rest/") === 0) {
@@ -254,7 +245,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         localUrl), "/geoserver/");
                     return;
                 };
-                }
                 // use the proxy for all non-local requests
                 if(this.proxy && options.url.indexOf(this.proxy) !== 0 &&
                         options.url.indexOf(window.location.protocol) === 0) {
@@ -275,9 +265,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     if (response.status == 401 && url.indexOf("http" != 0) &&
                                             url.indexOf(this.proxy) === -1) {
                         this.showLoginWindow(options);
-                    }  else if (response.status != 405 && url != "/geoserver/rest/styles") {
-                        // 405 from /rest/styles is ok because we use it to
-                        // test whether we're authenticated or not
+                    } else {
                         this.displayXHRTrouble(response);
                     }
                 }
@@ -334,7 +322,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         if (!config.map) {
             config.map = {};
         }
-        config.map.numZoomLevels = config.map.numZoomLevels || 22;
+        config.map.numZoomLevels = 22;
 
         GeoExplorer.superclass.constructor.apply(this, arguments);
 
@@ -709,7 +697,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             if (this.config.first_visit)
             	this.showInfoWindow();
         });
-        
+
         var getRecordFromNode = function(node) {
             if(node && node.layer) {
                 var layer = node.layer;
