@@ -322,7 +322,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         if (!config.map) {
             config.map = {};
         }
-        config.map.numZoomLevels = 22;
+        config.map.numZoomLevels = 20;
 
         GeoExplorer.superclass.constructor.apply(this, arguments);
 
@@ -2818,12 +2818,19 @@ listeners: {
             layerDetailURL: '/data/search/detail',
             constraints: [this.bbox],
             searchParams: {'limit':10, 'bbox': llbounds.toBBOX()},
-            searchOnLoad: false,
+            searchOnLoad: false
+        });
+
+        this.searchTable.hookupSearchButtons('refine');
+
+        var dataCart = new GeoNode.DataCart({
+            store: this.searchTable.dataCart,
+            renderTo: 'data_cart',
             addToMapButtonFunction: this.addWorldMapLayers,
             addToMapButtonTarget: this
         });
 
-        this.searchTable.hookupSearchButtons('refine');
+
 
 
         if (!this.capGrid) {
