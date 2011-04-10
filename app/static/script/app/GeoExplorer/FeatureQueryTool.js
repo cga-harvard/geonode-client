@@ -280,10 +280,18 @@ GeoExplorer.FeatureQueryTool =  function(geoExplorer, queryPanelName, gridPanelN
 		for(c=0; c < metaColumns.length; c++)
 			{
 				column = metaColumns[c];
-                if (column.label) //This must be a worldmap layer
-				    html+= "<li><label>" + column.label + "</label><span>" + feature.attributes[column.attribute] + "</span></li>";
-                else // This must be an external WMS layer
-                    html+= "<li><label>" + column + "</label><span>" + feature.attributes[column] + "</span></li>";
+
+                featureValue = '' + (column.label ? feature.attributes[column.attribute] : feature.attributes[column])
+
+
+                if (featureValue.indexOf("http://") == 0)
+                {
+                    featureValue = '<a target="_blank" href="' + featureValue + '">' + featureValue + '</a>'
+                }
+
+
+				html+= "<li><label>" + (column.label ? column.label : column) + "</label><span>" + featureValue + "</span></li>";
+
 			}
 
         html += "</ul>";
