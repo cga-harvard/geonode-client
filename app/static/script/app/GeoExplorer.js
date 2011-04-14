@@ -812,6 +812,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         }));
 
 
+
+
+
         createPropertiesDialog = function() {
             var node = layerTree.getSelectionModel().getSelectedNode();
             if (node && node.layer) {
@@ -1479,6 +1482,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             var layerStore = this.mapPanel.layers;
             for (var i=0, ii=records.length; i<ii; ++i) {
             			var layer = records[i].get("name");
+                        var tiled =  records[i].get("tiled");
+
                     	Ext.Ajax.request({
                     		url: "/maps/searchfields/?" + records[i].get("name"),
                     		method: "POST",
@@ -1487,11 +1492,16 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     		success: function(result,request)
                     		{
                     				var layer = request.params["layername"];
-                    			    var record = source.createLayerRecord({
+                    			    var record = (typeof(tiled) != "undefined" ? source.createLayerRecord({
+                    					name: layer,
+                    					source: key,
+                    					buffer: 0,
+                                        tiled: tiled
+                					}): source.createLayerRecord({
                     					name: layer,
                     					source: key,
                     					buffer: 0
-                					});
+                					}));
 
                 					if (record) {
                     					if (record.get("group") === "background") {
@@ -1507,6 +1517,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 	                                			category = "General";
                                 			geoEx.dataLayers[layer] = new LayerData(geoEx.dataLayers[layer], jsonData.searchFields, jsonData.scount);
                                 			record.set("group",category);
+
                                 			layerStore.add([record]);
                                 			geoEx.addCategoryFolder(record.get("group"), "true");
                                 			geoEx.reorderNodes();
@@ -1554,8 +1565,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var initialSourceId, source, data = [];
         for (var id in this.layerSources) {
             source = this.layerSources[id];
-            if (source.url && source.url.indexOf(this.localGeoServerBaseUrl) > -1) {
-                            //skip
+            if ( source instanceof gxp.plugins.WMSCSource) {
+                            //do nothing
             } else
             {
                  if (source.store) {
@@ -2444,7 +2455,6 @@ listeners: {
         var titleField = new Ext.form.TextField({
             width: '95%',
             fieldLabel: this.metaDataMapTitle,
-            id: 'worldmap_map_title_field',
             value: this.about.title,
             allowBlank: false,
             enableKeyEvents: true,
@@ -2590,7 +2600,6 @@ listeners: {
 
         var abstractField = new Ext.form.TextArea({
             width: '95%',
-            id: 'worldmap_map_abstract_field',
             height: 50,
             fieldLabel: this.metaDataMapAbstract,
             value: this.about["abstract"]
@@ -2643,7 +2652,6 @@ listeners: {
 
         var saveButton = new Ext.Button({
             id: 'gx_saveButton',
-            itemId: 'worldmap_map_save_btn',
             text: this.metadataFormSaveText,
             cls:'x-btn-text',
             disabled: !this.about.title,
