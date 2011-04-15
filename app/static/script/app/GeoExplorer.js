@@ -414,32 +414,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
       },
 
 
-      registerEvents: function(layer) {
-
-        var geoEx = this;
-        layer.events.register("loadstart", layer, function() {
-            if (!geoEx.busyMask)
-            {
-              geoEx.busyMask = new Ext.LoadMask(
-                    geoEx.mapPanel.map.div, {
-                        msg: 'Searching...'
-              });
-            }
-            geoEx.busyMask.show();
-        });
-
-
-        layer.events.register("loadend", layer, function() {
-            if (geoEx.busyMask)
-            {
-                geoEx.busyMask.hide();
-            }
-        });
-    },
-
-
-
-
     displayXHRTrouble: function(response) {
         response.status && Ext.Msg.show({
             title: this.connErrorTitleText,
@@ -629,6 +603,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                     msg: this.loadingMapMessage
                                 }
                             );
+                            this.busyMask.show();
+                        } else {
                             this.busyMask.show();
                         }
                         layer.events.unregister("loadstart", this, arguments.callee);
