@@ -180,6 +180,8 @@ GeoExplorer.SearchBar =  function(target) {
             						{'layers': dl.params.LAYERS,'format':'image/png', SLD_BODY: sld, TRANSPARENT: 'true'},
             						{'isBaseLayer': false,'displayInLayerSwitcher' : false}
                     		);
+
+                            //target.registerEvents(wmsHighlight);
                     		layers.push(wmsHighlight);
             				}
             		}
@@ -198,6 +200,11 @@ GeoExplorer.SearchBar =  function(target) {
     	var reset =  function() { 
     		searchTB.setValue('');
             removeHighlightLayers();
+            if (target.busyMask)
+            {
+                target.busyMask.hide();
+            }
+
 
     	};
     	        

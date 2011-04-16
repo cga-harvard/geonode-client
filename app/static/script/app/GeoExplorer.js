@@ -578,10 +578,20 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             })
         }];
 
-	    OpenLayers.IMAGE_RELOAD_ATTEMPTS = 10;
+	    OpenLayers.IMAGE_RELOAD_ATTEMPTS = 5;
 	    OpenLayers.Util.onImageLoadErrorColor = "transparent";
 
         GeoExplorer.superclass.initMapPanel.apply(this, arguments);
+
+                        if (!this.busyMask) {
+                            this.busyMask = new Ext.LoadMask(
+                                Ext.getBody(), {
+                                    msg: this.loadingMapMessage
+                                }
+                            );
+                        }
+                        this.busyMask.show();
+
         var searchFields = this.searchFields;
         var layerCount = 0;
 
@@ -596,22 +606,18 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 });
                 layer.events.on({
                     "loadstart": function() {
-                        layerCount++;
                         if (!this.busyMask) {
                             this.busyMask = new Ext.LoadMask(
                                 this.mapPanel.map.div, {
                                     msg: this.loadingMapMessage
                                 }
                             );
-                            this.busyMask.show();
-                        } else {
-                            this.busyMask.show();
                         }
+                        this.busyMask.show();
                         layer.events.unregister("loadstart", this, arguments.callee);
                     },
                     "loadend": function() {
-                        layerCount--;
-                        if(layerCount === 0) {
+                        if (this.busyMask) {
                             this.busyMask.hide();
                         }
                         layer.events.unregister("loadend", this, arguments.callee);
@@ -634,15 +640,10 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             }
         }, this);
 
-
 		var geoEx = this;
         // TODO: make a proper component out of this
         var mapOverlay = this.createMapOverlay();
         this.mapPanel.add(mapOverlay);
-
-
-//        var overlayTools = this.createOverlayTools();
-//    	this.mapPanel.add(overlayTools);
 
 
 
@@ -1204,6 +1205,12 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             disabled.each(function(item) {
                 item.disable();
             });
+
+            
+            if (this.busyMask) {
+                this.busyMask.hide();
+            }
+
         }, this);
 
 
