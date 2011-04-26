@@ -633,6 +633,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
      * Create the various parts that compose the layout.
      */
     initPortal: function() {
+
+
         this.on("beforeunload", function() {
             if (this.modified && this.config["edit_map"]) {
                 this.showMetadataForm();
@@ -1437,7 +1439,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     setWorldMapSourceKey : function(){
         for (var id in this.layerSources) {
             source = this.layerSources[id];
-            if ( source instanceof gxp.plugins.WMSCSource)
+            if ( source instanceof gxp.plugins.WMSCSource && source.url.replace(this.urlPortRegEx, "$1/").indexOf(
+                        this.localGeoServerBaseUrl.replace(
+                            this.urlPortRegEx, "$1/")) === 0)
             {
                 this.worldMapSourceKey = id;
             }
@@ -2069,66 +2073,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
     	this.mapPanel.add(moreButton);
 
-
-	  var jumpstore = new Ext.data.SimpleStore({
-		        fields: ['dataFieldName', 'displayFieldName'],
-		        data: [[0, 'Yelp'],
-		               [1, 'Bing Map'],
-		               [2, 'Social Explorer']
-		              ],
-		        autoLoad: false
-		      });
-
-       var jumpBar = new Ext.form.ComboBox({
-    	   id: 'jumpbar',
-		store: jumpstore,
-displayField: 'displayFieldName',   // what the user sees in the popup
-valueField: 'dataFieldName',        // what is passed to the 'change' event
-typeAhead: true,
-forceSelection: true,
-fieldLabel: 'ComboBox',
-emptyText:'Jump to...',
-mode: 'local',
-triggerAction: 'all',
-selectOnFocus: true,
-editable: true,
-listeners: {
-
- /**'select' will be fired as soon as an item in the ComboBox is selected.
-  *1) get the bbox or center point
-  *2) parse the bbox or center point
-  *3) go to the web pages
-  *reference: http://www.hutten.org/bill/extjs/
-  **/
- select: function(combo, record, index){
-   displayProjection = new OpenLayers.Projection("EPSG:4326");
-   if (record.data.dataFieldName == 0)
-   {
-      //http://www.yelp.com/search?find_desc=&find_loc=Boston%2C+MA&ns=1&rpp=10#bbox=-71.1611938477%2C42.2823890429%2C-70.9538269043%2C42.4356201565&sortby=category
-
-      var bounds = mapPanel.map.getExtent();
-      var extents= bounds.transform(mapPanel.map.getProjectionObject(),displayProjection);
-      window.open ('http://www.yelp.com/search?find_desc=&ns=1&rpp=10#l=g:'+extents.left+'%2C'+extents.bottom+'%2C'+extents.right+'%2C'+extents.top+'&sortby=category');
-   }
-   else if (record.data.dataFieldName == 1){
-      //http://www.bing.com/maps/default.aspx?v=2&FORM=LMLTCP&cp=42.353216~-70.989532&style=r&lvl=12&tilt=-90&dir=0&alt=-1000&phx=0&phy=0&phscl=1&encType=1
-
-      var point = mapPanel.map.getCenter();
-      var lonlat = point.transform(mapPanel.map.getProjectionObject(), displayProjection);
-      window.open ('http://www.bing.com/maps/default.aspx?v=2&FORM=LMLTCP&cp='+ lonlat.lat +'~'+ lonlat.lon +'&style=r&lvl='+mapPanel.map.getZoom()+'&tilt=-90&dir=0&alt=-1000&phx=0&phy=0&phscl=1&encType=1');
-
-   }
-   else if (record.data.dataFieldName == 2){
-      //http://www.socialexplorer.com/pub/maps/map3.aspx?g=0&mapi=SE0012&themei=B23A1CEE3D8D405BA2B079DDF5DE9402&l=2507554.70420796&r=2572371.78398336&t=5433997.44009869&b=5403894.11016116&rndi=1
-      var bounds = mapPanel.map.getExtent();
-      var extents= bounds.transform(mapPanel.map.getProjectionObject(),displayProjection);
-      window.open('http://www.socialexplorer.com/pub/maps/map3.aspx?g=0&mapi=SE0012&themei=B23A1CEE3D8D405BA2B079DDF5DE9402&l='+ConvertLonToAlbersEqArea(extents.left)+'&r='+ConvertLonToAlbersEqArea(extents.right)+'&t='+ConvertLatToAlbersEqArea(extents.top)+'&b='+ConvertLatToAlbersEqArea(extents.bottom)+'&rndi=1');
-   } else {}
-
- }
-}
-});
-
+        var jumpBar = new GeoExplorer.SocialExplorer(this);
 
 
 
