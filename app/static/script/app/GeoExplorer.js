@@ -414,6 +414,32 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
       },
 
 
+      registerEvents: function(layer) {
+
+        var geoEx = this;
+        layer.events.register("loadstart", layer, function() {
+            if (!geoEx.busyMask)
+            {
+              geoEx.busyMask = new Ext.LoadMask(
+                    geoEx.mapPanel.map.div, {
+                        msg: 'Searching...'
+              });
+            }
+            geoEx.busyMask.show();
+        });
+
+
+        layer.events.register("loadend", layer, function() {
+            if (geoEx.busyMask)
+            {
+                geoEx.busyMask.hide();
+            }
+        });
+    },
+
+
+
+
     displayXHRTrouble: function(response) {
         response.status && Ext.Msg.show({
             title: this.connErrorTitleText,
@@ -606,18 +632,20 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 });
                 layer.events.on({
                     "loadstart": function() {
+                        layerCount++;
                         if (!this.busyMask) {
                             this.busyMask = new Ext.LoadMask(
                                 this.mapPanel.map.div, {
                                     msg: this.loadingMapMessage
                                 }
                             );
+                            this.busyMask.show();
                         }
-                        this.busyMask.show();
                         layer.events.unregister("loadstart", this, arguments.callee);
                     },
                     "loadend": function() {
-                        if (this.busyMask) {
+                        layerCount--;
+                        if(layerCount === 0) {
                             this.busyMask.hide();
                         }
                         layer.events.unregister("loadend", this, arguments.callee);
@@ -633,8 +661,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
      * Create the various parts that compose the layout.
      */
     initPortal: function() {
-
-
         this.on("beforeunload", function() {
             if (this.modified && this.config["edit_map"]) {
                 this.showMetadataForm();

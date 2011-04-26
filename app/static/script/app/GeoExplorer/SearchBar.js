@@ -172,7 +172,7 @@ GeoExplorer.SearchBar =  function(target) {
             						{'isBaseLayer': false,'displayInLayerSwitcher' : false}
                     		);
 
-                            //target.registerEvents(wmsHighlight);
+                            target.registerEvents(wmsHighlight);
                     		layers.push(wmsHighlight);
             				}
             		}
@@ -195,7 +195,6 @@ GeoExplorer.SearchBar =  function(target) {
             {
                 target.busyMask.hide();
             }
-
 
     	};
     	        
