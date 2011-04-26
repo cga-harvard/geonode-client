@@ -62,7 +62,8 @@ GeoExplorer.SocialExplorer = function(target)
        else if (record.data.dataFieldName == 2){
           //http://www.socialexplorer.com/pub/maps/map3.aspx?g=0&mapi=SE0012&themei=B23A1CEE3D8D405BA2B079DDF5DE9402&l=2507554.70420796&r=2572371.78398336&t=5433997.44009869&b=5403894.11016116&rndi=1
           var bounds = target.mapPanel.map.getExtent();
-          window.open(se_url + '&l='+bounds.left+'&r='+bounds.right+'&t='+bounds.top+'&b='+bounds.bottom+'&rndi=1');
+          var extents= bounds.transform(target.mapPanel.map.getProjectionObject(),displayProjection);
+          window.open(se_url + '&l='+extents.left+'&r='+extents.right+'&t='+extents.top+'&b='+extents.bottom+'&rndi=1');
        } else {}
 
      }
