@@ -609,17 +609,10 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
         GeoExplorer.superclass.initMapPanel.apply(this, arguments);
 
-                        if (!this.busyMask) {
-                            this.busyMask = new Ext.LoadMask(
-                                Ext.getBody(), {
-                                    msg: this.loadingMapMessage
-                                }
-                            );
-                        }
-                        this.busyMask.show();
-
         var searchFields = this.searchFields;
         var layerCount = 0;
+
+
 
         this.mapPanel.map.events.register("preaddlayer", this, function(e) {
             var layer = e.layer;
@@ -673,7 +666,14 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var mapOverlay = this.createMapOverlay();
         this.mapPanel.add(mapOverlay);
 
-
+        if (!this.busyMask) {
+         this.busyMask = new Ext.LoadMask(
+                                Ext.getBody(), {
+                                    msg: this.loadingMapMessage
+                                }
+                            );
+         }
+         this.busyMask.show();
 
         var addLayerButton = new Ext.Button({
             tooltip : this.addLayersButtonText,
@@ -697,6 +697,10 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 },
                 scope: this
             });
+
+            if (this.busyMask) {
+                this.busyMask.hide();
+            }
 
             //Show the info window if it's the first time here
             if (this.config.first_visit)
@@ -758,7 +762,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     if (layer && store) {
                         var record = store.getAt(store.findBy(function(r) {
                             return r.getLayer() === layer;
-                        }));
+                        }));ing
                         if (record && !record.get("queryable")) {
                             attr.iconCls = "gx-tree-rasterlayer-icon";
                         }
