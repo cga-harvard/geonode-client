@@ -162,14 +162,13 @@ GeoExplorer.SearchBar =  function(target) {
         					//Polygons
         					//sld += '<sld:PolygonSymbolizer> <sld:Fill><sld:GraphicFill> <sld:Graphic><sld:Mark> <sld:WellKnownName>shape://times</sld:WellKnownName> <sld:Stroke><sld:CssParameter name="stroke">#FFFF00</sld:CssParameter>';
         					//sld += '<sld:CssParameter name="stroke-width">1</sld:CssParameter> </sld:Stroke></sld:Mark><sld:Size>16</sld:Size> </sld:Graphic></sld:GraphicFill> </sld:Fill></sld:PolygonSymbolizer>';        					     					
-        					sld += '</sld:Rule></sld:FeatureTypeStyle></sld:UserStyle></sld:NamedLayer></sld:StyledLayerDescriptor>';        					 
-        					 
-        					
+        					sld += '</sld:Rule></sld:FeatureTypeStyle></sld:UserStyle></sld:NamedLayer></sld:StyledLayerDescriptor>';        					
+
                     		wmsHighlight = new OpenLayers.Layer.WMS(
             						"HighlightWMS",
             						wms_url,
-            						{'layers': dl.params.LAYERS,'format':'image/png', SLD_BODY: sld, TRANSPARENT: 'true'},
-            						{'isBaseLayer': false,'displayInLayerSwitcher' : false}
+            						{'layers': dl.params.LAYERS,'format':'image/png', 'SLD_BODY': sld, 'TILED': false, 'TRANSPARENT': true },
+            						{'isBaseLayer': false,'displayInLayerSwitcher' : false, 'singleTile': true}
                     		);
 
                             target.registerEvents(wmsHighlight);
