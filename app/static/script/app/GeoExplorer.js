@@ -33,7 +33,7 @@
 	};
 
 
-	
+
 var GeoExplorer = Ext.extend(gxp.Viewer, {
 
     dataLayers : [],
@@ -44,7 +44,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
      * ``String`` url of the local GeoServer instance
      */
     localGeoServerBaseUrl: "",
-    
+
     /**
      * api: config[fromLayer]
      * ``Boolean`` true if map view was loaded with layer parameters
@@ -62,7 +62,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
      * {GeoExt.LegendPanel} the legend for the main viewport's map
      */
     legendPanel: null,
-    
+
     /**
      * Property: toolbar
      * {Ext.Toolbar} the toolbar for the main viewport
@@ -74,7 +74,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
      * {<Ext.Window>} A window which includes a CapabilitiesGrid panel.
      */
     capGrid: null,
-    
+
     /**
      * Property: modified
      * ``Number``
@@ -83,42 +83,43 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
     /**
      * Property: popupCache
-     * {Object} An object containing references to visible popups so that 
+     * {Object} An object containing references to visible popups so that
      *     we can insert responses from multiple requests.
      */
     popupCache: null,
-    
+
     /** private: property[propDlgCache]
      *  ``Object``
      */
     propDlgCache: null,
-    
+
     /** private: property[stylesDlgCache]
      *  ``Object``
      */
     stylesDlgCache: null,
-    
+
     /** private: property[busyMask]
      *  ``Ext.LoadMask``
      */
     busyMask: null,
-    
+
     /** private: property[urlPortRegEx]
      *  ``RegExp``
      */
     urlPortRegEx: /^(http[s]?:\/\/[^:]*)(:80|:443)?\//,
-    
-    
+
+
     treeRoot : null,
-    
+
     searchFields : [],
 
     gxSearchBar : null,
-    
+
     loginWin: null,
-    
+
     registerWin: null,
 
+    worldMapSourceKey: null,
 
     //public variables for string literals needed for localization
     addLayersButtonText: "UT:Add Layers",
@@ -147,7 +148,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     legendPanelText: "UT:Legend",
     lengthActionText: "UT:Length",
     loadingMapMessage: "UT:Loading Map...",
-    mapSizeLabel: 'UT: Map Size', 
+    mapSizeLabel: 'UT: Map Size',
     measureSplitText: "UT:Measure",
     metadataFormCancelText : "UT:Cancel",
     metadataFormSaveAsCopyText : "UT:Save as Copy",
@@ -160,9 +161,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     metaDataMapUrl: 'UT:UserUrl',
     miniSizeLabel: 'UT: Mini',
     renameCategoryActionText: 'UT: Rename Category',
-    renameCategoryActionTipText: 'UT: Rename this category',    
+    renameCategoryActionTipText: 'UT: Rename this category',
     removeCategoryActionText: 'UT: Remove Category',
-    removeCategoryActionTipText: 'UT: Remove this category and layers',       
+    removeCategoryActionTipText: 'UT: Remove this category and layers',
     navActionTipText: "UT:Pan Map",
     navNextAction: "UT:Zoom to Next Extent",
     navPreviousActionText: "UT:Zoom to Previous Extent",
@@ -178,7 +179,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     saveFailMessage: "UT: Sorry, your map could not be saved.",
     saveFailTitle: "UT: Error While Saving",
     saveMapText: "UT: Save Map",
-    saveMapBtnText: "UT: Save",    
+    saveMapBtnText: "UT: Save",
     saveMapAsText: "UT: Save Map As",
     saveNotAuthorizedMessage: "UT: You Must be logged in to save this map.",
     shareLayerText: 'UT: Share Layer',
@@ -202,7 +203,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     updateMapLogin: function() {
         Ext.getCmp("shareMapButton").show();
     },
-    
+
     constructor: function(config) {
     	this.config = config;
         this.popupCache = {};
@@ -231,9 +232,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         Ext.preg("gx_googlesource", gxp.plugins.GoogleSource);
         Ext.preg("gx_gnsource", gxp.plugins.GeoNodeSource);
         
-
-
-
         // global request proxy and error handling
         Ext.util.Observable.observeClass(Ext.data.Connection);
         Ext.data.Connection.on({
@@ -275,14 +273,14 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             },
             scope: this
         });
-        
+
         // global beforeunload handler
         window.onbeforeunload = (function() {
             if (this.fireEvent("beforeunload") === false) {
                 return "If you leave this page, unsaved changes will be lost.";
             }
         }).bind(this);
-        
+
         // register the color manager with every color field
         Ext.util.Observable.observeClass(gxp.form.ColorField);
         gxp.form.ColorField.on({
@@ -297,11 +295,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         Ext.form.ComboBox.prototype.getListParent = function() {
             return this.el.up(".x-window") || document.body;
         }
-        
+
         // don't draw window shadows - allows us to use autoHeight: true
         // without using syncShadow on the window
         Ext.Window.prototype.shadow = false;
-        
+
         // set SLD defaults for symbolizer
         OpenLayers.Renderer.defaultSymbolizer = {
             fillColor: "#808080",
@@ -318,20 +316,20 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             haloOpacity: 1,
             haloRadius: 1
         };
-        
+
         // set maxGetUrlLength to avoid non-compliant GET urls for WMS GetMap
         OpenLayers.Tile.Image.prototype.maxGetUrlLength = 2048;
 
         if (!config.map) {
             config.map = {};
         }
-        config.map.numZoomLevels = 22;
+        config.map.numZoomLevels = 20;
 
         GeoExplorer.superclass.constructor.apply(this, arguments);
 
         this.mapID = this.initialConfig.id;
     },
-    
+
      getNodeRecord : function(node) {
             if(node && node.layer) {
                 var layer = node.layer;
@@ -343,14 +341,14 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             return record;
     },
 
-    
+
     reorderNodes : function(){
     		        var mpl = this.mapPanel.layers;
         	        nodes = '';
                   	x = 0;
                   	layerCount = this.mapPanel.layers.getCount()-1;
-                  	this.treeRoot.cascade(function(node) {  
-                  		if (node.isLeaf() && node.layer) 
+                  	this.treeRoot.cascade(function(node) {
+                  		if (node.isLeaf() && node.layer)
                   			{
                 		var layer = node.layer;
                 		var store = node.layerStore;
@@ -359,11 +357,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 		 }));
                    		 if (record.get("group") !== "background")
                   				{
-                  					nodes += node.text + ":" + x + ":" + record.get("name") + "\n"; 
+                  					nodes += node.text + ":" + x + ":" + record.get("name") + "\n";
                   					mpl.remove(record);
                   					mpl.insert(layerCount-x, [record]);
                   				}
-                  		x++;               		 
+                  		x++;
             			}
                   	});
         },
@@ -386,7 +384,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                   store: this.mapPanel.layers,
                   filter: function(record) {
                       return record.get("group") == category &&
-                          record.getLayer().displayInLayerSwitcher;
+                          record.getLayer().displayInLayerSwitcher == true;
                   },
                   createNode: function(attr) {
                       var layer = attr.layer;
@@ -414,7 +412,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                       node.expand();
                   }
               }
-          }));     
+          }));
       		//mapRoot.getOwnerTree().reload();
       	} else if (isExpanded == "true"){
       		(mapRoot.findChild("text", category)).expand();
@@ -447,7 +445,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
 
 
-    
+
     displayXHRTrouble: function(response) {
         response.status && Ext.Msg.show({
             title: this.connErrorTitleText,
@@ -563,10 +561,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         form.items.get(0).focus(false, 100);
         this.loginWin.show();
     },
-    
+
     addInfo : function() {
            var queryableLayers = this.mapPanel.layers.queryBy(function(x){
-               //console.log(x.get("queryable"));
                return x.get("queryable");
            });
            var geoEx = this;
@@ -576,31 +573,31 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
            	var dl = x.getLayer();
                if (dl.name != "HighlightWMS" && !geoEx.dataLayers[dl.params.LAYERS]){
                	  Ext.Ajax.request({
-               		url: "/maps/lds/?" + dl.params.LAYERS,
+               		url: "/maps/searchfields/?" + dl.params.LAYERS,
                		method: "POST",
                		params: {layername:dl.params.LAYERS},
                		success: function(result,request)
                		{
-                           var jsonData = Ext.util.JSON.decode(result.responseText);                            
+                           var jsonData = Ext.util.JSON.decode(result.responseText);
                            layerfields = jsonData.searchFields;
                            category = x.get("group") != "" && x.get("group") != undefined && x.get("group")  ? x.get("group") : jsonData.category;
                            if (category == "")
                         	   category = "General";
                            x.set("group", category);
                            geoEx.dataLayers[dl.params.LAYERS] = new LayerData(dl.params.LAYERS, jsonData.searchFields, jsonData.scount);
-                           geoEx.addCategoryFolder(category, true); 
+                           geoEx.addCategoryFolder(category, true);
                		},
                		failure: function(result,request) {
                          // alert(result.responseText);
                		}
-               		
+
                	  });
-               	   
+
                 }
            }, this);
 
-       },    
-	
+       },
+
     initMapPanel: function() {
         this.mapItems = [{
             xtype: "gx_zoomslider",
@@ -610,27 +607,24 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 template: "<div>"+this.zoomSliderTipText+": {zoom}<div>"
             })
         }];
-        
-	    OpenLayers.IMAGE_RELOAD_ATTEMPTS = 10;
+
+	    OpenLayers.IMAGE_RELOAD_ATTEMPTS = 5;
 	    OpenLayers.Util.onImageLoadErrorColor = "transparent";
-        
+
         GeoExplorer.superclass.initMapPanel.apply(this, arguments);
         var searchFields = this.searchFields;
         var layerCount = 0;
 
 
 
-
-
-        this.mapPanel.map.events.register("addLayers", this, function(e) {
+        this.mapPanel.map.events.register("preaddlayer", this, function(e) {
             var layer = e.layer;
-            var layerfields = '';
-            //ge = self;
-
             if (layer instanceof OpenLayers.Layer.WMS ) {
-                !layer.singleTile && layer.maxExtent && layer.mergeNewParams({
-                    tiled: true,
-                    tilesOrigin: [layer.maxExtent.left, layer.maxExtent.bottom]
+                // we need to keep this until the default of tiled is true again
+                // in gxp for WMSCSource, see:
+                // https://github.com/opengeo/gxp/commit/6abb29b474c4296a4a3ddd52d2c14c267cac7d79
+                !layer.singleTile && layer.mergeNewParams({
+                    tiled: true
                 });
                 layer.events.on({
                     "loadstart": function() {
@@ -656,13 +650,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 })
             }
         });
-
-
-
     },
-
-
-
 
     /**
      * Method: initPortal
@@ -676,17 +664,19 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             }
         }, this);
 
-
 		var geoEx = this;
         // TODO: make a proper component out of this
         var mapOverlay = this.createMapOverlay();
         this.mapPanel.add(mapOverlay);
 
-
-//        var overlayTools = this.createOverlayTools();
-//    	this.mapPanel.add(overlayTools);
-
-
+        if (!this.busyMask) {
+         this.busyMask = new Ext.LoadMask(
+                                Ext.getBody(), {
+                                    msg: this.loadingMapMessage
+                                }
+                            );
+         }
+         this.busyMask.show();
 
         var addLayerButton = new Ext.Button({
             tooltip : this.addLayersButtonText,
@@ -710,6 +700,10 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 },
                 scope: this
             });
+
+            if (this.busyMask) {
+                this.busyMask.hide();
+            }
 
             //Show the info window if it's the first time here
             if (this.config.first_visit)
@@ -763,7 +757,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 store: this.mapPanel.layers,
                 filter: function(record) {
                     return record.get("group") == "none" &&
-                        record.getLayer().displayInLayerSwitcher;
+                        record.getLayer().displayInLayerSwitcher == true;
                 },
                 createNode: function(attr) {
                     var layer = attr.layer;
@@ -851,6 +845,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         closeAction: "hide",
                         items: [{
                             xtype: "gxp_wmslayerpanel",
+                            rasterStyling: true,
                             autoHeight: true,
                             layerRecord: record,
                             defaults: {
@@ -880,7 +875,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     }
 
                     //Don't show style dialog unless editable for now
-                    prop.items.get(0).remove(prop.items.get(0).items.get(2),true);
+                    prop.items.get(0).remove(prop.items.get(0).items.get(3),true);
 
                     var geoEx = this;
 
@@ -1152,7 +1147,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         });
 
 		this.gxSearchBar = new GeoExplorer.SearchBar(this);
-
 		var searchPanel = new Ext.Panel({
 			anchor: "100% 5%",
 			items: [this.gxSearchBar]
@@ -1164,7 +1158,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             title: this.layersContainerText,
             items: [layerTree]
         });
-
 
 
         this.legendPanel = new GeoExt.LegendPanel({
@@ -1180,14 +1173,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             },
             defaults: {cls: 'legend-item'}
         });
-/*
-        this.on("ready", function(){
-            if (!this.fromLayer && !this.mapID) {
-                //this.showCapabilitiesGrid();
-            	//this.showMetadataForm();
-            }
-        }, this);
-*/
+
         var layersTabPanel = new Ext.TabPanel({
         	anchor: "100% 95%",
             border: false,
@@ -1262,28 +1248,13 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 item.disable();
             });
 
+            
+            if (this.busyMask) {
+                this.busyMask.hide();
+            }
+
         }, this);
 
-        this.googleEarthPanel = new gxp.GoogleEarthPanel({
-            mapPanel: this.mapPanel,
-            listeners: {
-                "beforeadd": function(record) {
-                    return record.get("group") !== "background";
-                },
-                "show": function() {
-                    addLayerButton.disable();
-                    removeLayerAction.disable();
-                    layerTree.getSelectionModel().un(
-                        "beforeselect", updateLayerActions, this);
-                },
-                "hide": function() {
-                    addLayerButton.enable();
-                    updateLayerActions();
-                    layerTree.getSelectionModel().on(
-                        "beforeselect", updateLayerActions, this);
-                }
-            }
-        });
 
         this.mapPanelContainer = new Ext.Panel({
             layout: "card",
@@ -1294,8 +1265,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 border:false
             },
             items: [
-                this.mapPanel,
-                this.googleEarthPanel
+                this.mapPanel
             ],
             activeItem: 0
         });
@@ -1364,8 +1334,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             }
             var modified = false;
 
-            //console.log('about to create WMSStylesDialog');
-
             stylesDialog = this.stylesDlgCache[layer.id] =
                                             new gxp.WMSStylesDialog(Ext.apply({
                 style: "padding: 10px 10px 0 10px;",
@@ -1404,6 +1372,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         // enable the cancel and save button
                         stylesPanel.buttons[0].enable();
                         stylesPanel.buttons[1].enable();
+                        // instant style preview
+                        layer.mergeNewParams({
+                            "STYLES": name,
+                            "SLD_BODY": cmp.createSLD({userStyles: [name]})
+                        });
                         modified = true;
                     },
                     "styleselected": function(cmp, name) {
@@ -1411,7 +1384,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         stylesPanel.buttons[0].enable();
                         if (!modified) {
                             layer.mergeNewParams({
-                                "STYLES": name
+                            "STYLES": name,
+                            "SLD_BODY": modified ?
+                                cmp.createSLD({userStyles: [name]}) : null
                             });
                         }
                     },
@@ -1421,12 +1396,15 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         var rec = stylesDialog.selectedStyle;
                         var styleName = rec.get("userStyle").isDefault ?
                             "" : rec.get("name");
+                        if (options.applySelectedStyle === true ||
+                                    styleName === initialStyle ||
+                                    rec.get("name") === initialStyle) {
                         layer.mergeNewParams({
                                 "STYLES": styleName,
                                 "SLD_BODY": null,
                                 "_dc": Math.random()
                             });
-
+                        }
                         stylesPanel.ownerCt instanceof Ext.Window ?
                             stylesPanel.ownerCt.close() :
                             createStylesDialog();
@@ -1434,12 +1412,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     scope: this
                 })
             }, options));
-
-
-            //console.log(stylesPanel);
-
             if (stylesPanel) {
-                //console.log(stylesPanel.editable)
                 stylesPanel.add(stylesDialog);
                 stylesPanel.doLayout();
             }
@@ -1490,32 +1463,47 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     },
 
 
+    reloadWorldMapSource : function(layerRecords){
+        var geoEx = this;
+        if (this.worldMapSourceKey == null)
+            this.setWorldMapSourceKey();
+        var gnsource = this.layerSources[this.worldMapSourceKey];
 
+        var addUploadedLayer = function() {
+            geoEx.addWorldMapLayers(layerRecords);
+            gnsource.un('ready', addUploadedLayer, this)
+        }
 
-    getWorldMapSourceKey : function(){
+        if (layerRecords)
+            gnsource.on("ready", addUploadedLayer, this);
+
+        var wmStore = gnsource.getStore();
+        wmStore.reload();
+
+    },
+
+    setWorldMapSourceKey : function(){
         for (var id in this.layerSources) {
             source = this.layerSources[id];
-            //console.log('SOURCE ID: ' + id);
-            //console.log('SOURCE' + source.title);
-            if ( source instanceof gxp.plugins.GeoNodeSource &&
-                    source.url.replace(this.urlPortRegEx, "$1/").indexOf(
+            if ( source instanceof gxp.plugins.GeoNodeSource && source.url.replace(this.urlPortRegEx, "$1/").indexOf(
                         this.localGeoServerBaseUrl.replace(
                             this.urlPortRegEx, "$1/")) === 0)
             {
-                return id;
+                this.worldMapSourceKey = id;
             }
         }
 
     },
 
     addWorldMapLayers: function(records){
-
-        var wmKey = this.getWorldMapSourceKey();
-        var wmSource = this.layerSources[wmKey];
-
-        //console.log('WMSOURCE: ' + wmSource.title);
+        if (this.worldMapSourceKey == null)
+            this.setWorldMapSourceKey();
+        console.log('WM KEY:' + this.worldMapSourceKey);
+        var wmSource = this.layerSources[this.worldMapSourceKey];
+        console.log('WM SOURCE:' + wmSource);
+        
         if (wmSource)
-            this.addLayerAjax(wmSource, wmKey, records);
+            this.addLayerAjax(wmSource, this.worldMapSourceKey, records);
 
 
     },
@@ -1532,7 +1520,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
 
 
-
     addLayerAjax: function (dataSource, dataKey, dataRecords){
             var geoEx = this;
             var key = dataKey;
@@ -1543,12 +1530,17 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     source.url.replace(this.urlPortRegEx, "$1/").indexOf(
                         this.localGeoServerBaseUrl.replace(
                             this.urlPortRegEx, "$1/")) === 0;
+           console.log('is Local? & GNSource?' + isLocal);
             for (var i=0, ii=records.length; i<ii; ++i) {
             	var thisRecord = records[i];
                         //console.log('RECORDNAME:' + thisRecord.get("name"));
                 if (isLocal) {
                         //Get all the required WMS parameters from the GeoNode/Worldmap database
                         // instead of GetCapabilities
+
+            			var layer = records[i].get("name");
+                        var tiled =  records[i].get("tiled");
+
                     	Ext.Ajax.request({
                     		url: "/maps/addgeonodelayer/?" + thisRecord.get("name"),
                     		method: "POST",
@@ -1577,7 +1569,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
                                 			category = record.get("group");
 	                                		if (!category || category == '')
-	                                			record.set("group", "General");
+	                                		    record.set("group", "General");
                                 			geoEx.dataLayers[layer] = new LayerData(geoEx.dataLayers[layer.name], jsonData.searchFields, jsonData.scount);
                                 			layerStore.add([record]);
                                 			geoEx.addCategoryFolder(record.get("group"), "true");
@@ -1605,7 +1597,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                 return rec.get("group") === "background"
                         	}).getCount();
                         	layerStore.insert(pos, [record]);
-
                     	} else {
                             record.set("group","General");
                             layerStore.add([record]);
@@ -1966,7 +1957,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var hglRecord= null;
 
 
-
         var printButton = new Ext.Button({
             tooltip: this.printTipText,
             text: '<span class="x-btn-text">' + this.printBtnText + '</span>',
@@ -2155,66 +2145,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
     	this.mapPanel.add(moreButton);
 
-
-	  var jumpstore = new Ext.data.SimpleStore({
-		        fields: ['dataFieldName', 'displayFieldName'],
-		        data: [[0, 'Yelp'],
-		               [1, 'Bing Map'],
-		               [2, 'Social Explorer']
-		              ],
-		        autoLoad: false
-		      });
-
-       var jumpBar = new Ext.form.ComboBox({
-    	   id: 'jumpbar',
-		store: jumpstore,
-displayField: 'displayFieldName',   // what the user sees in the popup
-valueField: 'dataFieldName',        // what is passed to the 'change' event
-typeAhead: true,
-forceSelection: true,
-fieldLabel: 'ComboBox',
-emptyText:'Jump to...',
-mode: 'local',
-triggerAction: 'all',
-selectOnFocus: true,
-editable: true,
-listeners: {
-
- /**'select' will be fired as soon as an item in the ComboBox is selected.
-  *1) get the bbox or center point
-  *2) parse the bbox or center point
-  *3) go to the web pages
-  *reference: http://www.hutten.org/bill/extjs/
-  **/
- select: function(combo, record, index){
-   displayProjection = new OpenLayers.Projection("EPSG:4326");
-   if (record.data.dataFieldName == 0)
-   {
-      //http://www.yelp.com/search?find_desc=&find_loc=Boston%2C+MA&ns=1&rpp=10#bbox=-71.1611938477%2C42.2823890429%2C-70.9538269043%2C42.4356201565&sortby=category
-
-      var bounds = mapPanel.map.getExtent();
-      var extents= bounds.transform(mapPanel.map.getProjectionObject(),displayProjection);
-      window.open ('http://www.yelp.com/search?find_desc=&ns=1&rpp=10#l=g:'+extents.left+'%2C'+extents.bottom+'%2C'+extents.right+'%2C'+extents.top+'&sortby=category');
-   }
-   else if (record.data.dataFieldName == 1){
-      //http://www.bing.com/maps/default.aspx?v=2&FORM=LMLTCP&cp=42.353216~-70.989532&style=r&lvl=12&tilt=-90&dir=0&alt=-1000&phx=0&phy=0&phscl=1&encType=1
-
-      var point = mapPanel.map.getCenter();
-      var lonlat = point.transform(mapPanel.map.getProjectionObject(), displayProjection);
-      window.open ('http://www.bing.com/maps/default.aspx?v=2&FORM=LMLTCP&cp='+ lonlat.lat +'~'+ lonlat.lon +'&style=r&lvl='+mapPanel.map.getZoom()+'&tilt=-90&dir=0&alt=-1000&phx=0&phy=0&phscl=1&encType=1');
-
-   }
-   else if (record.data.dataFieldName == 2){
-      //http://www.socialexplorer.com/pub/maps/map3.aspx?g=0&mapi=SE0012&themei=B23A1CEE3D8D405BA2B079DDF5DE9402&l=2507554.70420796&r=2572371.78398336&t=5433997.44009869&b=5403894.11016116&rndi=1
-      var bounds = mapPanel.map.getExtent();
-      var extents= bounds.transform(mapPanel.map.getProjectionObject(),displayProjection);
-      window.open('http://www.socialexplorer.com/pub/maps/map3.aspx?g=0&mapi=SE0012&themei=B23A1CEE3D8D405BA2B079DDF5DE9402&l='+ConvertLonToAlbersEqArea(extents.left)+'&r='+ConvertLonToAlbersEqArea(extents.right)+'&t='+ConvertLatToAlbersEqArea(extents.top)+'&b='+ConvertLatToAlbersEqArea(extents.bottom)+'&rndi=1');
-   } else {}
-
- }
-}
-});
-
+        var jumpBar = new GeoExplorer.SocialExplorer(this);
 
 
 
@@ -2975,7 +2906,7 @@ listeners: {
         }
         this.helpTextWindow.show();
     },
-    
+
 
     /** private: method[shosourceetadataForm]
      *  Shows the window with a metadata form
@@ -3006,8 +2937,6 @@ listeners: {
      *  any configuration before applyConfig is called.
      */
     save: function(as){
-
-
         var config = this.getState();
 
         var treeConfig = [];
@@ -3021,7 +2950,7 @@ listeners: {
 
         config.treeconfig = treeConfig;
         if (!this.mapID || as) {
-            /* create a new map */ 
+            /* create a new map */
             Ext.Ajax.request({
                 url: this.rest,
                 method: 'POST',
@@ -3036,9 +2965,9 @@ listeners: {
                     this.fireEvent("saved", id);
                     this.metadataForm.hide();
                     Ext.Msg.wait('Saving Map', "Your new map is being saved...");
-                    
+
                     window.location = response.getResponseHeader("Location");
-                }, 
+                },
                 failure: function(response, options)
                 {	if (response.status === 401)
                 		this.showLoginWindow(options);
@@ -3047,7 +2976,7 @@ listeners: {
 
                     Ext.getCmp('gx_saveButton').enable();
                     Ext.getCmp('gx_saveAsButton').enable();
-                }, 
+                },
                 scope: this
             });
         }
@@ -3063,7 +2992,7 @@ listeners: {
                     this.metadataForm.hide();
                     Ext.getCmp('gx_saveButton').enable();
                     //Ext.getCmp('gx_saveAsButton').enable();
-                }, 
+                },
                 failure: function(response, options)
                 {	if (response.status === 401)
                 		this.showLoginWindow(options);
@@ -3072,9 +3001,9 @@ listeners: {
                         Ext.getCmp('gx_saveButton').enable();
                         //Ext.getCmp('gx_saveAsButton').enable();
                     }
-                },                
+                },
                 scope: this
-            });         
+            });
         }
     }
 });

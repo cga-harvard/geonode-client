@@ -107,22 +107,13 @@ GeoExplorer.SearchBar =  function(target) {
             
             //search term manipulation code, copied verbatim from existing WorldMap
     		searchTerm = searchTB.getValue();
-            var terms = [];
-            var matchingSearchTerm = searchTerm;
-            var re = /("[^"]+")/g;
-            var m = matchingSearchTerm.match(re);
-            var otherSearchTerm = searchTerm; 
-            if ( m != null ) {
-                for ( i = 0; i < m.length; i++ ) {
-                    otherSearchTerm = otherSearchTerm.replace(m[i], '');
-                    terms.push( m[i].replace(/"/g, '' ));
-                }	
-            } else {
-            }          
-            var whitespace_re = /\s+/;
-            otherSearchTerm = otherSearchTerm.replace(whitespace_re, ' ');
-            terms = terms.concat(otherSearchTerm.split(' '));
             layers = [];
+
+            if (searchTerm == null || searchTerm.length == 0)
+            {
+                Ext.Msg.alert("Search Term Required", "Please enter a search term");
+                return;
+            }
 
 
 
@@ -200,6 +191,10 @@ GeoExplorer.SearchBar =  function(target) {
     	var reset =  function() { 
     		searchTB.setValue('');
             removeHighlightLayers();
+            if (target.busyMask)
+            {
+                target.busyMask.hide();
+            }
 
     	};
     	        

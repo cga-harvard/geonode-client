@@ -2,12 +2,12 @@ Ext.namespace("GeoExplorer")
 
 
 /*
- *  Create a tool to display Picasa Feeds in GeoExplorer based on 1 or more keywords
+ *  Create a tool to display HGL Feeds in GeoExplorer based on 1 or more keywords
  *  target: GeoExplorer instance
  */
 GeoExplorer.HglFeedOverlay = function(target){
 		
-		this.picasaRecord = null;
+		this.hglRecord = null;
 			
 		this.popupControl = null;
 
@@ -15,25 +15,21 @@ GeoExplorer.HglFeedOverlay = function(target){
 		
 		this.createOverlay = function() {
 			var keywords = target.about["keywords"] ? target.about["keywords"] : "of";
-            var hglConfig = {name: "Picasa", source: "0", group: "Overlays", buffer: "0", type: "OpenLayers.Layer.WFS",
-            		args: ["HGL Points", "/hglpoint/",
-                           {  'max-results':'50', 'q' : keywords},
-                           {  format: OpenLayers.Format.GeoRSS, projection: "EPSG:4326", displayInLayerSwitcher: false,
-                              formatOptions: {
-                                              createFeatureFromItem: function(item) {
-                                                                     var feature = OpenLayers.Format.GeoRSS.prototype
-                                                                                   .createFeatureFromItem.apply(this, arguments);
-                                                                                    feature.attributes.guid = OpenLayers.Util.getXmlNodeValue(this.getElementsByTagNameNS(item, "*","guid")[0]);
-                                                                                    feature.attributes.title = OpenLayers.Util.getXmlNodeValue(this.getElementsByTagNameNS(item, "*","title")[0]);
-                                                                                    feature.attributes.description = OpenLayers.Util.getXmlNodeValue(this.getElementsByTagNameNS(item, "*","description")[0]);
-                                                                                    return feature;
-                                                                                    }
-                                             }
-                      }]
+            var hglConfig = {name: "HGL", source: "0", group: "Overlays", buffer: "0", type: "OpenLayers.Layer.Vector",
+            		args: ["HGL Points",
+                    {
+                        strategies: [new OpenLayers.Strategy.Fixed()],
+                        protocol: new OpenLayers.Protocol.HTTP({
+                                url: "/hglpoint?Q=" + keywords,
+                                format: new OpenLayers.Format.GeoRSS({internalProjection: new OpenLayers.Projection('EPSG:900913'),
+                                    externalProjection:new OpenLayers.Projection('EPSG:4326')}),
+                                projection: "EPSG:4326", displayInLayerSwitcher: false
+                            })
+                    }]
              };
 
             
-            
+
                                                                                                                        
              var feedSource = Ext.ComponentMgr.createPlugin(
                           hglConfig, "gx_olsource"
@@ -52,7 +48,7 @@ GeoExplorer.HglFeedOverlay = function(target){
                              feature.geometry.getBounds().getCenterLonLat(),
                              new OpenLayers.Size(150,150),
                              "<a target='_blank' href=\"" +
- 			                                         feature.attributes.guid + "\">" +  feature.attributes.title +"</a><p>" + feature.attributes.description + "</p>",
+ 			                                         feature.attributes.link + "\">" +  feature.attributes.title +"</a><p>" + feature.attributes.description + "</p>",
                              null, true);
  			      this.popup.closeOnMove = false;
                   this.popup.maxSize = new OpenLayers.Size(300,300);

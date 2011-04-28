@@ -204,7 +204,7 @@ GeoNode.SearchTable = Ext.extend(Ext.util.Observable, {
             plugins: [expander],
             autoExpandColumn: 'title',
             viewConfig: {
-                autoFill: true, 
+                autoFill: true,
                 forceFit: true,
                 emptyText: this.noResultsText
             },
@@ -228,6 +228,7 @@ GeoNode.SearchTable = Ext.extend(Ext.util.Observable, {
                 header: this.titleHeaderText,
                 dataIndex: 'title',
                 id: 'title',
+                sortable: true,
                 renderer: function(value, metaData, record, rowIndex, colIndex, store) {
                     var is_local = record.get('_local');
                     var detail = record.get('detail');
