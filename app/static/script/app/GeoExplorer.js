@@ -762,7 +762,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     if (layer && store) {
                         var record = store.getAt(store.findBy(function(r) {
                             return r.getLayer() === layer;
-                        }));ing
+                        }))
                         if (record && !record.get("queryable")) {
                             attr.iconCls = "gx-tree-rasterlayer-icon";
                         }
