@@ -1323,7 +1323,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         
         //console.log('enter createStylesPanel');
         var layer = options.layerRecord.getLayer();
-
         var stylesPanel, stylesDialog;
         var createStylesDialog = function() {
             if (stylesPanel) {
@@ -1554,6 +1553,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                     //console.log('source:' + source.title + '; key=' + key);
                                     layer.source = key;
                                     layer.buffer = 0;
+                                    layer.tiled = true;
                                     //console.log('BBOX:' + layer.llbbox);
                     			    var record = source.createLayerRecord(layer);
                                     //console.log('Created record');
