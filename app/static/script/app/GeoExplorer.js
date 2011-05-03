@@ -1582,7 +1582,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var initialSourceId, source, data = [];
         for (var id in this.layerSources) {
             source = this.layerSources[id];
-            if ( source instanceof gxp.plugins.WMSCSource) {
+            if ( source instanceof gxp.plugins.WMSCSource && source.url.replace(this.urlPortRegEx, "$1/").indexOf(
+                        this.localGeoServerBaseUrl.replace(
+                            this.urlPortRegEx, "$1/")) === 0){
                             //do nothing
             } else
             {
