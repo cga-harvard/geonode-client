@@ -1582,9 +1582,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var initialSourceId, source, data = [];
         for (var id in this.layerSources) {
             source = this.layerSources[id];
-            if ( source instanceof gxp.plugins.WMSCSource && source.url.replace(this.urlPortRegEx, "$1/").indexOf(
-                        this.localGeoServerBaseUrl.replace(
-                            this.urlPortRegEx, "$1/")) === 0){
+            if ( source instanceof gxp.plugins.WMSCSource && source.url.replace(this.urlPortRegEx, "$1/").indexOf(this.localGeoServerBaseUrl.replace( this.urlPortRegEx, "$1/")) === 0){
                             //do nothing
             } else
             {
@@ -2680,7 +2678,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             bodyStyle: {padding: "5px"},
             labelAlign: "top",
             preventBodyReset: true,
-            autoScroll:true,
+            autoScroll:false,
             autoHeight:true,
             autoLoad:{url:'/maphelp',scripts:true}
         });
@@ -2692,7 +2690,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
          closeAction: 'hide',
          items: this.helpTextPanel,
          modal: true,
-         width: 600,
+         width: 1000,
          height:500,
          autoScroll: true
        });

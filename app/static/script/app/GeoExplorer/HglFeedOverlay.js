@@ -22,13 +22,13 @@ GeoExplorer.HglFeedOverlay = function(target){
                         protocol: new OpenLayers.Protocol.HTTP({
                                 url: "/hglpoint?Q=" + keywords,
                                 format: new OpenLayers.Format.GeoRSS({internalProjection: new OpenLayers.Projection('EPSG:900913'),
-                                    externalProjection:new OpenLayers.Projection('EPSG:4326')}),
-                                projection: "EPSG:4326", displayInLayerSwitcher: false
-                            })
+                                    externalProjection:new OpenLayers.Projection('EPSG:4326')})
+                            }),
+                        displayInLayerSwitcher:false
                     }]
              };
 
-            
+
 
                                                                                                                        
              var feedSource = Ext.ComponentMgr.createPlugin(
