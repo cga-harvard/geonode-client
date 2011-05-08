@@ -1043,7 +1043,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             	var node = layerTree.getSelectionModel().getSelectedNode();
             	if (node.parentNode.isRoot)
             	{
-            		Ext.Msg.alert("Map Layers", "This category cannot be removed");
+            		Ext.Msg.alert(this.layerContainerText, "This category cannot be removed");
             		return false;
             	}
             	if (node)
@@ -1063,6 +1063,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             scope: this
         });
 
+        var mapLayersText = this.layerContainerText;
+        var backgroundText = this.backgroundContainerText;
 
         //var geoEx = this;
         var layerTree = new Ext.tree.TreePanel({
@@ -1102,17 +1104,16 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
                     // Folders can be dragged, but not into another folder
                     if(dropEvent.data.node.attributes.iconCls == 'gx-folder') {
-                    	//alert(dropEvent.target.attributes.iconCls + ":" + dropEvent.point + ":" + dropEvent.target.parentNode.text);
+                    	//alert('gx-folder::' + dropEvent.target.attributes.iconCls + ":" + dropEvent.point + ":" + dropEvent.target.parentNode.text + ":" + dropEvent.target.text);
                     	if (dropEvent.target.attributes.iconCls != "gx-folder")
                     		dropEvent.target = dropEvent.target.parentNode;
-                        if( (dropEvent.target.attributes.iconCls == 'gx-folder' && dropEvent.point == "above") || (dropEvent.target.text != 'Background' && dropEvent.target.attributes.iconCls == 'gx-folder' && dropEvent.point == "below")) {
+                        if( (dropEvent.target.attributes.iconCls == 'gx-folder' && dropEvent.point == "above") || (dropEvent.target.text != backgroundText && dropEvent.target.attributes.iconCls == 'gx-folder' && dropEvent.point == "below")) {
                             return true;
                           } else {
                             return false;
                           }
                     } else {
-                    	//alert(dropEvent.target.parentNode.text);
-                    	if (dropEvent.target.parentNode.text == 'Background' || dropEvent.target.parentNode.text == 'Layers')
+                    	if (dropEvent.target.parentNode.text ==  backgroundText || dropEvent.target.parentNode.text ==  mapLayersText ||  dropEvent.target.parentNode.text ==  "Layers")
                     		return false;
                     	else
                     		return true;
