@@ -2760,7 +2760,42 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
     },
 
+     /*  Set up a simplified map config with just background layers and
+     the current map extent, to be used on the data search map */
+    getBoundingBoxConfig: function()
+    {
+        // start with what was originally given
+        var state = this.getState();
+        // update anything that can change
+        var center = this.mapPanel.map.getCenter();
+        Ext.apply(state.map, {
+            center: [center.lon, center.lat],
+            zoom: this.mapPanel.map.zoom,
+            layers: []
+        });
 
+        // include all layer config (and add new sources)
+        this.mapPanel.layers.each(function(record){
+            if (record.get("group") === "background")
+            {
+                var layer = record.getLayer();
+                if (layer.displayInLayerSwitcher) {
+                    var id = record.get("source");
+                    var source = this.layerSources[id];
+                    if (!source) {
+                        throw new Error("Could not find source for layer '" + record.get("name") + "'");
+                    }
+                    // add layer
+                    state.map.layers.push(source.getConfigForRecord(record));
+                    if (!state.sources[id]) {
+                        state.sources[id] = Ext.apply({}, source.initialConfig);
+                    }
+                }
+            }
+        }, this);
+
+        return state;
+    },
 
     initSearchWindow: function(){
 
@@ -2770,7 +2805,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 new OpenLayers.Projection("EPSG:4326"));
         this.bbox = new GeoNode.BoundingBoxWidget({
          proxy: "/proxy/?url=",
-         viewerConfig: this.getState(),
+         viewerConfig:this.getBoundingBoxConfig(),
          renderTo: 'refine',
          height: 275,
          isEnabled: true,
