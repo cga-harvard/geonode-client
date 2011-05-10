@@ -160,6 +160,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     metaDataMapTitle: 'UT:Title',
     metaDataMapUrl: 'UT:UserUrl',
     miniSizeLabel: 'UT: Mini',
+    addCategoryActionText: 'UT:Add Category',
+    addCategoryActionTipText: 'UT: Add a new category to the layer tree',
     renameCategoryActionText: 'UT: Rename Category',
     renameCategoryActionTipText: 'UT: Rename this category',
     removeCategoryActionText: 'UT: Remove Category',
@@ -821,9 +823,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         }));
 
 
-
-
-
         createPropertiesDialog = function() {
             var node = layerTree.getSelectionModel().getSelectedNode();
             if (node && node.layer) {
@@ -958,9 +957,10 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     showPropertiesAction.disable();
                 }
         		removeCategoryAction.hide();
+                addCategoryAction.hide();
         		renameAction.hide();
             } else {
-
+                addCategoryAction.hide();
                 removeLayerAction.hide();
                 showPropertiesAction.hide();
 //                showStylesAction.hide();
@@ -969,8 +969,15 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 	{
                 		removeCategoryAction.show();
                 		renameAction.show();
-                	} else
+                        addCategoryAction.hide();
+                	} else if (node.parentNode.isRoot)
+                    {
+                        addCategoryAction.show();
+                		removeCategoryAction.hide();
+                		renameAction.hide();
+                    } else
                 	{
+                        addCategoryAction.hide();
                 		removeCategoryAction.hide();
                 		renameAction.hide();
                 	}
@@ -1021,6 +1028,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         	});
         };
 
+
         var renameAction =new Ext.Action({
             text: this.renameCategoryActionText,
             iconCls: "icon-layerproperties",
@@ -1033,6 +1041,23 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             scope: this
         });
 
+
+        var addCategoryAction = new Ext.Action({
+            text: this.addCategoryActionText,
+            iconCls: "icon-add",
+            disabled: false,
+            tooltip: this.addCategoryActionTipText,
+            handler: function() {
+                var geoEx = this;
+                var node = layerTree.getSelectionModel().getSelectedNode();
+        	    Ext.MessageBox.prompt('Add Category', 'Category name:', function(btn, text){
+        		if (btn == 'ok'){
+                    geoEx.addCategoryFolder(text, true);
+        		}
+        	    });
+            },
+            scope: this
+         });
 
         var removeCategoryAction = new Ext.Action({
             text: this.removeCategoryActionText,
@@ -1113,7 +1138,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                             return false;
                           }
                     } else {
-                    	if (dropEvent.target.parentNode.text ==  backgroundText || dropEvent.target.parentNode.text ==  mapLayersText ||  dropEvent.target.parentNode.text ==  "Layers")
+                    	if (dropEvent.target.parentNode.text ==  backgroundText || (dropEvent.target.parentNode.text ==  mapLayersText && dropEvent.point != "append") ||  dropEvent.target.parentNode.text ==  "Layers")
                     		return false;
                     	else
                     		return true;
@@ -1132,6 +1157,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     removeLayerAction,
                     showPropertiesAction,
                     //showStylesAction,
+                    addCategoryAction,
                     renameAction,
                     removeCategoryAction
             ]
