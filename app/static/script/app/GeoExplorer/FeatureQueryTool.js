@@ -67,13 +67,8 @@ GeoExplorer.FeatureQueryTool =  function(geoExplorer, queryPanelName, gridPanelN
     						'success':function(resp, opts) {
     							successCount++;
 
-//    							if(dl.params.LAYERS.indexOf("geonode") == -1 &&  resp.responseText != '') {
-//       								msg = resp.responseText;
-//    								Ext.Msg.alert('Results for ' + x.get("title"),msg);
-//    							}
-//    							else
-                                {
     							if(resp.responseText != '') {
+                                  try {
     							    var featureInfo = new OpenLayers.Format.GeoJSON().read(resp.responseText);
     							    if (featureInfo) {
     							        if (featureInfo.constructor != Array) {
@@ -109,14 +104,14 @@ GeoExplorer.FeatureQueryTool =  function(geoExplorer, queryPanelName, gridPanelN
     	                        			features = features.concat(feature);
     	                        		}
 
+                                        featureMeta[dl.params.LAYERS] = featureInfo.queryfields;
 
+    	                        	}  //end if(featureInfo)
+                                  } catch (err) {
+                                      //Could not be queried, WFS probably turned off
+                                  }
+                                }  //end if (resp.responseText)
 
-    	                        	}
-    	                        	featureMeta[dl.params.LAYERS] = featureInfo.queryfields;
-                                }
-    							}
-
-    							//alert(featureMeta);
 
     							if(successCount == count) {
     								if(features.length == 0) {

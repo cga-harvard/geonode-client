@@ -160,6 +160,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     metaDataMapTitle: 'UT:Title',
     metaDataMapUrl: 'UT:UserUrl',
     miniSizeLabel: 'UT: Mini',
+    addCategoryActionText: 'UT:Add Category',
+    addCategoryActionTipText: 'UT: Add a new category to the layer tree',
     renameCategoryActionText: 'UT: Rename Category',
     renameCategoryActionTipText: 'UT: Rename this category',
     removeCategoryActionText: 'UT: Remove Category',
@@ -230,6 +232,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         Ext.preg("gx_wmssource", gxp.plugins.WMSSource);
         Ext.preg("gx_olsource", gxp.plugins.OLSource);
         Ext.preg("gx_googlesource", gxp.plugins.GoogleSource);
+        Ext.preg("gx_gnsource", gxp.plugins.GeoNodeSource);
 
         // global request proxy and error handling
         Ext.util.Observable.observeClass(Ext.data.Connection);
@@ -394,6 +397,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                           }));
                           if (record && !record.get("queryable")) {
                               attr.iconCls = "gx-tree-rasterlayer-icon";
+                          }
+                          if (record && record.get("disabled"))
+                          {
+                              attr.disabled = true;
+
                           }
                       }
                       return GeoExt.tree.LayerLoader.prototype.createNode.apply(this, [attr]);
@@ -563,7 +571,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
            var geoEx = this;
 
 
-
            queryableLayers.each(function(x){
            	var dl = x.getLayer();
                if (dl.name != "HighlightWMS" && !geoEx.dataLayers[dl.params.LAYERS]){
@@ -589,7 +596,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                	  });
 
                 }
-
            }, this);
 
        },
@@ -608,7 +614,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 	    OpenLayers.Util.onImageLoadErrorColor = "transparent";
 
         GeoExplorer.superclass.initMapPanel.apply(this, arguments);
-
         var searchFields = this.searchFields;
         var layerCount = 0;
 
@@ -762,7 +767,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     if (layer && store) {
                         var record = store.getAt(store.findBy(function(r) {
                             return r.getLayer() === layer;
-                        }));ing
+                        }));
                         if (record && !record.get("queryable")) {
                             attr.iconCls = "gx-tree-rasterlayer-icon";
                         }
@@ -821,9 +826,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         }));
 
 
-
-
-
         createPropertiesDialog = function() {
             var node = layerTree.getSelectionModel().getSelectedNode();
             if (node && node.layer) {
@@ -861,7 +863,13 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     prop.items.get(0).items.get(1).cascade(function(i) {
                         i instanceof Ext.form.Field && i.setDisabled(true);
                     });
-                    if (layer.params.LAYERS.indexOf("geonode") === 0) {
+
+                    isLocal = layer.url.replace(
+                    this.urlPortRegEx, "$1/").indexOf(
+                    this.localGeoServerBaseUrl.replace(
+                    this.urlPortRegEx, "$1/")) === 0;
+
+                    if (isLocal) {
                     	prop.items.get(0).items.get(0).add({html: "<a href='/data/" + layer.params.LAYERS + "'>" + this.shareLayerText + "</a>", xtype: "panel"});
                     }
 
@@ -958,9 +966,10 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     showPropertiesAction.disable();
                 }
         		removeCategoryAction.hide();
+                addCategoryAction.hide();
         		renameAction.hide();
             } else {
-
+                addCategoryAction.hide();
                 removeLayerAction.hide();
                 showPropertiesAction.hide();
 //                showStylesAction.hide();
@@ -969,8 +978,15 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 	{
                 		removeCategoryAction.show();
                 		renameAction.show();
-                	} else
+                        addCategoryAction.hide();
+                	} else if (node.parentNode.isRoot)
+                    {
+                        addCategoryAction.show();
+                		removeCategoryAction.hide();
+                		renameAction.hide();
+                    } else
                 	{
+                        addCategoryAction.hide();
                 		removeCategoryAction.hide();
                 		renameAction.hide();
                 	}
@@ -1034,6 +1050,23 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         });
 
 
+        var addCategoryAction = new Ext.Action({
+            text: this.addCategoryActionText,
+            iconCls: "icon-add",
+            disabled: false,
+            tooltip: this.addCategoryActionTipText,
+            handler: function() {
+                var geoEx = this;
+                var node = layerTree.getSelectionModel().getSelectedNode();
+        	    Ext.MessageBox.prompt('Add Category', 'Category name:', function(btn, text){
+        		if (btn == 'ok'){
+                    geoEx.addCategoryFolder(text, true);
+        		}
+        	    });
+            },
+            scope: this
+         });
+
         var removeCategoryAction = new Ext.Action({
             text: this.removeCategoryActionText,
             iconCls: "icon-removelayers",
@@ -1043,7 +1076,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             	var node = layerTree.getSelectionModel().getSelectedNode();
             	if (node.parentNode.isRoot)
             	{
-            		Ext.Msg.alert("Map Layers", "This category cannot be removed");
+            		Ext.Msg.alert(this.layerContainerText, "This category cannot be removed");
             		return false;
             	}
             	if (node)
@@ -1063,6 +1096,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             scope: this
         });
 
+        var mapLayersText = this.layerContainerText;
+        var backgroundText = this.backgroundContainerText;
 
         //var geoEx = this;
         var layerTree = new Ext.tree.TreePanel({
@@ -1102,17 +1137,16 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
                     // Folders can be dragged, but not into another folder
                     if(dropEvent.data.node.attributes.iconCls == 'gx-folder') {
-                    	//alert(dropEvent.target.attributes.iconCls + ":" + dropEvent.point + ":" + dropEvent.target.parentNode.text);
+                    	//alert('gx-folder::' + dropEvent.target.attributes.iconCls + ":" + dropEvent.point + ":" + dropEvent.target.parentNode.text + ":" + dropEvent.target.text);
                     	if (dropEvent.target.attributes.iconCls != "gx-folder")
                     		dropEvent.target = dropEvent.target.parentNode;
-                        if( (dropEvent.target.attributes.iconCls == 'gx-folder' && dropEvent.point == "above") || (dropEvent.target.text != 'Background' && dropEvent.target.attributes.iconCls == 'gx-folder' && dropEvent.point == "below")) {
+                        if( (dropEvent.target.attributes.iconCls == 'gx-folder' && dropEvent.point == "above") || (dropEvent.target.text != backgroundText && dropEvent.target.attributes.iconCls == 'gx-folder' && dropEvent.point == "below")) {
                             return true;
                           } else {
                             return false;
                           }
                     } else {
-                    	//alert(dropEvent.target.parentNode.text);
-                    	if (dropEvent.target.parentNode.text == 'Background' || dropEvent.target.parentNode.text == 'Layers')
+                    	if (dropEvent.target.parentNode.text ==  backgroundText || (dropEvent.target.parentNode.text ==  mapLayersText && dropEvent.point != "append") ||  dropEvent.target.parentNode.text ==  "Layers")
                     		return false;
                     	else
                     		return true;
@@ -1131,6 +1165,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     removeLayerAction,
                     showPropertiesAction,
                     //showStylesAction,
+                    addCategoryAction,
                     renameAction,
                     removeCategoryAction
             ]
@@ -1175,6 +1210,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
         //needed for Safari
         var westPanel = new Ext.Panel({
+            id: 'gx_westPanel',
 			layout: "anchor",
             collapseMode: "mini",
             header: false,
@@ -1451,17 +1487,17 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var geoEx = this;
         if (this.worldMapSourceKey == null)
             this.setWorldMapSourceKey();
-        var wmsource = this.layerSources[this.worldMapSourceKey];
+        var gnsource = this.layerSources[this.worldMapSourceKey];
 
         var addUploadedLayer = function() {
             geoEx.addWorldMapLayers(layerRecords);
-            wmsource.un('ready', addUploadedLayer, this)
+            gnsource.un('ready', addUploadedLayer, this)
         }
 
         if (layerRecords)
-            wmsource.on("ready", addUploadedLayer, this);
+            gnsource.on("ready", addUploadedLayer, this);
 
-        var wmStore = wmsource.getStore();
+        var wmStore = gnsource.getStore();
         wmStore.reload();
 
     },
@@ -1469,7 +1505,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     setWorldMapSourceKey : function(){
         for (var id in this.layerSources) {
             source = this.layerSources[id];
-            if ( source instanceof gxp.plugins.WMSCSource && source.url.replace(this.urlPortRegEx, "$1/").indexOf(
+            if ( source instanceof gxp.plugins.GeoNodeSource  && source.url.replace(this.urlPortRegEx, "$1/").indexOf(
                         this.localGeoServerBaseUrl.replace(
                             this.urlPortRegEx, "$1/")) === 0)
             {
@@ -1490,36 +1526,55 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
     },
 
+        /** private: method[getMapProjection]
+     *  :returns: ``OpenLayers.Projection``
+     */
+    getMapProjection: function() {
+        var projConfig = this.mapPanel.map.projection;
+        return this.target.mapPanel.map.getProjectionObject() ||
+            (projConfig && new OpenLayers.Projection(projConfig)) ||
+            new OpenLayers.Projection("EPSG:4326");
+    },
 
     addLayerAjax: function (dataSource, dataKey, dataRecords){
             var geoEx = this;
             var key = dataKey;
             var records = dataRecords;
             var source = dataSource;
+
             var layerStore = this.mapPanel.layers;
+            var isLocal = source instanceof gxp.plugins.GeoNodeSource &&
+                    source.url.replace(this.urlPortRegEx, "$1/").indexOf(
+                        this.localGeoServerBaseUrl.replace(
+                            this.urlPortRegEx, "$1/")) === 0;
             for (var i=0, ii=records.length; i<ii; ++i) {
+            	var thisRecord = records[i];
+                        //console.log('RECORDNAME:' + thisRecord.get("name"));
+                if (isLocal) {
+                        //Get all the required WMS parameters from the GeoNode/Worldmap database
+                        // instead of GetCapabilities
+
             			var layer = records[i].get("name");
                         var tiled =  records[i].get("tiled");
 
                     	Ext.Ajax.request({
-                    		url: "/maps/searchfields/?" + records[i].get("name"),
+                    		url: "/maps/addgeonodelayer/?" + thisRecord.get("name"),
                     		method: "POST",
-                    		params: {layername:records[i].get("name")},
+                    		params: {layername:thisRecord.get("name")},
 
                     		success: function(result,request)
                     		{
-                    				var layer = request.params["layername"];
-                    			    var record = (typeof(tiled) != "undefined" ? source.createLayerRecord({
-                    					name: layer,
-                    					source: key,
-                    					buffer: 0,
-                                        tiled: tiled
-                					}): source.createLayerRecord({
-                    					name: layer,
-                    					source: key,
-                    					buffer: 0
-                					}));
-
+                    		        var jsonData = Ext.util.JSON.decode(result.responseText);
+                                    layer = jsonData.layer;
+                                    //console.log('layername:' + layer.name);
+                                    //console.log('source:' + source.title + '; key=' + key);
+                                    layer.source = key;
+                                    layer.buffer = 0;
+                                    layer.tiled = true;
+                                    //console.log('BBOX:' + layer.llbbox);
+                    			    var record = source.createLayerRecord(layer);
+                                    //console.log('Created record');
+                                    ////console.log('GROUP:' + record.get("group"));
                 					if (record) {
                     					if (record.get("group") === "background") {
                         					var pos = layerStore.queryBy(function(rec) {
@@ -1528,13 +1583,10 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         					layerStore.insert(pos, [record]);
 
                     					} else {
-                                			var jsonData = Ext.util.JSON.decode(result.responseText);
-                                			category = jsonData.category;
+                                			category = record.get("group");
 	                                		if (!category || category == '')
-	                                			category = "General";
-                                			geoEx.dataLayers[layer] = new LayerData(geoEx.dataLayers[layer], jsonData.searchFields, jsonData.scount);
-                                			record.set("group",category);
-
+	                                		    record.set("group", "General");
+                                			geoEx.dataLayers[layer] = new LayerData(geoEx.dataLayers[layer.name], jsonData.searchFields, jsonData.scount);
                                 			layerStore.add([record]);
                                 			geoEx.addCategoryFolder(record.get("group"), "true");
                                 			geoEx.reorderNodes();
@@ -1542,7 +1594,13 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 					}
                     		},
                     		failure: function(result,request) {
-                    				var layer = request.params["layername"];
+                                    //No permission to view
+                    		}
+
+                    	});
+                } else {
+                      //Not a local GeoNode layer, use source's standard method for creating the layer.
+                      var layer = records[i].get("name");
                     			    var record = source.createLayerRecord({
                     					name: layer,
                     					source: key,
@@ -1565,10 +1623,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 					}
                     		}
 
-                    	});
 
-
-                    }
+            }
 
     },
 
@@ -1582,7 +1638,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var initialSourceId, source, data = [];
         for (var id in this.layerSources) {
             source = this.layerSources[id];
-            if ( source instanceof gxp.plugins.WMSCSource) {
+            if ( source instanceof gxp.plugins.GeoNodeSource && source.url.replace(this.urlPortRegEx, "$1/").indexOf(this.localGeoServerBaseUrl.replace( this.urlPortRegEx, "$1/")) === 0){
                             //do nothing
             } else
             {
@@ -1694,7 +1750,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 "server-added": function(url) {
                     newSourceWindow.setLoading();
                     this.addLayerSource({
-                        config: {url: url}, // assumes default of gxp_wmssource
+                        config: {url: url, ptype: "gxp_wmscsource"},
                         callback: function(id) {
                             // add to combo and select
                             var record = new sources.recordType({
@@ -2678,7 +2734,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             bodyStyle: {padding: "5px"},
             labelAlign: "top",
             preventBodyReset: true,
-            autoScroll:true,
+            autoScroll:false,
             autoHeight:true,
             autoLoad:{url:'/maphelp',scripts:true}
         });
@@ -2690,7 +2746,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
          closeAction: 'hide',
          items: this.helpTextPanel,
          modal: true,
-         width: 600,
+         width: 1000,
          height:500,
          autoScroll: true
        });
@@ -2759,7 +2815,42 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
     },
 
+     /*  Set up a simplified map config with just background layers and
+     the current map extent, to be used on the data search map */
+    getBoundingBoxConfig: function()
+    {
+        // start with what was originally given
+        var state = this.getState();
+        // update anything that can change
+        var center = this.mapPanel.map.getCenter();
+        Ext.apply(state.map, {
+            center: [center.lon, center.lat],
+            zoom: this.mapPanel.map.zoom,
+            layers: []
+        });
 
+        // include all layer config (and add new sources)
+        this.mapPanel.layers.each(function(record){
+            if (record.get("group") === "background")
+            {
+                var layer = record.getLayer();
+                if (layer.displayInLayerSwitcher) {
+                    var id = record.get("source");
+                    var source = this.layerSources[id];
+                    if (!source) {
+                        throw new Error("Could not find source for layer '" + record.get("name") + "'");
+                    }
+                    // add layer
+                    state.map.layers.push(source.getConfigForRecord(record));
+                    if (!state.sources[id]) {
+                        state.sources[id] = Ext.apply({}, source.initialConfig);
+                    }
+                }
+            }
+        }, this);
+
+        return state;
+    },
 
     initSearchWindow: function(){
 
@@ -2769,7 +2860,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 new OpenLayers.Projection("EPSG:4326"));
         this.bbox = new GeoNode.BoundingBoxWidget({
          proxy: "/proxy/?url=",
-         viewerConfig: this.getState(),
+         viewerConfig:this.getBoundingBoxConfig(),
          renderTo: 'refine',
          height: 275,
          isEnabled: true,
