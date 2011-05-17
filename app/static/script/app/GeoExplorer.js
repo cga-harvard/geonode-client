@@ -1487,18 +1487,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var geoEx = this;
         if (this.worldMapSourceKey == null)
             this.setWorldMapSourceKey();
-        var gnsource = this.layerSources[this.worldMapSourceKey];
 
-        var addUploadedLayer = function() {
-            geoEx.addWorldMapLayers(layerRecords);
-            gnsource.un('ready', addUploadedLayer, this)
-        }
-
-        if (layerRecords)
-            gnsource.on("ready", addUploadedLayer, this);
-
-        var wmStore = gnsource.getStore();
-        wmStore.reload();
+        geoEx.addWorldMapLayers(layerRecords);
 
     },
 
@@ -1518,12 +1508,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     addWorldMapLayers: function(records){
         if (this.worldMapSourceKey == null)
             this.setWorldMapSourceKey();
-
         var wmSource = this.layerSources[this.worldMapSourceKey];
         if (wmSource)
             this.addLayerAjax(wmSource, this.worldMapSourceKey, records);
-
-
     },
 
         /** private: method[getMapProjection]
@@ -1549,7 +1536,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                             this.urlPortRegEx, "$1/")) === 0;
             for (var i=0, ii=records.length; i<ii; ++i) {
             	var thisRecord = records[i];
-                        //console.log('RECORDNAME:' + thisRecord.get("name"));
                 if (isLocal) {
                         //Get all the required WMS parameters from the GeoNode/Worldmap database
                         // instead of GetCapabilities
@@ -1566,8 +1552,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     		{
                     		        var jsonData = Ext.util.JSON.decode(result.responseText);
                                     layer = jsonData.layer;
-                                    //console.log('layername:' + layer.name);
-                                    //console.log('source:' + source.title + '; key=' + key);
                                     layer.source = key;
                                     layer.buffer = 0;
                                     layer.tiled = true;
