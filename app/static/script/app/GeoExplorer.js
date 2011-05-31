@@ -1570,7 +1570,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                 			category = record.get("group");
 	                                		if (!category || category == '')
 	                                		    record.set("group", "General");
-                                			geoEx.dataLayers[layer] = new LayerData(geoEx.dataLayers[layer.name], jsonData.searchFields, jsonData.scount);
+                                			geoEx.dataLayers[layer.name] = new LayerData(geoEx.dataLayers[layer.name], jsonData.searchFields, jsonData.scount);
                                 			layerStore.add([record]);
                                 			geoEx.addCategoryFolder(record.get("group"), "true");
                                 			geoEx.reorderNodes();
