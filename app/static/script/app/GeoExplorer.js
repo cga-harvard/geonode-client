@@ -2818,7 +2818,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             if (record.get("group") === "background")
             {
                 var layer = record.getLayer();
-                if (layer.displayInLayerSwitcher) {
+                if (layer.displayInLayerSwitcher && layer.getVisibility() === true) {
                     var id = record.get("source");
                     var source = this.layerSources[id];
                     if (!source) {
