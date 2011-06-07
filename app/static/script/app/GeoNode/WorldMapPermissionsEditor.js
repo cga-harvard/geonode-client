@@ -138,7 +138,7 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
             radioItems.push({ xtype: 'radio', name: 'editmode', inputValue: 'CUSTOM', boxLabel: this.customGroup});
         }
 
-        radioItems.push({ xtype: 'radio', name: 'editmode', inputValue: 'EDITORS', boxLabel: gettext('Only users who can edit')});
+        radioItems.push({ xtype: 'radio', name: 'editmode', inputValue: 'LIST', boxLabel: gettext('Only users who can edit')});
 
 
         return new Ext.Panel({
@@ -192,7 +192,7 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
         } else if (json['customgroup'] == this.levels['readwrite']) {
             this.editMode = 'CUSTOM';
         } else
-            this.editMode = 'EDITORS'
+            this.editMode = 'LIST'
 
         if (json['anonymous'] == this.levels['readonly']) {
             this.viewMode = 'ANYONE';
