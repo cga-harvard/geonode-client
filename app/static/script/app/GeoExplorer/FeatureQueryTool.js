@@ -17,11 +17,13 @@ GeoExplorer.FeatureQueryTool =  function(geoExplorer, queryPanelName, gridPanelN
 	var resultMarker =  null;
     var queryPanel = queryPanelName;
     var gridWinPanel = gridPanelName;
+    var proj_ll = new OpenLayers.Projection("EPSG:4326");
+    var proj_merc = new OpenLayers.Projection("EPSG:900913");
 
     //Fire this everytime the map is clicked
 	var onMapClick = function(e) {
         var pixel = new OpenLayers.Pixel(e.xy.x, e.xy.y);
-		var lonlat = target.mapPanel.map.getLonLatFromPixel(pixel);
+
 
 
 
@@ -56,12 +58,17 @@ GeoExplorer.FeatureQueryTool =  function(geoExplorer, queryPanelName, gridPanelN
         	var ur = map.getLonLatFromPixel(urPx);
         	var bounds = new OpenLayers.Bounds(ll.lon, ll.lat, ur.lon, ur.lat);
 
+            var coord = map.getLonLatFromPixel(pixel).transform(proj_merc, proj_ll);
+
+
+
+            bounds.transform(proj_merc, proj_ll)
 
             if (wfs_url.indexOf("?") > -1)
                 wfs_url = wfs_url.substring(0, wfs_url.indexOf("?"));
             wfs_url = wfs_url.replace("WMS","WFS").replace("wms","wfs");
 
-            wfs_url+="?service=WFS&request=GetFeature&version=1.1.0&srsName=EPSG:900913&outputFormat=json&typeName=" + dl.params.LAYERS + "&BBOX=" + bounds.toBBOX() + ",EPSG:900913";
+            wfs_url+="?service=WFS&request=GetFeature&version=1.1.0&srsName=EPSG:4326&outputFormat=GML2&typeName=" + dl.params.LAYERS + "&BBOX=" + bounds.toBBOX() + ",EPSG:4326";
     					Ext.Ajax.request({
     						'url':wfs_url,
     						'success':function(resp, opts) {
@@ -69,7 +76,7 @@ GeoExplorer.FeatureQueryTool =  function(geoExplorer, queryPanelName, gridPanelN
 
     							if(resp.responseText != '') {
                                   try {
-    							    var featureInfo = new OpenLayers.Format.GeoJSON().read(resp.responseText);
+    							    var featureInfo = new OpenLayers.Format.GML().read(resp.responseText);
     							    if (featureInfo) {
     							        if (featureInfo.constructor != Array) {
     							        	featureInfo = [featureInfo];
@@ -308,14 +315,29 @@ GeoExplorer.FeatureQueryTool =  function(geoExplorer, queryPanelName, gridPanelN
 
 	    reset();
 
+         var inFormat = new OpenLayers.Format.GeoJSON({
+                            'internalProjection': new OpenLayers.Projection("EPSG:4326"),
+                            'externalProjection': new OpenLayers.Projection("EPSG:900913")
+          });
+
+         var outFormat = new OpenLayers.Format.GeoJSON({
+                            'internalProjection': new OpenLayers.Projection("EPSG:900913"),
+                            'externalProjection': new OpenLayers.Projection("EPSG:900913")
+          });
+
+        var json = inFormat.write(feature);
+        //console.log(json);
+
 	    //Add highlight vector layer for selected features
 	    hilites = new OpenLayers.Layer.Vector("hilites", {
 	        isBaseLayer: false,
+            projection: new OpenLayers.Projection("EPSG:900913"),
 	        visibility: true,
 	        style: highlight_style,
-	        displayInLayerSwitcher : false
+	        displayInLayerSwitcher : true
 	    });
-    	hilites.addFeatures(feature);
+
+    	hilites.addFeatures(outFormat.read(json));
         hilites.setVisibility(true);
 
 	    target.mapPanel.map.addLayers([hilites]);

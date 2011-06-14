@@ -123,6 +123,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
     //public variables for string literals needed for localization
     addLayersButtonText: "UT:Add Layers",
+    arcGisRestLabel: 'UT: Add ArcGIS REST Server',
     areaActionText: "UT:Area",
     backgroundContainerText: "UT:Background",
     capGridAddLayersText: "UT:Add Layers",
@@ -207,6 +208,14 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     },
 
     constructor: function(config) {
+     /*   config["tools"] =  [{
+                    ptype: "geo_getfeatureinfo",
+                    actionTarget: "paneltbar",
+                    outputConfig: {width: 400, height: 200, panIn: false},
+                    featurePanel: 'queryPanel',
+                    attributePanel: 'gridWinPanel'
+                }];
+                */
     	this.config = config;
         this.popupCache = {};
         this.propDlgCache = {};
@@ -600,6 +609,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
        },
 
+
+
     initMapPanel: function() {
         this.mapItems = [{
             xtype: "gx_zoomslider",
@@ -691,7 +702,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         this.on("ready", function() {
             this.addInfo();
 
-            var queryTool = new GeoExplorer.FeatureQueryTool(this, 'queryPanel', 'gridWinPanel');
+            //var queryTool = new GeoExplorer.FeatureQueryTool(this, 'queryPanel', 'gridWinPanel');
 
             this.mapPanel.layers.on({
                 "update": function() {this.modified |= 1;},
@@ -1257,6 +1268,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
         this.toolbar = new Ext.Toolbar({
             disabled: true,
+            id: 'paneltbar',
             items: [
             addLayerButton,
             "-",
@@ -1274,7 +1286,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 item.disable();
             });
 
-            
+
             if (this.busyMask) {
                 this.busyMask.hide();
             }
@@ -1727,7 +1739,42 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 }
             });
 
+
+        var addArcGisRestButton = new Ext.Button({
+                text: this.arcGisRestLabel,
+                iconCls: 'icon-add',
+                cls: 'x-btn-link-medium x-btn-text',
+                handler: function() {
+                    newArcSourceWindow.show();
+                }
+//                handler: function() {
+//                    var arcSource = this.addLayerSource({
+//                        config: {url: "http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StateCityHighway_USA/MapServer/export", ptype: "gxp_olsource"},
+//                        callback: function(id) {
+//                            // add to combo and select
+//                            var record = new sources.recordType({http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StateCityHighway_USA/MapServer
+//                                id: id,
+//                                title: this.layerSources[id].title || "ArcGIS REST" // TODO: titles
+//                            });
+//                            sources.insert(0, [record]);
+//                    },
+//                        scope:this
+//                    });
+//                            var arcConfig = {name: "ArcGIS", source: arcSource.id, group: "ArcGIS", buffer: "0", type: "OpenLayers.Layer.ArcGIS93Rest",
+//            		            args: ["ArcGIS Layer", "http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/export",
+//                                    {layers: "show:0,2", TRANSPARENT: true},
+//                                    {isBaseLayer: false, extractAttributes: true, displayInLayerSwitcher:true, projection: "EPSG:102113"}]
+//                            };
+//
+//                            var arcGISRecord = arcSource.createLayerRecord(arcConfig);
+//                            this.mapPanel.layers.add(arcGISRecord);
+//                            this.addCategoryFolder(arcGISRecord.get("group"), "true");
+//                            this.reorderNodes();
+//                }, scope:this
+            });
+
         var app = this;
+
         var newSourceWindow = new gxp.NewSourceWindow({
             modal: true,
             listeners: {
@@ -1761,6 +1808,39 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             }
         });
 
+        var newArcSourceWindow = new gxp.NewSourceWindow({
+            modal: true,
+            listeners: {
+                "server-added": function(url) {
+                    newArcSourceWindow.setLoading();
+                    this.addLayerSource({
+                        config: {url: url, ptype: "gxp_arcrestsource"},
+                        callback: function(id) {
+                            // add to combo and select
+                            var record = new sources.recordType({
+                                id: id,
+                                title: this.layerSources[id].title || "Untitled" // TODO: titles
+                            });
+                            sources.insert(0, [record]);
+                            sourceComboBox.onSelect(record, 0);
+                            newArcSourceWindow.hide();
+                        },
+                        failure: function() {
+                            // TODO: wire up success/failure
+                            newArcSourceWindow.setError("Error contacting server.\nPlease check the url and try again.");
+                        },
+                        scope: this
+                    });
+                },
+                scope: this
+            },
+            // hack to get the busy mask so we can close it in case of a
+            // communication failure
+            addSource: function(url, success, failure, scope) {
+                app.busyMask = scope.loadMask;
+            }
+        });
+
 
         var addLayerButton = new Ext.Button({
                     text: "Add Layers",
@@ -1768,6 +1848,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     handler: addLayers,
                     scope : this
                 });
+
+
 
 
         var sourceAdditionLabel = { xtype: 'box', autoEl: { tag: 'span',  html: this.layerSelectionLabel }};
@@ -1785,7 +1867,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                      right: 0
                   }
              }),
-             items: [sourceAdditionLabel, sourceComboBox, {xtype: 'spacer', width:20 }, addWmsButton]
+             items: [sourceAdditionLabel, sourceComboBox, {xtype: 'spacer', width:20 }, addWmsButton, addArcGisRestButton]
          });
 
 
@@ -2248,6 +2330,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 disabled: !this.mapID
             });
 
+
+
+
         var tools = [
             new Ext.Button({
                 tooltip: this.saveMapText,
@@ -2255,7 +2340,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 scope: this,
                 disabled: !this.config["edit_map"],
             	text: '<span class="x-btn-text">' + this.saveMapBtnText + '</span>'
-            }),
+            }), "-",
             "-",
             publishAction,
             "-",
@@ -2805,6 +2890,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     {
         // start with what was originally given
         var state = this.getState();
+        state.tools = [];
         // update anything that can change
         var center = this.mapPanel.map.getCenter();
         Ext.apply(state.map, {
