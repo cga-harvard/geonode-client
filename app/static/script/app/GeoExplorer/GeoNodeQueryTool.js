@@ -99,8 +99,10 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
         var info = {controls: []};
         var updateInfo = function() {
             var queryableLayers = this.target.mapPanel.layers.queryBy(function(x){
-                return x.get("queryable");
+                return (x.get("queryable") && x.getLayer().getVisibility() && x.getLayer().displayInLayerSwitcher === true && x.getLayer() instanceof OpenLayers.Layer.WMS);
             });
+
+
 
             var localUrl = this.target.localGeoServerBaseUrl;
             //console.log('LCOAL URL: ' + localUrl);
@@ -113,24 +115,16 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                 control.destroy();
             }
 
-            var count = 0, successCount = 0, featureCount = 0;
+            var count = queryableLayers.length, successCount = 0, featureCount = 0;
             var features = [];
             var featureMeta = [];
-
-            queryableLayers.each(function(x){
-                if (x.getLayer().getVisibility() && x.getLayer().displayInLayerSwitcher === true)
-                {
-                    count++;
-                    //console.log('Adding ' + x.getLayer().name + ":" + count);
-                }
-            });
 
             info.controls = [];
             queryableLayers.each(function(x){
                 var layer = x.getLayer();
 
-                if (layer.getVisibility()  && layer.displayInLayerSwitcher === true)
-                {
+
+
                     //console.log(layer.name +":" + layer.srs);
                     var vendorParams = Ext.apply({}, this.vendorParams), param;
                     if (this.layerParams) {
@@ -223,6 +217,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                                         } else {
                                             this.displayXYResults(features, featureMeta);
                                         }
+                                        OpenLayers.Element.removeClass(control.map.viewPortDiv, "olCursorWait");
                                     }
 
 
@@ -266,19 +261,18 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                                                 control.unselectAll();
                                             }
                                         }
-                                        OpenLayers.Element.removeClass(control.map.viewPortDiv, "olCursorWait");
+                                        //OpenLayers.Element.removeClass(control.map.viewPortDiv, "olCursorWait");
                                     },
                                     'failure': function(resp,opts)
                                     {
                                         control.events.triggerEvent("clickout");
-                                        OpenLayers.Element.removeClass(control.map.viewPortDiv, "olCursorWait");
+                                        //OpenLayers.Element.removeClass(control.map.viewPortDiv, "olCursorWait");
                                     }
                                 });
                             }
                         });
                     }
-                    else if (layer.CLASS_NAME == 'OpenLayers.Layer.WMS')
-                    {
+                    else {
                         var control = new OpenLayers.Control.WMSGetFeatureInfo({
                             url: layer.url,
                             queryVisible: true,
@@ -440,31 +434,14 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                             }
                         });
 
-                            } else
-                    {
-                        successCount++;
-                        if(successCount == count) {
-                            successCount = 0;
-                            if(features.length == 0) {
-                                Ext.Msg.alert('Map Results','No features found at this location.');
-                            } else {
-                                this.displayXYResults(features, featureMeta);
-                            }
-                        }
                     }
 
-                    if (control && control != null)
-                    {
-                        map.addControl(control);
-                        info.controls.push(control);
-                        if(infoButton.pressed) {
-                            control.activate();
-                        }
+                    map.addControl(control);
+                    info.controls.push(control);
+                    if(infoButton.pressed) {
+                      control.activate();
                     }
-
-                }
             }, this);
-
         };
 
         this.target.mapPanel.layers.on("update", updateInfo, this);
@@ -523,7 +500,15 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
 
         var tool = this;
         var gridPanel = new Ext.grid.GridPanel({
+            tbar:[{
+                	xtype:'button',
+					text:'<span class="x-btn-text">Reset</span>',
+                    qtip: 'Clear all features',
+                    handler: function(brn, e) {tool.reset(true);},
+                    text: 'Reset'
+            }],
             id: 'getFeatureInfoGrid',
+            header: false,
             store:new Ext.data.GroupingStore({
                 reader: reader,
                 data: currentFeatures,
@@ -555,7 +540,6 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
             layout: 'fit',
             frame:false,
             collapsible: true,
-            title: '',
             iconCls: 'icon-grid',
             autoHeight:true,
             style: 'width: 425px',

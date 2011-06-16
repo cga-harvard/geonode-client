@@ -208,14 +208,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     },
 
     constructor: function(config) {
-     /*   config["tools"] =  [{
-                    ptype: "geo_getfeatureinfo",
-                    actionTarget: "paneltbar",
-                    outputConfig: {width: 400, height: 200, panIn: false},
-                    featurePanel: 'queryPanel',
-                    attributePanel: 'gridWinPanel'
-                }];
-                */
     	this.config = config;
         this.popupCache = {};
         this.propDlgCache = {};
@@ -1236,7 +1228,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var gridWinPanel = new Ext.Panel({
         	id: 'gridWinPanel',
             collapseMode: "mini",
-            title: 'Search Results',
+            title: 'Identify Results',
             autoScroll: true,
             split: true,
             items: [],
