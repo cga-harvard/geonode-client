@@ -285,7 +285,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                                     successCount++;
 
                                     if(evt.text != '') {
-                                        try {
+                                     
                                             if (evt.text.contains('<FeatureInfoResponse>'))
                                             {
 
@@ -294,10 +294,11 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
 
 
                                                 var dq = Ext.DomQuery;
-                                                var featureInfo = new OpenLayers.Format.XML().read(evt.text);
+                                                var xmlObject = new OpenLayers.Format.XML().read(evt.text);
+                                                var featureInfo = new Object();
                                                 //var title =  x.get("title");
                                                 //featureInfo.title = x.get("title");
-                                                var nodes = dq.select('FIELDS', featureInfo);
+                                                var nodes = dq.select('FIELDS', xmlObject);
 
                                                 if (nodes.length > 0)
                                                 {
@@ -307,9 +308,11 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                                                     {
                                                         qfields.push(nodes[0].attributes[attr].name);
                                                     }
-                                                    featureInfo.queryfields = qfields;
-                                                    if (featureInfo.queryfields.length > 0)
-                                                        featureInfo.nameField = featureInfo.queryfields[0];
+
+                                                    featureInfo['queryfields'] = qfields;
+
+                                                    if (qfields.length > 0)
+                                                        featureInfo['nameField'] = featureInfo['queryfields'][0];
 
                                                     for (var it = 0; it < nodes.length; it++)
                                                     {
@@ -344,7 +347,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                                             {
                                                 var featureInfo = new OpenLayers.Format.GML().read(evt.text);
 
-                                                if (featureInfo) {
+                                                if (featureInfo && featureInfo.length > 0) {
                                                     if (featureInfo.constructor != Array) {
                                                         featureInfo = [featureInfo];
                                                     }
@@ -412,9 +415,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
 
                                                 }
                                             }//end if(featureInfo)
-                                        } catch (err) {
-                                            Ext.Msg.alert("Error", err)
-                                        }
+
                                     }  //end if (resp.responseText)
 
 
