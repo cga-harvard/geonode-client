@@ -263,7 +263,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     var parts = options.url.replace(/&$/, "").split("?");
                     var params = Ext.apply(parts[1] && Ext.urlDecode(
                         parts[1]) || {}, options.params);
-                    url = Ext.urlAppend(parts[0], Ext.urlEncode(params));
+                    var url = Ext.urlAppend(parts[0], Ext.urlEncode(params));
                     delete options.params;
                     options.url = this.proxy + encodeURIComponent(url);
                 }

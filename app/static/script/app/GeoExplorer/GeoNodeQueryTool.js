@@ -277,7 +277,8 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                             }
                         });
                     }
-                    else {
+                    else if (layer.CLASS_NAME == 'OpenLayers.Layer.WMS')
+                    {
                         var control = new OpenLayers.Control.WMSGetFeatureInfo({
                             url: layer.url,
                             queryVisible: true,
@@ -439,13 +440,28 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                             }
                         });
 
+                            } else
+                    {
+                        successCount++;
+                        if(successCount == count) {
+                            successCount = 0;
+                            if(features.length == 0) {
+                                Ext.Msg.alert('Map Results','No features found at this location.');
+                            } else {
+                                this.displayXYResults(features, featureMeta);
+                            }
+                        }
                     }
 
-                    map.addControl(control);
-                    info.controls.push(control);
-                    if(infoButton.pressed) {
-                        control.activate();
+                    if (control && control != null)
+                    {
+                        map.addControl(control);
+                        info.controls.push(control);
+                        if(infoButton.pressed) {
+                            control.activate();
+                        }
                     }
+
                 }
             }, this);
 
