@@ -326,7 +326,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         if (!config.map) {
             config.map = {};
         }
-        config.map.numZoomLevels = 20;
+        config.map.numZoomLevels = 21;
 
         GeoExplorer.superclass.constructor.apply(this, arguments);
 
@@ -617,6 +617,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 	    OpenLayers.Util.onImageLoadErrorColor = "transparent";
 
         GeoExplorer.superclass.initMapPanel.apply(this, arguments);
+
         var searchFields = this.searchFields;
         var layerCount = 0;
 
@@ -2033,6 +2034,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             tooltip: this.printTipText,
             text: '<span class="x-btn-text">' + this.printBtnText + '</span>',
             handler: function() {
+                 alert('initMapPanel:' + this.mapPanel.map.numZoomLevels);
                 var unsupportedLayers = [];
                 var printWindow = new Ext.Window({
                     title: this.printWindowTitleText,

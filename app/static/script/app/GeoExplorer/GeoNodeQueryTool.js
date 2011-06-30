@@ -286,7 +286,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
 
                                     if(evt.text != '') {
                                      
-                                            if (evt.text.contains('<FeatureInfoResponse>'))
+                                            if (evt.text.contains('<FeatureInfoResponse'))
                                             {
 
                                                 var coords = map.getLonLatFromPixel(evt.xy);
