@@ -76,32 +76,33 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
 
         var tool = this;
 
-        var actions = gxp.plugins.GeoNodeQueryTool.superclass.addActions.call(this, [{
-            tooltip: this.infoActionTip,
-            iconCls: this.iconCls,
-            text: this.toolText,
-            toggleGroup: this.toggleGroup,
-            enableToggle: true,
-            allowDepress: true,
-            toggleHandler: function(button, pressed) {
-                for (var i = 0, len = info.controls.length; i < len; i++){
-                    if (pressed) {
-                        info.controls[i].activate();
-                    } else {
-                        info.controls[i].deactivate();
-                        tool.reset(true);
+        var actions = gxp.plugins.GeoNodeQueryTool.superclass.addActions.call(this, [
+            {
+                tooltip: this.infoActionTip,
+                iconCls: this.iconCls,
+                text: this.toolText,
+                toggleGroup: this.toggleGroup,
+                enableToggle: true,
+                allowDepress: true,
+                toggleHandler: function(button, pressed) {
+                    for (var i = 0, len = info.controls.length; i < len; i++) {
+                        if (pressed) {
+                            info.controls[i].activate();
+                        } else {
+                            info.controls[i].deactivate();
+                            tool.reset(true);
+                        }
                     }
                 }
             }
-        }]);
+        ]);
         var infoButton = this.actions[0].items[0];
 
         var info = {controls: []};
         var updateInfo = function() {
-            var queryableLayers = this.target.mapPanel.layers.queryBy(function(x){
+            var queryableLayers = this.target.mapPanel.layers.queryBy(function(x) {
                 return (x.get("queryable") && x.getLayer().getVisibility() && x.getLayer().displayInLayerSwitcher === true && x.getLayer() instanceof OpenLayers.Layer.WMS);
             });
-
 
 
             var localUrl = this.target.localGeoServerBaseUrl;
@@ -109,7 +110,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
 
             var map = this.target.mapPanel.map;
             var control;
-            for (var i = 0, len = info.controls.length; i < len; i++){
+            for (var i = 0, len = info.controls.length; i < len; i++) {
                 control = info.controls[i];
                 control.deactivate();  // TODO: remove when http://trac.openlayers.org/ticket/2130 is closed
                 control.destroy();
@@ -120,328 +121,348 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
             var featureMeta = [];
 
             info.controls = [];
-            queryableLayers.each(function(x){
+            queryableLayers.each(function(x) {
                 var layer = x.getLayer();
 
 
+                //console.log(layer.name +":" + layer.srs);
+                var vendorParams = Ext.apply({}, this.vendorParams), param;
+                if (this.layerParams) {
+                    for (var i = this.layerParams.length - 1; i >= 0; --i) {
+                        param = this.layerParams[i].toUpperCase();
+                        vendorParams[param] = layer.params[param];
+                    }
+                }
+                vendorParams['buffer'] = 10;
 
-                    //console.log(layer.name +":" + layer.srs);
-                    var vendorParams = Ext.apply({}, this.vendorParams), param;
-                    if (this.layerParams) {
-                        for (var i=this.layerParams.length-1; i>=0; --i) {
-                            param = this.layerParams[i].toUpperCase();
-                            vendorParams[param] = layer.params[param];
+                /* Use OpenLayers.Control.GetFeature for local layers only */
+                if (layer.url.indexOf(localUrl) > -1) {
+                    //console.log(layer.name + 'IS LOCAL?' );
+                    var control = new OpenLayers.Control.GetFeature({
+                        protocol: OpenLayers.Protocol.WFS.fromWMSLayer(layer),
+                        clickTolerance:5,
+                        layer: layer,
+                        box: false,
+                        hover: false,
+                        single: true,
+                        eventListeners: {
+                            clickout: function() {
+                                if (successCount === 0)
+                                    features = [];
+                                successCount++;
+                                //console.log('Nada:' + layer.name +  ":" + count + ":" + successCount);
+                                if (successCount == count) {
+                                    successCount = 0;
+                                    if (features.length == 0) {
+                                        Ext.Msg.alert('Map Results', 'No features found at this location.');
+                                    } else {
+                                        this.displayXYResults(features, featureMeta);
+                                    }
+                                }
+                            },
+                            featuresselected: function(evt) {
+                                if (successCount === 0)
+                                    features = [];
+                                successCount++;
+                                //console.log('control getfeatureinfo ' + layer.name+ ':' + evt.features.length  + ":" + count + ":" + successCount);
+
+                                if (evt.features) {
+                                    //console.log('Process features');
+                                    try {
+                                        var featureInfo = evt.features;
+                                        if (featureInfo) {
+                                            if (featureInfo.constructor != Array) {
+                                                featureInfo = [featureInfo];
+                                            }
+
+
+                                            featureInfo.title = x.get("title");
+                                            //console.log('datalayers?:' + this.target.dataLayers[layer.params.LAYERS]);
+                                            if (this.target.dataLayers[layer.params.LAYERS] && this.target.dataLayers[layer.params.LAYERS].searchFields.length > 0) {
+                                                featureInfo.queryfields = this.target.dataLayers[layer.params.LAYERS].searchFields;
+                                                featureInfo.nameField = featureInfo.queryfields[0].attribute;
+                                            } else if (featureInfo.length > 0) {
+                                                var qfields = [];
+                                                for (var fname in evt.features[0].attributes) {
+                                                    qfields.push(fname.toString());
+                                                }
+
+                                                featureInfo.queryfields = qfields;
+
+                                                if (featureInfo.queryfields.length > 0)
+                                                    featureInfo.nameField = featureInfo.queryfields[0];
+                                            }
+                                            for (var f = 0; f < evt.features.length; f++) {
+                                                feature = featureInfo[f];
+                                                feature.wm_layer_id = featureCount;
+                                                feature.wm_layer_title = featureInfo.title;
+                                                feature.wm_layer_name = feature.attributes[featureInfo.nameField];
+                                                feature.wm_layer_type = layer.params.LAYERS;
+                                                featureCount++;
+                                                features = features.concat(feature);
+                                            }
+
+                                            featureMeta[layer.params.LAYERS] = featureInfo.queryfields;
+
+                                        }  //end if(featureInfo)
+                                    } catch (err) {
+                                        Ext.Msg.alert("Error", err)
+                                    }
+                                }  //end if (resp.responseText)
+
+
+                                if (successCount == count) {
+                                    successCount = 0;
+                                    if (features.length == 0) {
+                                        Ext.Msg.alert('Map Results', 'No features found at this location.');
+                                    } else {
+                                        this.displayXYResults(features, featureMeta);
+                                    }
+                                    OpenLayers.Element.removeClass(control.map.viewPortDiv, "olCursorWait");
+                                }
+
+
+                            },
+                            scope: this
                         }
-                    }
-                    vendorParams['buffer'] = 10;
+                    });
 
-                    /* Use OpenLayers.Control.GetFeature for local layers only */
-                    if (layer.url.indexOf(localUrl) > -1)
-                    {
-                        //console.log(layer.name + 'IS LOCAL?' );
-                        var control = new OpenLayers.Control.GetFeature({
-                            protocol: OpenLayers.Protocol.WFS.fromWMSLayer(layer),
-                            layer: layer,
-                            box: false,
-                            hover: false,
-                            single: true,
-                            eventListeners: {
-                                clickout: function() {
-                                    successCount++;
-                                    //console.log('Nada:' + layer.name +  ":" + count + ":" + successCount);
-                                    if(successCount == count) {
-                                        successCount  = 0;
-                                        if(features.length == 0) {
-                                            Ext.Msg.alert('Map Results','No features found at this location.');
+                    OpenLayers.Util.extend(control, {
+                        request: function(bounds, options) {
+                            options = options || {};
+                            var filter = new OpenLayers.Filter.Spatial({
+                                type: this.filterType,
+                                value: bounds
+                            });
+
+                            // Set the cursor to "wait" to tell the user we're working.
+                            OpenLayers.Element.addClass(this.map.viewPortDiv, "olCursorWait");
+
+                            var control = this;
+                            var wfs_layer = this.layer;
+                            var wfs_url = wfs_layer.url;
+                            if (wfs_url.indexOf("?") > -1)
+                                wfs_url = wfs_url.substring(0, wfs_url.indexOf("?"));
+
+                            wfs_url += "?service=WFS&request=GetFeature&version=1.1.0&srsName=EPSG:900913&outputFormat=GML2&typeName=" + wfs_layer.params.LAYERS + "&BBOX=" + bounds.toBBOX() + ",EPSG:900913";
+                            Ext.Ajax.request({
+                                'url':wfs_url,
+                                'success':function(resp, opts) {
+                                    var features = new OpenLayers.Format.GML().read(resp.responseText);
+                                    if (features && features.length > 0) {
+                                        if (options.single == true) {
+                                            control.selectBestFeature(features,
+                                                    bounds.getCenterLonLat(), options);
                                         } else {
-                                            this.displayXYResults(features, featureMeta);
+                                            control.select(features);
                                         }
-                                    }
-                                },
-                                featuresselected: function(evt) {
-
-                                    successCount++;
-                                    //console.log('control getfeatureinfo ' + layer.name+ ':' + evt.features.length  + ":" + count + ":" + successCount);
-
-                                    if(evt.features) {
-                                        //console.log('Process features');
-                                        try {
-                                            var featureInfo = evt.features;
-                                            if (featureInfo) {
-                                                if (featureInfo.constructor != Array) {
-                                                    featureInfo = [featureInfo];
-                                                }
-
-
-                                                featureInfo.title = x.get("title");
-                                                //console.log('datalayers?:' + this.target.dataLayers[layer.params.LAYERS]);
-                                                if (this.target.dataLayers[layer.params.LAYERS] && this.target.dataLayers[layer.params.LAYERS].searchFields.length > 0) {
-                                                    featureInfo.queryfields = this.target.dataLayers[layer.params.LAYERS].searchFields;
-                                                    featureInfo.nameField = featureInfo.queryfields[0].attribute;
-                                                } else if (featureInfo.length > 0){
-                                                    var qfields = [];
-                                                    for (var fname in evt.features[0].attributes)
-                                                    {
-                                                        qfields.push(fname.toString());
-                                                    }
-
-                                                    featureInfo.queryfields = qfields;
-
-                                                    if (featureInfo.queryfields.length > 0)
-                                                        featureInfo.nameField = featureInfo.queryfields[0];
-                                                }
-                                                for(var f = 0; f < evt.features.length; f++)
-                                                {
-                                                    feature = featureInfo[f];
-                                                    feature.wm_layer_id = featureCount;
-                                                    feature.wm_layer_title = featureInfo.title;
-                                                    feature.wm_layer_name = feature.attributes[featureInfo.nameField];
-                                                    feature.wm_layer_type = layer.params.LAYERS;
-                                                    featureCount++;
-                                                    features = features.concat(feature);
-                                                }
-
-                                                featureMeta[layer.params.LAYERS] = featureInfo.queryfields;
-
-                                            }  //end if(featureInfo)
-                                        } catch (err) {
-                                            Ext.Msg.alert("Error", err)
-                                        }
-                                    }  //end if (resp.responseText)
-
-
-                                    if(successCount == count) {
-                                        successCount = 0;
-                                        if(features.length == 0) {
-                                            Ext.Msg.alert('Map Results','No features found at this location.');
-                                        } else {
-                                            this.displayXYResults(features, featureMeta);
-                                        }
-                                        OpenLayers.Element.removeClass(control.map.viewPortDiv, "olCursorWait");
-                                    }
-
-
-                                },
-                                scope: this
-                            }
-                        });
-
-                        OpenLayers.Util.extend(control, {
-                            request: function(bounds, options) {
-                                options = options || {};
-                                var filter = new OpenLayers.Filter.Spatial({
-                                    type: this.filterType,
-                                    value: bounds
-                                });
-
-                                // Set the cursor to "wait" to tell the user we're working.
-                                OpenLayers.Element.addClass(this.map.viewPortDiv, "olCursorWait");
-
-                                var control = this;
-                                var wfs_layer = this.layer;
-                                var wfs_url = wfs_layer.url;
-                                if (wfs_url.indexOf("?") > -1)
-                                    wfs_url = wfs_url.substring(0, wfs_url.indexOf("?"));
-
-                                wfs_url+="?service=WFS&request=GetFeature&version=1.1.0&srsName=EPSG:900913&outputFormat=GML2&typeName=" + wfs_layer.params.LAYERS + "&BBOX=" + bounds.toBBOX() + ",EPSG:900913";
-                                Ext.Ajax.request({
-                                    'url':wfs_url,
-                                    'success':function(resp, opts) {
-                                        var features = new OpenLayers.Format.GML().read(resp.responseText);
-                                        if(features && features.length > 0) {
-                                            if(options.single == true) {
-                                                control.selectBestFeature(features,
-                                                        bounds.getCenterLonLat(), options);
-                                            } else {
-                                                control.select(features);
-                                            }
-                                        } else {
-                                            control.events.triggerEvent("clickout");
-                                            if(control.clickout) {
-                                                control.unselectAll();
-                                            }
-                                        }
-                                        //OpenLayers.Element.removeClass(control.map.viewPortDiv, "olCursorWait");
-                                    },
-                                    'failure': function(resp,opts)
-                                    {
+                                    } else {
                                         control.events.triggerEvent("clickout");
-                                        //OpenLayers.Element.removeClass(control.map.viewPortDiv, "olCursorWait");
+                                        if (control.clickout) {
+                                            control.unselectAll();
+                                        }
                                     }
-                                });
+                                    //OpenLayers.Element.removeClass(control.map.viewPortDiv, "olCursorWait");
+                                },
+                                'failure': function(resp, opts) {
+                                    control.events.triggerEvent("clickout");
+                                    //OpenLayers.Element.removeClass(control.map.viewPortDiv, "olCursorWait");
+                                }
+                            });
+                        },
+                        selectBestFeature: function(features, clickPosition, options) {
+                            options = options || {};
+                            if (features.length) {
+                                var point = new OpenLayers.Geometry.Point(clickPosition.lon,
+                                        clickPosition.lat);
+                                var feature,  dist;
+                                var resultFeature = [];
+                                var minDist = Number.MAX_VALUE;
+                                for (var i = 0; i < features.length; ++i) {
+                                    feature = features[i];
+                                    if (feature.geometry) {
+                                        if (!feature.geometry.CLASS_NAME.contains('Polygon')) {
+                                            resultFeature = features;
+                                            break;
+                                        }
+                                        else {
+                                            if (point.intersects(feature.geometry)) {
+                                                resultFeature.push(feature);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (options.hover == true) {
+                                    this.hoverSelect(resultFeature);
+                                } else {
+                                    this.select(resultFeature || features);
+                                }
                             }
-                        });
-                    }
-                    else {
-                        var control = new OpenLayers.Control.WMSGetFeatureInfo({
-                            url: layer.url,
-                            queryVisible: true,
-                            infoFormat: 'application/vnd.ogc.gml',
-                            layers: [layer],
-                            vendorParams: vendorParams,
-                            eventListeners: {
-                                getfeatureinfo: function(evt) {
-                                    ////console.log('control getfeatureinfo:' + evt.text);
-                                    successCount++;
+                        }
+                    });
+                }
+                else {
+                    var control = new OpenLayers.Control.WMSGetFeatureInfo({
+                        url: layer.url,
+                        queryVisible: true,
+                        infoFormat: 'application/vnd.ogc.gml',
+                        layers: [layer],
+                        vendorParams: vendorParams,
+                        eventListeners: {
+                            getfeatureinfo: function(evt) {
+                                if (successCount === 0)
+                                    features = [];
+                                successCount++;
 
-                                    if(evt.text != '') {
-                                     
-                                            if (evt.text.contains('<FeatureInfoResponse'))
-                                            {
+                                if (evt.text != '') {
 
-                                                var coords = map.getLonLatFromPixel(evt.xy);
-                                                var point = new OpenLayers.Geometry.Point(coords.lon, coords.lat)
+                                    if (evt.text.contains('<FeatureInfoResponse')) {
+
+                                        var coords = map.getLonLatFromPixel(evt.xy);
+                                        var point = new OpenLayers.Geometry.Point(coords.lon, coords.lat)
 
 
-                                                var dq = Ext.DomQuery;
-                                                var xmlObject = new OpenLayers.Format.XML().read(evt.text);
-                                                var featureInfo = new Object();
-                                                //var title =  x.get("title");
-                                                //featureInfo.title = x.get("title");
-                                                var nodes = dq.select('FIELDS', xmlObject);
+                                        var dq = Ext.DomQuery;
+                                        var xmlObject = new OpenLayers.Format.XML().read(evt.text);
+                                        var featureInfo = new Object();
+                                        //var title =  x.get("title");
+                                        //featureInfo.title = x.get("title");
+                                        var nodes = dq.select('FIELDS', xmlObject);
 
-                                                if (nodes.length > 0)
-                                                {
-                                                    var qfields = [];
+                                        if (nodes.length > 0) {
+                                            var qfields = [];
 
-                                                    for (var attr =0; attr < nodes[0].attributes.length; attr++)
-                                                    {
-                                                        qfields.push(nodes[0].attributes[attr].name);
-                                                    }
+                                            for (var attr = 0; attr < nodes[0].attributes.length; attr++) {
+                                                qfields.push(nodes[0].attributes[attr].name);
+                                            }
 
-                                                    featureInfo['queryfields'] = qfields;
+                                            featureInfo['queryfields'] = qfields;
 
-                                                    if (qfields.length > 0)
-                                                        featureInfo['nameField'] = featureInfo['queryfields'][0];
+                                            if (qfields.length > 0)
+                                                featureInfo['nameField'] = featureInfo['queryfields'][0];
 
-                                                    for (var it = 0; it < nodes.length; it++)
-                                                    {
-                                                        node = nodes[it];
-                                                        var feature = new OpenLayers.Feature.Vector(point);
+                                            for (var it = 0; it < nodes.length; it++) {
+                                                node = nodes[it];
+                                                var feature = new OpenLayers.Feature.Vector(point);
 
 //                                                for (attribute in node.attributes)
 //                                                {
 //                                                    qfields.push(node.attributes[attribute].name);
 //                                                }
 
-                                                        //feature.attributes = node.attributes;
-                                                        for (var at=0; at < node.attributes.length; at++)
-                                                        {
-                                                            feature.attributes[node.attributes[at].name] = node.attributes[at].value;
-                                                        }
-
-                                                        feature.wm_layer_id = featureCount;
-                                                        feature.wm_layer_title = x.get("title");
-                                                        feature.wm_layer_name = feature.attributes[featureInfo.nameField];
-                                                        feature.wm_layer_type = layer.params.LAYERS;
-                                                        featureCount++;
-                                                        features = features.concat(feature);
-
-
-                                                    }
-
-                                                    featureMeta[layer.params.LAYERS] = featureInfo.queryfields;
+                                                //feature.attributes = node.attributes;
+                                                for (var at = 0; at < node.attributes.length; at++) {
+                                                    feature.attributes[node.attributes[at].name] = node.attributes[at].value;
                                                 }
+
+                                                feature.wm_layer_id = featureCount;
+                                                feature.wm_layer_title = x.get("title");
+                                                feature.wm_layer_name = feature.attributes[featureInfo.nameField];
+                                                feature.wm_layer_type = layer.params.LAYERS;
+                                                featureCount++;
+                                                features = features.concat(feature);
+
+
                                             }
-                                            else
-                                            {
-                                                var featureInfo = new OpenLayers.Format.GML().read(evt.text);
 
-                                                if (featureInfo && featureInfo.length > 0) {
-                                                    if (featureInfo.constructor != Array) {
-                                                        featureInfo = [featureInfo];
-                                                    }
-
-                                                    featureInfo.title = x.get("title");
-                                                    if (featureInfo.length > 0){
-
-                                                        var qfields = [];
-                                                        for (var fname in featureInfo[0].attributes)
-                                                        {
-                                                            qfields.push(fname.toString());
-                                                        }
-
-                                                        featureInfo.queryfields = qfields;
-
-                                                        if (featureInfo.queryfields.length > 0)
-                                                            featureInfo.nameField = featureInfo.queryfields[0];
-                                                    }
-                                                    for(var f = 0; f < featureInfo.length; f++)
-                                                    {
-                                                        var feature = featureInfo[f];
-
-
-                                                        var featureBounds = feature.geometry.getBounds();
-                                                        //console.log('featureBounds:' + featureBounds.toBBOX());
-                                                        var wgs84Bounds = new OpenLayers.Bounds(-180,-90,180,90);
-
-                                                        //console.log('Is 4326? ' + wgs84Bounds.containsBounds(featureBounds, true));
-                                                        if (wgs84Bounds.containsBounds(featureBounds, true))
-                                                        {
-                                                            var inFormat = new OpenLayers.Format.GeoJSON({
-                                                                'internalProjection': new OpenLayers.Projection("EPSG:4326"),
-                                                                'externalProjection': new OpenLayers.Projection("EPSG:900913")
-                                                            });
-
-                                                            var outFormat = new OpenLayers.Format.GeoJSON({
-                                                                'projection': new OpenLayers.Projection("EPSG:900913")
-                                                            });
-
-                                                            var json = inFormat.write(feature);
-                                                            feature = outFormat.read(json)[0];
-
-                                                        } else {
-
-                                                            var coords = map.getLonLatFromPixel(evt.xy);
-                                                            var point = new OpenLayers.Geometry.Point(coords.lon, coords.lat)
-                                                            var newFeature = new OpenLayers.Feature.Vector(point);
-                                                            newFeature.attributes = feature.attributes;
-                                                            feature = newFeature;
-                                                        }
-
-
-                                                        feature.wm_layer_id = featureCount;
-                                                        feature.wm_layer_title = featureInfo.title;
-                                                        feature.wm_layer_name = feature.attributes[featureInfo.nameField];
-                                                        feature.wm_layer_type = layer.params.LAYERS;
-
-
-
-                                                        featureCount++;
-                                                        features = features.concat(feature);
-                                                    }
-
-                                                    featureMeta[layer.params.LAYERS] = featureInfo.queryfields;
-
-                                                }
-                                            }//end if(featureInfo)
-
-                                    }  //end if (resp.responseText)
-
-
-                                    if(successCount == count) {
-                                        successCount = 0;
-                                        if(features.length == 0) {
-                                            Ext.Msg.alert('Map Results','No features found at this location.');
-                                        } else {
-                                            this.displayXYResults(features, featureMeta);
+                                            featureMeta[layer.params.LAYERS] = featureInfo.queryfields;
                                         }
-                                        OpenLayers.Element.removeClass(control.map.viewPortDiv, "olCursorWait");
                                     }
+                                    else {
+                                        var featureInfo = new OpenLayers.Format.GML().read(evt.text);
+
+                                        if (featureInfo && featureInfo.length > 0) {
+                                            if (featureInfo.constructor != Array) {
+                                                featureInfo = [featureInfo];
+                                            }
+
+                                            featureInfo.title = x.get("title");
+                                            if (featureInfo.length > 0) {
+
+                                                var qfields = [];
+                                                for (var fname in featureInfo[0].attributes) {
+                                                    qfields.push(fname.toString());
+                                                }
+
+                                                featureInfo.queryfields = qfields;
+
+                                                if (featureInfo.queryfields.length > 0)
+                                                    featureInfo.nameField = featureInfo.queryfields[0];
+                                            }
+                                            for (var f = 0; f < featureInfo.length; f++) {
+                                                var feature = featureInfo[f];
 
 
-                                },
-                                scope: this
-                            }
-                        });
+                                                var featureBounds = feature.geometry.getBounds();
+                                                //console.log('featureBounds:' + featureBounds.toBBOX());
+                                                var wgs84Bounds = new OpenLayers.Bounds(-180, -90, 180, 90);
 
-                    }
+                                                //console.log('Is 4326? ' + wgs84Bounds.containsBounds(featureBounds, true));
+                                                if (wgs84Bounds.containsBounds(featureBounds, true)) {
+                                                    var inFormat = new OpenLayers.Format.GeoJSON({
+                                                        'internalProjection': new OpenLayers.Projection("EPSG:4326"),
+                                                        'externalProjection': new OpenLayers.Projection("EPSG:900913")
+                                                    });
 
-                    map.addControl(control);
-                    info.controls.push(control);
-                    if(infoButton.pressed) {
-                      control.activate();
-                    }
+                                                    var outFormat = new OpenLayers.Format.GeoJSON({
+                                                        'projection': new OpenLayers.Projection("EPSG:900913")
+                                                    });
+
+                                                    var json = inFormat.write(feature);
+                                                    feature = outFormat.read(json)[0];
+
+                                                } else {
+
+                                                    var coords = map.getLonLatFromPixel(evt.xy);
+                                                    var point = new OpenLayers.Geometry.Point(coords.lon, coords.lat)
+                                                    var newFeature = new OpenLayers.Feature.Vector(point);
+                                                    newFeature.attributes = feature.attributes;
+                                                    feature = newFeature;
+                                                }
+
+
+                                                feature.wm_layer_id = featureCount;
+                                                feature.wm_layer_title = featureInfo.title;
+                                                feature.wm_layer_name = feature.attributes[featureInfo.nameField];
+                                                feature.wm_layer_type = layer.params.LAYERS;
+
+
+                                                featureCount++;
+                                                features = features.concat(feature);
+                                            }
+
+                                            featureMeta[layer.params.LAYERS] = featureInfo.queryfields;
+
+                                        }
+                                    }//end if(featureInfo)
+
+                                }  //end if (resp.responseText)
+
+
+                                if (successCount == count) {
+                                    successCount = 0;
+                                    if (features.length == 0) {
+                                        Ext.Msg.alert('Map Results', 'No features found at this location.');
+                                    } else {
+                                        this.displayXYResults(features, featureMeta);
+                                    }
+                                    OpenLayers.Element.removeClass(control.map.viewPortDiv, "olCursorWait");
+                                }
+
+
+                            },
+                            scope: this
+                        }
+                    });
+
+                }
+
+                map.addControl(control);
+                info.controls.push(control);
+                if (infoButton.pressed) {
+                    control.activate();
+                }
             }, this);
         };
 
@@ -453,10 +474,9 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
     },
 
     /* Clear out any previous results */
-    reset:  function(clearPanel){
+    reset:  function(clearPanel) {
 
-        if (clearPanel === true)
-        {
+        if (clearPanel === true) {
             Ext.getCmp(this.attributePanel).removeAll(true);
             Ext.getCmp(this.gridResultsPanel).removeAll(true);
             Ext.getCmp(this.featurePanel).collapse(true);
@@ -464,10 +484,9 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
         }
         var theLayers = this.target.mapPanel.map.layers;
         var hLayers = [];
-        for (l = 0; l < theLayers.length; l++)
-        {
+        for (l = 0; l < theLayers.length; l++) {
             //console.log('Remve? ' + theLayers[l].name);
-            if (theLayers[l].name == "hilites"){
+            if (theLayers[l].name == "hilites") {
                 //console.log('Removing highlight layer');
                 this.target.mapPanel.map.removeLayer(theLayers[l], true);
                 break;
@@ -480,7 +499,6 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
     displayXYResults:  function(featureInfo, featureMeta) {
         var ep = Ext.getCmp(this.featurePanel);
         var gp = Ext.getCmp(this.attributePanel);
-
 
 
         ep.expand(true);
@@ -501,13 +519,17 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
 
         var tool = this;
         var gridPanel = new Ext.grid.GridPanel({
-            tbar:[{
-                	xtype:'button',
-					text:'<span class="x-btn-text">Reset</span>',
+            tbar:[
+                {
+                    xtype:'button',
+                    text:'<span class="x-btn-text">Reset</span>',
                     qtip: 'Clear all features',
-                    handler: function(brn, e) {tool.reset(true);},
+                    handler: function(brn, e) {
+                        tool.reset(true);
+                    },
                     text: 'Reset'
-            }],
+                }
+            ],
             id: 'getFeatureInfoGrid',
             header: false,
             store:new Ext.data.GroupingStore({
@@ -555,9 +577,9 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
         //gridPanel.addListener( 'afterlayout', function(){this.getSelectionModel().selectFirstRow()});
         //var t = setTimeout(function(){gridPanel.getSelectionModel().selectFirstRow()},1000);
 
-        var recordId =  gridPanel.store.find('wm_layer_id', currentFeatures.length-1);
-        gridPanel.getSelectionModel().selectRow(recordId);
-
+        gridPanel.getSelectionModel().selectFirstRow();
+        //var recordId = gridPanel.store.find('wm_layer_id', currentFeatures.length - 1);
+        //gridPanel.getSelectionModel().selectRow(recordId);
 
 
     },
@@ -570,15 +592,15 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
 
         var feature = null;
         // Look for the feature in the full collection of features (the grid store only has simplified objects)
-        for(var i = 0; i < currentFeatures.length; i++) {
-            if(currentFeatures[i].wm_layer_id == gridFeature.wm_layer_id) {
+        for (var i = 0; i < currentFeatures.length; i++) {
+            if (currentFeatures[i].wm_layer_id == gridFeature.wm_layer_id) {
                 feature = currentFeatures[i];
             }
         }
 
         //console.log('Feature:' + feature);
 
-        if(!feature) {
+        if (!feature) {
             return;
         }
 
@@ -595,20 +617,18 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
     createHTML:  function(feature, metaColumns) {
         html = '<ul class="featureDetailList" id="featureDetailList">';
 
-        for(c=0; c < metaColumns.length; c++)
-        {
+        for (c = 0; c < metaColumns.length; c++) {
             column = metaColumns[c];
 
             featureValue = '' + (column.label ? feature.attributes[column.attribute] : feature.attributes[column])
 
 
-            if (featureValue.indexOf("http://") == 0)
-            {
+            if (featureValue.indexOf("http://") == 0) {
                 featureValue = '<a target="_blank" href="' + featureValue + '">' + featureValue + '</a>'
             }
 
 
-            html+= "<li><label>" + (column.label ? column.label : column) + "</label><span>" + featureValue + "</span></li>";
+            html += "<li><label>" + (column.label ? column.label : column) + "</label><span>" + featureValue + "</span></li>";
 
         }
 
@@ -618,8 +638,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
 
 
     /* Highlight the selected feature in red */
-    addVectorQueryLayer: function(feature)
-    {
+    addVectorQueryLayer: function(feature) {
         var highlight_style = {
             strokeColor: 'Red',
             strokeWidth: 4,
