@@ -158,6 +158,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                                     } else {
                                         this.displayXYResults(features, featureMeta);
                                     }
+                                    OpenLayers.Element.removeClass(control.map.viewPortDiv, "olCursorWait");
                                 }
                             },
                             featuresselected: function(evt) {
