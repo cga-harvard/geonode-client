@@ -51,11 +51,13 @@ GeoExplorer.PicasaFeedOverlay = function(target){
  			   onSelect: function(feature) {
  			      
  			      var pos = feature.geometry;
+                  var content = document.createElement("div");
+                  content.innerHTML = feature.attributes.content;
  			      this.popup = new OpenLayers.Popup("popup",
  			                                         new OpenLayers.LonLat(pos.x, pos.y),
  			                                         new OpenLayers.Size(160,160),
  			                                         "<a target='_blank' href=" + 
- 			                                         $(feature.attributes.content).find("a").attr("href") +"><img title='" +
+ 			                                         content.getElementsByTagName('a')[0].getAttribute('href') +"><img title='" +
  			                                         feature.attributes.title +"' src='" + feature.attributes.thumbnail +"' /></a>",
  			                                         false);
  			      this.popup.closeOnMove = true;

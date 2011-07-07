@@ -52,7 +52,7 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
             reader: new Ext.data.JsonReader({
                 root: 'users',
                 totalProperty: 'count',
-                fields: [{name: 'email'}]
+                fields: [{name: 'email'},{name: 'user'}]
             }),
             listeners: {
                 add: notifyOfUpdate,
@@ -64,7 +64,7 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
             reader: new Ext.data.JsonReader({
                 root: 'users',
                 totalProperty: 'count',
-                fields: [{name: 'email'}]
+                fields: [{name: 'email'},{name: 'user'}]
             }),
             listeners: {
                 add: notifyOfUpdate,
@@ -208,9 +208,9 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
 
         for (var i = 0; i < json.users.length; i++) {
             if (json.users[i][1] === this.levels['readwrite']) {
-                this.editors.add(new this.editors.recordType({email: json.users[i][0]}, i + 500));
+                this.editors.add(new this.editors.recordType({email: json.users[i][0], user: json.names[i][1]}, i + 500));
             } else if (json.users[i][1] === this.levels['admin']) {
-                this.managers.add(new this.managers.recordType({email: json.users[i][0]}, i + 500));
+                this.managers.add(new this.managers.recordType({email: json.users[i][0], user: json.names[i][1]}, i + 500));
             }
         }
 
