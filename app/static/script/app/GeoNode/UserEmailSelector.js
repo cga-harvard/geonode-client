@@ -49,7 +49,6 @@ GeoNode.UserEmailSelector = Ext.extend(Ext.util.Observable, {
                 var item = view.findItemFromChild(target);
                 var idx = view.indexOf(item);
                 var rec = view.store.getAt(idx);
-                alert(rec.get("email"));
                 if (rec.get("email") !== owner) {
                     view.store.removeAt(view.indexOf(item));
                 }
