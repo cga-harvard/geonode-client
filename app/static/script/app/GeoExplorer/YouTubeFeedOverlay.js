@@ -7,7 +7,7 @@ Ext.namespace("GeoExplorer")
 GeoExplorer.YouTubeFeedOverlay = function(target){
 		
 		this.youtubeRecord = null;
-			
+
 		this.popupControl = null;
 
         this.popup = null;
@@ -15,10 +15,10 @@ GeoExplorer.YouTubeFeedOverlay = function(target){
     	this.createOverlay = function()
     	{
     		var keywords = target.about["keywords"] ? target.about["keywords"] : "of";
-            var youtubeConfig = {name: "YouTube", source: "0", group: "Overlays", buffer: "0", type: "OpenLayers.Layer.WFS",  
-            		args: ["YouTube Videos", "/youtube/", 
+            var youtubeConfig = {name: "YouTube", source: "0", group: "Overlays", buffer: "0", type: "OpenLayers.Layer.WFS",
+            		args: ["YouTube Videos", "/youtube/",
                            {  'max-results':'50', 'q' : keywords, 'bbox' : target.mapPanel.map.getExtent().transform(target.mapPanel.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326")).toBBOX()},
-                           { format:OpenLayers.Format.GeoRSS, projection: "EPSG:4326", displayInLayerSwitcher: false, 
+                           { format:OpenLayers.Format.GeoRSS, projection: "EPSG:4326", displayInLayerSwitcher: false,
                                formatOptions: {
                                   createFeatureFromItem: function(item) {
                                      var feature = OpenLayers.Format.GeoRSS.prototype
@@ -36,23 +36,23 @@ GeoExplorer.YouTubeFeedOverlay = function(target){
                       }]
              };
 
-                                                                                                                       
+
              feedSource = Ext.ComponentMgr.createPlugin(
             		 youtubeConfig, "gx_olsource"
              );
              this.youtubeRecord = feedSource.createLayerRecord(youtubeConfig);
              this.youtubeRecord.group = youtubeConfig.group;
-             
+
       		this.popupControl = new OpenLayers.Control.SelectFeature(this.youtubeRecord.getLayer(), {
   			   //hover:true,
   			   clickout: true,
   			   onSelect: function(feature) {
-  			      
+
   			      var pos = feature.geometry;
   			      this.popup = new OpenLayers.Popup("popup",
                           new OpenLayers.LonLat(pos.x, pos.y),
                           new OpenLayers.Size(240,180),
-                          "<a target='_blank' href=" + 
+                          "<a target='_blank' href=" +
                           feature.attributes.link +"><img height='180', width='240' title='" +
                           feature.attributes.title +"' src='" + feature.attributes.thumbnail +"' /></a>",
                           false);
@@ -60,13 +60,13 @@ GeoExplorer.YouTubeFeedOverlay = function(target){
   			      this.popup.keepInMap = true;
   			      target.mapPanel.map.addPopup(this.popup);
   	        },
-  	        
+
   	        onUnselect: function(feature) {
   	        	target.mapPanel.map.removePopup(this.popup);
   	            this.popup = null;
   	        }
-  	       }); 
-              
+  	       });
+
      		target.mapPanel.map.addControl(this.popupControl);
      	    this.popupControl.activate();
             target.mapPanel.layers.insert(target.mapPanel.layers.data.items.length, [this.youtubeRecord] );
