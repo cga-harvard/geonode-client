@@ -461,7 +461,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
 
                 map.addControl(control);
                 info.controls.push(control);
-                if (infoButton.pressed) {
+                if (infoButton && infoButton.pressed) {
                     control.activate();
                 }
             }, this);
