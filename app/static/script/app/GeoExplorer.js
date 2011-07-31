@@ -575,27 +575,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
            queryableLayers.each(function(x){
            	var dl = x.getLayer();
                if (dl.name != "HighlightWMS" && !geoEx.dataLayers[dl.params.LAYERS]){
-               	  Ext.Ajax.request({
-               		url: "/maps/searchfields/?" + dl.params.LAYERS,
-               		method: "POST",
-               		params: {layername:dl.params.LAYERS},
-               		success: function(result,request)
-               		{
-                           var jsonData = Ext.util.JSON.decode(result.responseText);
-                           layerfields = jsonData.searchFields;
-                           category = x.get("group") != "" && x.get("group") != undefined && x.get("group")  ? x.get("group") : jsonData.category;
-                           if (category == "")
-                        	   category = "General";
-                           x.set("group", category);
-                           geoEx.dataLayers[dl.params.LAYERS] = new LayerData(dl.params.LAYERS, jsonData.searchFields, jsonData.scount);
-                           geoEx.addCategoryFolder(category, true);
-               		},
-               		failure: function(result,request) {
-                         // alert(result.responseText);
-               		}
-
-               	  });
-
+                   var category = x.get("group") != "" && x.get("group") != undefined && x.get("group")  ? x.get("group") : "General";
+                   x.set("group", category);
+                   geoEx.dataLayers[dl.params.LAYERS] = new LayerData(dl.params.LAYERS, x.get("searchfields"), x.get("searchfields").length);
                 }
            }, this);
 
@@ -1575,7 +1557,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                 			category = record.get("group");
 	                                		if (!category || category == '')
 	                                		    record.set("group", "General");
-                                			geoEx.dataLayers[layer.name] = new LayerData(geoEx.dataLayers[layer.name], jsonData.searchFields, jsonData.scount);
+                                			geoEx.dataLayers[layer.name] = new LayerData(layer.name, layer.searchfields, layer.searchfields.length);
                                 			layerStore.add([record]);
                                 			geoEx.addCategoryFolder(record.get("group"), "true");
                                 			geoEx.reorderNodes();
