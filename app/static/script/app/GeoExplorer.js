@@ -256,7 +256,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     var params = Ext.apply(parts[1] && Ext.urlDecode(
                         parts[1]) || {}, options.params);
                     var url = Ext.urlAppend(parts[0], Ext.urlEncode(params));
-                    delete options.params;
+                    if (!params['keepPostParams'])
+                        delete options.params;
                     options.url = this.proxy + encodeURIComponent(url);
                 }
             },
