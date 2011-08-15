@@ -11,6 +11,9 @@ StreetViewPopup = OpenLayers.Class(OpenLayers.Control, {
 
      popup: null,
      mapPanel: null,
+     titleHeader: 'Street View',
+     popupHeight: 300,
+     popupWidth: 300,
 
     defaults: {
         pixelTolerance: 1,
@@ -41,10 +44,10 @@ StreetViewPopup = OpenLayers.Class(OpenLayers.Control, {
             }
 
             this.popup = new GeoExt.Popup({
-                title: "Street View",
+                title: this.titleHeader,
                 location: location,
-                width: 300,
-                height: 300,
+                width: this.popupWidth,
+                height: this.popupHeight,
                 collapsible: true,
                 map: this.mapPanel,
                 items: [new gxp.GoogleStreetViewPanel()]

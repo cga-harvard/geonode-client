@@ -2308,7 +2308,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
 
 
-        var svt = new StreetViewPopup({mapPanel: mapPanel});
+        var svt = new StreetViewPopup({mapPanel: mapPanel, titleHeader: this.streetViewBtnText, popupHeight: 300, popupWidth: 600});
         mapPanel.map.addControl(svt);
 
 var streetViewButton = new Ext.Button({
