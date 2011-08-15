@@ -624,7 +624,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
             featureValue = '' + (column.label ? feature.attributes[column.attribute] : feature.attributes[column])
 
 
-            if (featureValue.indexOf("http://") == 0) {
+            if (featureValue.indexOf("http") == 0) {
                 featureValue = '<a target="_blank" href="' + featureValue + '">' + featureValue + '</a>'
             }
 

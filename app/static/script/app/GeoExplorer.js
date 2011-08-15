@@ -45,6 +45,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
      */
     localGeoServerBaseUrl: "",
 
+    siteUrl: "",
+
     /**
      * api: config[fromLayer]
      * ``Boolean`` true if map view was loaded with layer parameters
@@ -132,6 +134,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     connErrorTitleText: "UT:Connection Error",
     connErrorText: "UT:The server returned an error",
     connErrorDetailsText: "UT:Details...",
+    googleEarthBtnText: "UT:Google Earth",
     heightLabel: 'UT: Height',
     helpLabel: 'UT: Help',
     infoButtonText: "UT:Info",
@@ -190,6 +193,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     smallSizeLabel: 'UT: Small',
     sourceLoadFailureMessage: 'UT: Error contacting server.\n Please check the url and try again.',
     switchTo3DActionText: "UT:Switch to Google Earth 3D Viewer",
+    streetViewBtnText: "UT:Street View",
     unknownMapMessage: 'UT: The map that you are trying to load does not exist.  Creating a new map instead.',
     unknownMapTitle: 'UT: Unknown Map',
     unsupportedLayersTitleText: 'UT:Unsupported Layers',
@@ -250,12 +254,13 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     return;
                 };
                 // use the proxy for all non-local requests
-                if(this.proxy && options.url.indexOf(this.proxy) !== 0 &&
+                alert(this.siteUrl);
+                if(!url.contains(this.siteUrl) && this.proxy && options.url.indexOf(this.proxy) !== 0 &&
                         options.url.indexOf(window.location.protocol) === 0) {
                     var parts = options.url.replace(/&$/, "").split("?");
                     var params = Ext.apply(parts[1] && Ext.urlDecode(
                         parts[1]) || {}, options.params);
-                    var url = Ext.urlAppend(parts[0], Ext.urlEncode(params));
+                    url = Ext.urlAppend(parts[0], Ext.urlEncode(params));
                     if (!params['keepPostParams'])
                         delete options.params;
                     options.url = this.proxy + encodeURIComponent(url);
@@ -966,7 +971,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 		removeCategoryAction.show();
                 		renameAction.show();
                         addCategoryAction.hide();
-                	} else if (node.parentNode.isRoot)
+                	} else if (node && node.parentNode.isRoot)
                     {
                         addCategoryAction.show();
                 		removeCategoryAction.hide();
@@ -1269,6 +1274,31 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
         }, this);
 
+        this.googleEarthPanel = new gxp.GoogleEarthPanel({
+            mapPanel: this.mapPanel,
+            listeners: {
+                "beforeadd": function(record) {
+                    return record.get("group") !== "background";
+                },
+                "show": function() {
+                    addLayerButton.disable();
+                    removeLayerAction.disable();
+                    layerTree.getSelectionModel().un(
+                        "beforeselect", updateLayerActions, this);
+                },
+                "hide": function() {
+                    addLayerButton.enable();
+                    updateLayerActions();
+                    layerTree.getSelectionModel().on(
+                        "beforeselect", updateLayerActions, this);
+                }
+            }
+        });
+
+        
+
+
+
 
         this.mapPanelContainer = new Ext.Panel({
             layout: "card",
@@ -1279,7 +1309,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 border:false
             },
             items: [
-                this.mapPanel
+                this.mapPanel,
+                this.googleEarthPanel
             ],
             activeItem: 0
         });
@@ -2017,7 +2048,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             tooltip: this.printTipText,
             text: '<span class="x-btn-text">' + this.printBtnText + '</span>',
             handler: function() {
-                 alert('initMapPanel:' + this.mapPanel.map.numZoomLevels);
+                 //alert('initMapPanel:' + this.mapPanel.map.numZoomLevels);
                 var unsupportedLayers = [];
                 var printWindow = new Ext.Window({
                     title: this.printWindowTitleText,
@@ -2035,6 +2066,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                             autoWidth: true,
                             limitScales: true,
                             map: {
+                                theme: null,
                                 controls: [
                                     new OpenLayers.Control.Navigation({
                                         zoomWheelEnabled: false,
@@ -2067,7 +2099,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                                 params[p] = params[p].join(",");
                                             }
                                         }
-                                    })
+                                    });
                                 },
                                 "print": function() {printWindow.close();},
                                 "printException": function(cmp, response) {
@@ -2274,6 +2306,45 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         });
 
 
+
+
+        var svt = new StreetViewPopup({mapPanel: mapPanel});
+        mapPanel.map.addControl(svt);
+
+var streetViewButton = new Ext.Button({
+            text: '<span class="x-btn-text">' + this.streetViewBtnText + '</span>',
+            tooltip: this.switchTo3DActionText,
+            enableToggle: true,
+            toggleHandler: function(button, state) {
+                if (state === true) {
+                    svt.activate();
+                } else {
+                    svt.deactivate();
+                }
+            },
+            scope: this
+        });
+
+
+
+
+         var enable3DButton = new Ext.Button({
+             text: '<span class="x-btn-text">' + this.googleEarthBtnText + '</span>',
+            tooltip: this.switchTo3DActionText,
+            enableToggle: true,
+            toggleHandler: function(button, state) {
+                if (state === true) {
+                    this.mapPanelContainer.getLayout().setActiveItem(1);
+                    this.toolbar.disable();
+                    button.enable();
+                } else {
+                    this.mapPanelContainer.getLayout().setActiveItem(0);
+                    this.toolbar.enable();
+                }
+            },
+            scope: this
+        });
+
         var helpButton = new Ext.Button({
 		tooltip: this.helpLabel,
             text: '<span class="x-btn-text">' + this.helpLabel + '</span>',
@@ -2321,8 +2392,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             "-",
             publishAction,
             "-",
-            printButton, "-", infoButton,
-            "-",
+            window.printCapabilities ? printButton : "", "-", infoButton,
+            "-",enable3DButton,"-",streetViewButton, "-",
             jumpBar,
             '->',
             shareMapButton,"-",
