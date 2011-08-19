@@ -182,6 +182,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     publishBtnText: 'UT:Link',
     removeLayerActionText: "UT:Remove Layer",
     removeLayerActionTipText: "UT:Remove Layer",
+    revisionBtnText: "UT:Revisions",
     saveFailMessage: "UT: Sorry, your map could not be saved.",
     saveFailTitle: "UT: Error While Saving",
     saveMapText: "UT: Save Map",
@@ -254,7 +255,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     return;
                 };
                 // use the proxy for all non-local requests
-                alert(this.siteUrl);
                 if(!url.contains(this.siteUrl) && this.proxy && options.url.indexOf(this.proxy) !== 0 &&
                         options.url.indexOf(window.location.protocol) === 0) {
                     var parts = options.url.replace(/&$/, "").split("?");
@@ -614,11 +614,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         this.mapPanel.map.events.register("preaddlayer", this, function(e) {
             var layer = e.layer;
             if (layer instanceof OpenLayers.Layer.WMS ) {
-                // we need to keep this until the default of tiled is true again
-                // in gxp for WMSCSource, see:
-                // https://github.com/opengeo/gxp/commit/6abb29b474c4296a4a3ddd52d2c14c267cac7d79
-                !layer.singleTile && layer.mergeNewParams({
-                    tiled: true
+                !layer.singleTile && layer.maxExtent && layer.mergeNewParams({
+                    tiled: true,
+                    tilesOrigin: [layer.maxExtent.left, layer.maxExtent.bottom]
                 });
                 layer.events.on({
                     "loadstart": function() {
@@ -641,7 +639,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         layer.events.unregister("loadend", this, arguments.callee);
                     },
                     scope: this
-                })
+                });
             }
         });
     },
@@ -817,7 +815,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             }
         }));
 
-
         createPropertiesDialog = function() {
             var node = layerTree.getSelectionModel().getSelectedNode();
             if (node && node.layer) {
@@ -836,7 +833,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         closeAction: "hide",
                         items: [{
                             xtype: "gxp_wmslayerpanel",
-                            rasterStyling: true,
                             autoHeight: true,
                             layerRecord: record,
                             defaults: {
@@ -901,7 +897,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     });
                 }
                 prop.show();
-
             }
         };
 
@@ -915,24 +910,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 this.propDlgCache[node.layer.id].items.get(0).setActiveTab(1);
             }, this),
             scope: this
-//            listeners: {
-//                "enable": function() {showStylesAction.enable()},
-//                "disable": function() {showStylesAction.disable()}
-//            }
         });
-
-
-//        var showStylesAction = new Ext.Action({
-//            text: this.layerStylesText,
-//            iconCls: "icon-layerstyles",
-//            disabled: true,
-//            tooltip: this.layerStylesTipText,
-//            handler: createPropertiesDialog.createSequence(function() {
-//                var node = layerTree.getSelectionModel().getSelectedNode();
-//                this.propDlgCache[node.layer.id].items.get(0).setActiveTab(2);
-//            }, this),
-//            scope: this
-//        });
 
         var updateLayerActions = function(sel, node) {
             if(node && node.layer) {
@@ -1294,11 +1272,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 }
             }
         });
-
-        
-
-
-
 
         this.mapPanelContainer = new Ext.Panel({
             layout: "card",
@@ -1754,34 +1727,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 handler: function() {
                     newArcSourceWindow.show();
                 }
-//                handler: function() {
-//                    var arcSource = this.addLayerSource({
-//                        config: {url: "http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StateCityHighway_USA/MapServer/export", ptype: "gxp_olsource"},
-//                        callback: function(id) {
-//                            // add to combo and select
-//                            var record = new sources.recordType({http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StateCityHighway_USA/MapServer
-//                                id: id,
-//                                title: this.layerSources[id].title || "ArcGIS REST" // TODO: titles
-//                            });
-//                            sources.insert(0, [record]);
-//                    },
-//                        scope:this
-//                    });
-//                            var arcConfig = {name: "ArcGIS", source: arcSource.id, group: "ArcGIS", buffer: "0", type: "OpenLayers.Layer.ArcGIS93Rest",
-//            		            args: ["ArcGIS Layer", "http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/export",
-//                                    {layers: "show:0,2", TRANSPARENT: true},
-//                                    {isBaseLayer: false, extractAttributes: true, displayInLayerSwitcher:true, projection: "EPSG:102113"}]
-//                            };
-//
-//                            var arcGISRecord = arcSource.createLayerRecord(arcConfig);
-//                            this.mapPanel.layers.add(arcGISRecord);
-//                            this.addCategoryFolder(arcGISRecord.get("group"), "true");
-//                            this.reorderNodes();
-//                }, scope:this
-            });
+        });
 
         var app = this;
-
         var newSourceWindow = new gxp.NewSourceWindow({
             modal: true,
             listeners: {
@@ -1920,8 +1868,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         }
         this.capGrid.show();
     },
-
-
 
     /** private: method[createMapOverlay]
      * Builds the :class:`Ext.Panel` containing components to be overlaid on the
@@ -2379,6 +2325,13 @@ var streetViewButton = new Ext.Button({
             });
 
 
+        var historyAction = new Ext.Action({
+                tooltip: 'Map History',
+                handler: this.showHistory,
+                scope: this,
+                text: '<span class="x-btn-text">' +this.revisionBtnText + '</span>',
+                disabled: !this.mapID
+            });
 
 
         var tools = [
@@ -2396,7 +2349,7 @@ var streetViewButton = new Ext.Button({
             "-",enable3DButton,"-",streetViewButton, "-",
             jumpBar,
             '->',
-            shareMapButton,"-",
+            historyAction, shareMapButton,"-",
             helpButton
             ];
         this.on("saved", function() {
@@ -2574,6 +2527,9 @@ var streetViewButton = new Ext.Button({
                 });
     },
 
+    showHistory: function() {
+        historyWindow = new GeoExplorer.MapSnapshotGrid(this.mapID);
+    },
 
     /** private: method[initMetadataForm]
      *
