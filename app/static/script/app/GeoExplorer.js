@@ -208,10 +208,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     zoomVisibleButtonText: "UT:Zoom to Original Map Extent",
 
 
-    updateMapLogin: function() {
-        Ext.getCmp("shareMapButton").show();
-    },
-
     constructor: function(config) {
     	this.config = config;
         this.popupCache = {};
@@ -2328,6 +2324,7 @@ var streetViewButton = new Ext.Button({
         var historyAction = new Ext.Action({
                 tooltip: 'Map History',
                 handler: this.showHistory,
+                hidden: !this.config["edit_map"],
                 scope: this,
                 text: '<span class="x-btn-text">' +this.revisionBtnText + '</span>',
                 disabled: !this.mapID
