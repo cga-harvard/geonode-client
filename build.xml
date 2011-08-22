@@ -66,7 +66,7 @@
             <fileset dir="src/main/webapp/">
             </fileset>
         </copy>
-        <copy todir="${build}/${ant.project.name}/WEB-INF/lib" flatten="true" includeEmptyDirs="false">
+        <copy todir="${build}/${ant.project.name}/WEB-INF/lib" flatten="false" includeEmptyDirs="false">
             <fileset dir="${build}/ringo/lib"/>
         </copy>
         <copy todir="${build}/${ant.project.name}/WEB-INF/app">
@@ -81,6 +81,9 @@
         </copy>
         <copy todir="${build}/${ant.project.name}/WEB-INF/app/static/externals/ext">
             <fileset dir="app/static/externals/ext"/>
+        </copy>
+        <copy todir="${build}/${ant.project.name}/WEB-INF/app/static/externals/misc">
+            <fileset dir="app/static/externals/misc"/>
         </copy>
         <copy todir="${build}/${ant.project.name}/WEB-INF/app/static/externals/gxp/theme">
             <fileset dir="app/static/externals/gxp/src/theme"/>

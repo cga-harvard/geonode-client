@@ -80,8 +80,11 @@ GeoNode.BoundingBoxWidget = Ext.extend(Ext.util.Observable, {
     },
 
     updateBBox: function(bounds) {
-        var bbmap = this.viewer.mapPanel.map;
-        bbmap.zoomToExtent(bounds);
+        if (bounds && bounds != null)
+        {
+            var bbmap = this.viewer.mapPanel.map;
+            bbmap.zoomToExtent(bounds);
+        }
     },
 
     isActive: function() {

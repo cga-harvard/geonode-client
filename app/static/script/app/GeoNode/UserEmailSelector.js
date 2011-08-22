@@ -15,7 +15,7 @@ GeoNode.UserEmailSelector = Ext.extend(Ext.util.Observable, {
                 reader: new Ext.data.JsonReader({
                     root: 'users',
                     totalProperty: 'count',
-                    fields: [{name: 'email'}]
+                    fields: [{name: 'email'},{name:'user'}]
                 })
             };
             Ext.apply(cfg, this.availableUserConfig || {});
@@ -26,7 +26,7 @@ GeoNode.UserEmailSelector = Ext.extend(Ext.util.Observable, {
         if (!this.store) {
             this.store = new Ext.data.ArrayStore({
                 idIndex: 0,
-                fields: ['email'],
+                fields: ['email','user'],
                 data: []
             });
         }
@@ -60,7 +60,7 @@ GeoNode.UserEmailSelector = Ext.extend(Ext.util.Observable, {
         this.selectedUsers = new Ext.DataView({
             store: this.store,
             itemSelector: 'div.user_item',
-            tpl: new Ext.XTemplate('<div><tpl for="."> <div class="x-btn user_item"><button class="icon-removeuser remove-button">&nbsp;</button>{email}</div></tpl></div>'),
+            tpl: new Ext.XTemplate('<div><tpl for="."> <div class="x-btn user_item"><button class="icon-removeuser remove-button">&nbsp;</button>{user}</div></tpl></div>'),
             plugins: [plugin],
             autoHeight: true,
             multiSelect: true
@@ -70,13 +70,20 @@ GeoNode.UserEmailSelector = Ext.extend(Ext.util.Observable, {
 
 
             var value = this.availableUsers.getValue();
+            var user =  this.availableUsers.getValue();
+            var recordIndex = this.userstore.findExact('email', value);
+            if (recordIndex > -1)
+            {
+                user = this.userstore.getAt(recordIndex).get('user');
+            }
+            
             if (this.selectedUsers.store.findExact('email', value) == -1)
             {
                 var UserRecord = Ext.data.Record.create([
-                    'email'
+                    'email', 'user'
                 ]);            
 
-                var newRecord = new UserRecord({email:value});
+                var newRecord = new UserRecord({email:value, user:user});
                 this.selectedUsers.store.add(newRecord);
             }
         }
@@ -94,7 +101,8 @@ GeoNode.UserEmailSelector = Ext.extend(Ext.util.Observable, {
             minChars: 0,
             align: 'right',
             border: 'false',
-            displayField: 'email',
+            displayField: 'user',
+            valueField: 'email',
             emptyText: gettext("Add user..."),
             listeners: {
                 scope: this,
