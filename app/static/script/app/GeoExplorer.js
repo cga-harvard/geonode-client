@@ -25,7 +25,7 @@
 
     var LayerData = function(iid, isearchFields, icount)
 	{
-		this.id = iid;
+		this.id = iid;f
 		this.searchFields = isearchFields;
 		this.count = icount;
 //		alert(this.id+":"+this.category+":"+this.count);
