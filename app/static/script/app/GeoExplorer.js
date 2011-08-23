@@ -139,7 +139,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     helpLabel: 'UT: Help',
     infoButtonText: "UT:Info",
     largeSizeLabel: 'UT:Large',
-    layerAdditionLabel: "UT: Add WMS server",
+    layerAdditionLabel: "UT: Add another server",
     layerLocalLabel: 'UT:Upload your own data',
     layerContainerText: "UT:Map Layers",
     layerPropertiesText: 'UT: Layer Properties',
@@ -579,7 +579,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                if (dl.name != "HighlightWMS" && !geoEx.dataLayers[dl.params.LAYERS]){
                    var category = x.get("group") != "" && x.get("group") != undefined && x.get("group")  ? x.get("group") : "General";
                    x.set("group", category);
-                   geoEx.dataLayers[dl.params.LAYERS] = new LayerData(dl.params.LAYERS, x.get("searchfields"), x.get("searchfields").length);
+                   if (x.get("searchfields"))
+                        geoEx.dataLayers[dl.params.LAYERS] = new LayerData(dl.params.LAYERS, x.get("searchfields"), x.get("searchfields").length);
                 }
            }, this);
 
@@ -1716,23 +1717,14 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             });
 
 
-        var addArcGisRestButton = new Ext.Button({
-                text: this.arcGisRestLabel,
-                iconCls: 'icon-add',
-                cls: 'x-btn-link-medium x-btn-text',
-                handler: function() {
-                    newArcSourceWindow.show();
-                }
-        });
-
         var app = this;
         var newSourceWindow = new gxp.NewSourceWindow({
             modal: true,
             listeners: {
-                "server-added": function(url) {
+                "server-added": function(url, type) {
                     newSourceWindow.setLoading();
                     this.addLayerSource({
-                        config: {url: url, ptype: "gxp_wmscsource"},
+                        config: {url: url, ptype: type},
                         callback: function(id) {
                             // add to combo and select
                             var record = new sources.recordType({
@@ -1759,38 +1751,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             }
         });
 
-        var newArcSourceWindow = new gxp.NewSourceWindow({
-            modal: true,
-            listeners: {
-                "server-added": function(url) {
-                    newArcSourceWindow.setLoading();
-                    this.addLayerSource({
-                        config: {url: url, ptype: "gxp_arcrestsource"},
-                        callback: function(id) {
-                            // add to combo and select
-                            var record = new sources.recordType({
-                                id: id,
-                                title: this.layerSources[id].title || "Untitled" // TODO: titles
-                            });
-                            sources.insert(0, [record]);
-                            sourceComboBox.onSelect(record, 0);
-                            newArcSourceWindow.hide();
-                        },
-                        failure: function() {
-                            // TODO: wire up success/failure
-                            newArcSourceWindow.setError("Error contacting server.\nPlease check the url and try again.");
-                        },
-                        scope: this
-                    });
-                },
-                scope: this
-            },
-            // hack to get the busy mask so we can close it in case of a
-            // communication failure
-            addSource: function(url, success, failure, scope) {
-                app.busyMask = scope.loadMask;
-            }
-        });
+
 
 
         var addLayerButton = new Ext.Button({
@@ -1818,7 +1779,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                      right: 0
                   }
              }),
-             items: [sourceAdditionLabel, sourceComboBox, {xtype: 'spacer', width:20 }, addWmsButton, addArcGisRestButton]
+             items: [sourceAdditionLabel, sourceComboBox, {xtype: 'spacer', width:20 }, addWmsButton]
          });
 
 
