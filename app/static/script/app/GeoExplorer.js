@@ -25,7 +25,7 @@
 
     var LayerData = function(iid, isearchFields, icount)
 	{
-		this.id = iid;f
+		this.id = iid;
 		this.searchFields = isearchFields;
 		this.count = icount;
 //		alert(this.id+":"+this.category+":"+this.count);
@@ -251,7 +251,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     return;
                 };
                 // use the proxy for all non-local requests
-                if(!url.contains(this.siteUrl) && this.proxy && options.url.indexOf(this.proxy) !== 0 &&
+                if(this.proxy && options.url.indexOf(this.proxy) !== 0 &&
                         options.url.indexOf(window.location.protocol) === 0) {
                     var parts = options.url.replace(/&$/, "").split("?");
                     var params = Ext.apply(parts[1] && Ext.urlDecode(
@@ -2248,12 +2248,6 @@ var streetViewButton = new Ext.Button({
             scope: this
         });
 
-        var helpButton = new Ext.Button({
-		tooltip: this.helpLabel,
-            text: '<span class="x-btn-text">' + this.helpLabel + '</span>',
-            handler: this.showHelpWindow,
-            scope:this
-        });
 
         var advancedToolsLink = function() {
         	if (!this.mapID)
@@ -2307,8 +2301,7 @@ var streetViewButton = new Ext.Button({
             "-",enable3DButton,"-",streetViewButton, "-",
             jumpBar,
             '->',
-            historyAction, shareMapButton,"-",
-            helpButton
+            historyAction, shareMapButton
             ];
         this.on("saved", function() {
             // enable the "Publish Map" button
@@ -2978,13 +2971,6 @@ var streetViewButton = new Ext.Button({
             this.initInfoTextWindow();
         }
         this.infoTextWindow.show();
-    },
-
-    showHelpWindow: function() {
-         if(!this.helpTextWindow) {
-            this.initHelpTextWindow();
-        }
-        this.helpTextWindow.show();
     },
 
 
