@@ -2510,8 +2510,6 @@ var streetViewButton = new Ext.Button({
             }
         });
 
-
-
         //Make sure URL is not taken; if it is, show list of taken url's that start with field value
         Ext.apply(Ext.form.VTypes, {
            UniqueMapId : this.mapID,
@@ -2734,7 +2732,6 @@ var streetViewButton = new Ext.Button({
             labelAlign: "top",
             preventBodyReset: true,
             autoScroll:false,
-            height:400,
             html: this.about['introtext']
         });
 
@@ -2971,6 +2968,7 @@ var streetViewButton = new Ext.Button({
             this.initInfoTextWindow();
         }
         this.infoTextWindow.show();
+        this.infoTextWindow.alignTo(document, 't-t');
     },
 
 
@@ -2983,6 +2981,7 @@ var streetViewButton = new Ext.Button({
         }
 
         this.metadataForm.show();
+        this.metadataForm.alignTo(document, 't-t');
         //Ext.getCmp('gx_saveButton').enable();
         //Ext.getCmp('gx_saveAsButton').enable();
     },
