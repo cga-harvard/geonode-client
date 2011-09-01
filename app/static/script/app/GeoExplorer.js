@@ -429,6 +429,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
         var geoEx = this;
         layer.events.register("loadstart", layer, function() {
+            alert('loadstart');
             if (!geoEx.busyMask)
             {
               geoEx.busyMask = new Ext.LoadMask(
@@ -441,6 +442,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
 
         layer.events.register("loadend", layer, function() {
+            alert('loadend');
             if (geoEx.busyMask)
             {
                 geoEx.busyMask.hide();
@@ -606,7 +608,13 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var searchFields = this.searchFields;
         var layerCount = 0;
 
-
+        var incrementLayerStats = function(layer) {
+            Ext.Ajax.request({
+                url: "/data/layerstats/",
+                method: "POST",
+                params: {layername:layer.params.LAYERS}
+            });
+        }
 
         this.mapPanel.map.events.register("preaddlayer", this, function(e) {
             var layer = e.layer;
@@ -618,6 +626,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 layer.events.on({
                     "loadstart": function() {
                         layerCount++;
+                       incrementLayerStats(layer);
                         if (!this.busyMask) {
                             this.busyMask = new Ext.LoadMask(
                                 this.mapPanel.map.div, {
