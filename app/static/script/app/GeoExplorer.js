@@ -23,16 +23,6 @@
  * title - {String} Optional title to display for layer.
  */
 
-    var LayerData = function(iid, isearchFields, icount)
-	{
-		this.id = iid;
-		this.searchFields = isearchFields;
-		this.count = icount;
-//		alert(this.id+":"+this.category+":"+this.count);
-
-	};
-
-
 
 var GeoExplorer = Ext.extend(gxp.Viewer, {
     /**
