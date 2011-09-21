@@ -35,10 +35,6 @@
 
 
 var GeoExplorer = Ext.extend(gxp.Viewer, {
-
-    dataLayers : [],
-
-
     /**
      * api: config[localGeoServerBaseUrl]
      * ``String`` url of the local GeoServer instance
@@ -429,7 +425,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
         var geoEx = this;
         layer.events.register("loadstart", layer, function() {
-            alert('loadstart');
             if (!geoEx.busyMask)
             {
               geoEx.busyMask = new Ext.LoadMask(
@@ -442,7 +437,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
 
         layer.events.register("loadend", layer, function() {
-            alert('loadend');
             if (geoEx.busyMask)
             {
                 geoEx.busyMask.hide();
@@ -578,11 +572,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
            queryableLayers.each(function(x){
            	var dl = x.getLayer();
-               if (dl.name != "HighlightWMS" && !geoEx.dataLayers[dl.params.LAYERS]){
+               if (dl.name != "HighlightWMS" && !dl.attributes){
                    var category = x.get("group") != "" && x.get("group") != undefined && x.get("group")  ? x.get("group") : "General";
                    x.set("group", category);
-                   if (x.get("searchfields"))
-                        geoEx.dataLayers[dl.params.LAYERS] = new LayerData(dl.params.LAYERS, x.get("searchfields"), x.get("searchfields").length);
                 }
            }, this);
 
@@ -1325,7 +1317,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
         if (this.config.treeconfig != undefined)
     	{
-    		for (x = 0; x < this.config.treeconfig.length; x++)
+    		for (x = 0, max = this.config.treeconfig.length; x < max; x++)
     			{
     				if (this.config.treeconfig[x] != null)
     					this.addCategoryFolder(this.config.treeconfig[x].group, this.config.treeconfig[x].expanded);
@@ -1568,7 +1560,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                 			category = record.get("group");
 	                                		if (!category || category == '')
 	                                		    record.set("group", "General");
-                                			geoEx.dataLayers[layer.name] = new LayerData(layer.name, layer.searchfields, layer.searchfields.length);
                                 			layerStore.add([record]);
                                 			geoEx.addCategoryFolder(record.get("group"), "true");
                                 			geoEx.reorderNodes();
@@ -2445,7 +2436,7 @@ var streetViewButton = new Ext.Button({
 
         var mapConfig = this.getState();
         var treeConfig = [];
-        for (x = 0; x < this.treeRoot.firstChild.childNodes.length; x++)
+        for (x = 0, max = this.treeRoot.firstChild.childNodes.length; x < max; x++)
         {
         	node = this.treeRoot.firstChild.childNodes[x];
         	    treeConfig.push({group : node.text, expanded:  node.expanded.toString()  });
@@ -3014,7 +3005,7 @@ var streetViewButton = new Ext.Button({
         var config = this.getState();
 
         var treeConfig = [];
-        for (x = 0; x < this.treeRoot.firstChild.childNodes.length; x++)
+        for (x = 0, max =  this.treeRoot.firstChild.childNodes.length; x < max; x++)
         {
         	node = this.treeRoot.firstChild.childNodes[x];
         	treeConfig.push({group : node.text, expanded:  node.expanded.toString()  });

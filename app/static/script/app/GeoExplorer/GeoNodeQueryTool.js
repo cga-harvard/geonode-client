@@ -85,7 +85,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                 enableToggle: true,
                 allowDepress: true,
                 toggleHandler: function(button, pressed) {
-                    for (var i = 0, len = info.controls.length; i < len; i++) {
+                    for (var i = info.controls.length; i --;) {
                         if (pressed) {
                             info.controls[i].activate();
                         } else {
@@ -179,9 +179,9 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
 
                                             featureInfo.title = x.get("title");
                                             //console.log('datalayers?:' + this.target.dataLayers[layer.params.LAYERS]);
-                                            if (this.target.dataLayers[layer.params.LAYERS] && this.target.dataLayers[layer.params.LAYERS].searchFields.length > 0) {
-                                                featureInfo.queryfields = this.target.dataLayers[layer.params.LAYERS].searchFields;
-                                                featureInfo.nameField = featureInfo.queryfields[0].attribute;
+                                            if (layer.attributes) {
+                                                featureInfo.queryfields = layer.attributes;
+                                                featureInfo.nameField = featureInfo.queryfields[0].id;
                                             } else if (featureInfo.length > 0) {
                                                 var qfields = [];
                                                 for (var fname in evt.features[0].attributes) {
@@ -193,7 +193,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                                                 if (featureInfo.queryfields.length > 0)
                                                     featureInfo.nameField = featureInfo.queryfields[0];
                                             }
-                                            for (var f = 0; f < evt.features.length; f++) {
+                                            for (var f = evt.features.length; f--;) {
                                                 feature = featureInfo[f];
                                                 feature.wm_layer_id = featureCount;
                                                 feature.wm_layer_title = featureInfo.title;
@@ -279,7 +279,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                                 var feature,  dist;
                                 var resultFeature = [];
                                 var minDist = Number.MAX_VALUE;
-                                for (var i = 0; i < features.length; ++i) {
+                                for (var i = 0, max = features.length; i < max; ++i) {
                                     feature = features[i];
                                     if (feature.geometry) {
                                         if (!feature.geometry.CLASS_NAME.contains('Polygon')) {
@@ -334,7 +334,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                                         if (nodes.length > 0) {
                                             var qfields = [];
 
-                                            for (var attr = 0; attr < nodes[0].attributes.length; attr++) {
+                                            for (var attr = 0, max = nodes[0].attributes.length; attr < max; attr++) {
                                                 qfields.push(nodes[0].attributes[attr].name);
                                             }
 
@@ -343,7 +343,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                                             if (qfields.length > 0)
                                                 featureInfo['nameField'] = featureInfo['queryfields'][0];
 
-                                            for (var it = 0; it < nodes.length; it++) {
+                                            for (var it =nodes.length; it--;) {
                                                 node = nodes[it];
                                                 var feature = new OpenLayers.Feature.Vector(point);
 
@@ -353,7 +353,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
 //                                                }
 
                                                 //feature.attributes = node.attributes;
-                                                for (var at = 0; at < node.attributes.length; at++) {
+                                                for (var at = node.attributes.length; at--;) {
                                                     feature.attributes[node.attributes[at].name] = node.attributes[at].value;
                                                 }
 
@@ -391,7 +391,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                                                 if (featureInfo.queryfields.length > 0)
                                                     featureInfo.nameField = featureInfo.queryfields[0];
                                             }
-                                            for (var f = 0; f < featureInfo.length; f++) {
+                                            for (var f = featureInfo.length; f--;) {
                                                 var feature = featureInfo[f];
 
 
@@ -485,7 +485,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
         }
         var theLayers = this.target.mapPanel.map.layers;
         var hLayers = [];
-        for (l = 0; l < theLayers.length; l++) {
+        for (l = theLayers.length; l--;) {
             //console.log('Remve? ' + theLayers[l].name);
             if (theLayers[l].name == "hilites") {
                 //console.log('Removing highlight layer');
@@ -593,7 +593,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
 
         var feature = null;
         // Look for the feature in the full collection of features (the grid store only has simplified objects)
-        for (var i = 0; i < currentFeatures.length; i++) {
+        for (var i = currentFeatures.length; i--;) {
             if (currentFeatures[i].wm_layer_id == gridFeature.wm_layer_id) {
                 feature = currentFeatures[i];
             }
@@ -618,10 +618,10 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
     createHTML:  function(feature, metaColumns) {
         html = '<ul class="featureDetailList" id="featureDetailList">';
 
-        for (c = 0; c < metaColumns.length; c++) {
+        for (c = 0, max = metaColumns.length; c < max; c++) {
             column = metaColumns[c];
 
-            featureValue = '' + (column.label ? feature.attributes[column.attribute] : feature.attributes[column])
+            featureValue = '' + (column.header ? feature.attributes[column.id] : feature.attributes[column])
 
 
             if (featureValue.indexOf("http") == 0) {
@@ -629,7 +629,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
             }
 
 
-            html += "<li><label>" + (column.label ? column.label : column) + "</label><span>" + featureValue + "</span></li>";
+            html += "<li><label>" + (column.header ? column.header : column) + "</label><span>" + featureValue + "</span></li>";
 
         }
 
