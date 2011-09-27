@@ -229,13 +229,23 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 // use django's /geoserver endpoint when talking to the local
                 // GeoServer's RESTconfig API
                 var url = options.url.replace(this.urlPortRegEx, "$1/");
-                var localUrl = this.localGeoServerBaseUrl.replace(
-                    this.urlPortRegEx, "$1/");
-                if(url.indexOf(localUrl + "rest/") === 0) {
-                    options.url = url.replace(new RegExp("^" +
-                        localUrl), "/geoserver/");
-                    return;
-                };
+                if (this.localGeoServerBaseUrl) {
+                    if (url.indexOf(this.localGeoServerBaseUrl) == 0) {
+                        //replace local GeoServer url with /geoserver/
+                        options.url = url.replace(
+                            new RegExp("^" + this.localGeoServerBaseUrl),
+                            "/geoserver/"
+                        );
+                        return;
+                    }
+                    var localUrl = this.localGeoServerBaseUrl.replace(
+                        this.urlPortRegEx, "$1/");
+                    if(url.indexOf(localUrl + "rest/") === 0) {
+                        options.url = url.replace(new RegExp("^" +
+                            localUrl), "/geoserver/");
+                        return;
+                    };
+                }
                 // use the proxy for all non-local requests
                 if(this.proxy && options.url.indexOf(this.proxy) !== 0 &&
                         options.url.indexOf(window.location.protocol) === 0) {
@@ -516,7 +526,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                         return {
                                             success: response.status == 200,
                                             records: []
-                                        }
+                                        };
                                     }
                                 },
                                 defaults: {
@@ -840,10 +850,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         i instanceof Ext.form.Field && i.setDisabled(true);
                     });
 
-                    isLocal = layer.url.replace(
-                    this.urlPortRegEx, "$1/").indexOf(
-                    this.localGeoServerBaseUrl.replace(
-                    this.urlPortRegEx, "$1/")) === 0;
+                    isLocal = layer.url.indexOf("/geoserver") === 0;
 
                     if (isLocal) {
                     	prop.items.get(0).items.get(0).add({html: "<a href='/data/" + layer.params.LAYERS + "'>" + this.shareLayerText + "</a>", xtype: "panel"});
@@ -1475,9 +1482,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     setWorldMapSourceKey : function(){
         for (var id in this.layerSources) {
             source = this.layerSources[id];
-            if ( source instanceof gxp.plugins.GeoNodeSource  && source.url.replace(this.urlPortRegEx, "$1/").indexOf(
-                        this.localGeoServerBaseUrl.replace(
-                            this.urlPortRegEx, "$1/")) === 0)
+            if ( source instanceof gxp.plugins.GeoNodeSource  && source.url.indexOf("/geoserver") === 0)
             {
                 this.worldMapSourceKey = id;
             }
@@ -1511,9 +1516,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
             var layerStore = this.mapPanel.layers;
             var isLocal = source instanceof gxp.plugins.GeoNodeSource &&
-                    source.url.replace(this.urlPortRegEx, "$1/").indexOf(
-                        this.localGeoServerBaseUrl.replace(
-                            this.urlPortRegEx, "$1/")) === 0;
+                    source.url.indexOf("/geoserver") === 0;
             for (var i=0, ii=records.length; i<ii; ++i) {
             	var thisRecord = records[i];
                 if (isLocal) {
@@ -2128,77 +2131,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     	this.mapPanel.add(moreButton);
 
         var jumpBar = new GeoExplorer.SocialExplorer(this);
-
-
-
-        // create split button for measure controls
-        var activeIndex = 0;
-        var measureSplit = new Ext.SplitButton({
-            iconCls: "icon-measure-length",
-            tooltip: this.measureSplitText,
-            enableToggle: true,
-            toggleGroup: toolGroup, // Ext doesn't respect this, registered with ButtonToggleMgr below
-            allowDepress: false, // Ext doesn't respect this, handler deals with it
-            handler: function(button, event) {
-                // allowDepress should deal with this first condition
-                if(!button.pressed) {
-                    button.toggle();
-                } else {
-                    button.menu.items.itemAt(activeIndex).setChecked(true);
-                }
-            },
-            listeners: {
-                toggle: function(button, pressed) {
-                    // toggleGroup should handle this
-                    if(!pressed) {
-                        button.menu.items.each(function(i) {
-                            i.setChecked(false);
-                        });
-                    }
-                },
-                render: function(button) {
-                    // toggleGroup should handle this
-                    Ext.ButtonToggleMgr.register(button);
-                }
-            },
-            menu: new Ext.menu.Menu({
-                items: [
-                    new Ext.menu.CheckItem(
-                        new GeoExt.Action({
-				text: this.lengthActionText,
-                            iconCls: "icon-measure-length",
-                            map: this.mapPanel.map,
-                            toggleGroup: toolGroup,
-                            group: toolGroup,
-                            allowDepress: false,
-                            map: this.mapPanel.map,
-                            control: this.createMeasureControl(
-                                OpenLayers.Handler.Path, "Length")
-                        })),
-                    new Ext.menu.CheckItem(
-                        new GeoExt.Action({
-                            text: this.areaActionText,
-                            iconCls: "icon-measure-area",
-                            map: this.mapPanel.map,
-                            toggleGroup: toolGroup,
-                            group: toolGroup,
-                            allowDepress: false,
-                            map: this.mapPanel.map,
-                            control: this.createMeasureControl(
-                                OpenLayers.Handler.Polygon, "Area")
-                            }))
-                  ]})});
-        measureSplit.menu.items.each(function(item, index) {
-            item.on({checkchange: function(item, checked) {
-                measureSplit.toggle(checked);
-                if(checked) {
-                    activeIndex = index;
-                    measureSplit.setIconClass(item.iconCls);
-                }
-            }});
-        });
-
-
 
 
         var svt = new StreetViewPopup({mapPanel: mapPanel, titleHeader: this.streetViewBtnText, popupHeight: 300, popupWidth: 600});
