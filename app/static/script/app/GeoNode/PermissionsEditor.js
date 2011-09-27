@@ -79,7 +79,6 @@ GeoNode.PermissionsEditor = Ext.extend(Ext.util.Observable, {
     buildViewPermissionChooser: function() {
         return new Ext.Panel({
             border: false,
-            bwrapCfg: { tag: 'p' },
             items: [
                 {html: "<strong>" + gettext("Who can view and download this data?") + "</strong>", flex: 1, border: false},
                 { xtype: 'radiogroup', columns: 1, value: this.viewMode, items: [
@@ -92,7 +91,7 @@ GeoNode.PermissionsEditor = Ext.extend(Ext.util.Observable, {
                         this.fireEvent("updated", this);
                     },
                     scope: this
-                }},
+                }}
             ]
         });
     },

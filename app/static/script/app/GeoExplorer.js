@@ -231,7 +231,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 var url = options.url.replace(this.urlPortRegEx, "$1/");
                 if (this.localGeoServerBaseUrl) {
                     if (url.indexOf(this.localGeoServerBaseUrl) == 0) {
-                        //replace local GeoServer url with /geoserver/
+                        // replace local GeoServer url with /geoserver/
                         options.url = url.replace(
                             new RegExp("^" + this.localGeoServerBaseUrl),
                             "/geoserver/"
@@ -261,7 +261,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             "requestexception": function(conn, response, options) {
                 if(options.failure) {
                     // exceptions are handled elsewhere
-               } else {
+                } else {
                     this.busyMask && this.busyMask.hide();
                     var url = options.url;
                     if (response.status == 401 && url.indexOf("http" != 0) &&
@@ -282,7 +282,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             }
         }).bind(this);
 
-        // register the color manager with every color field
+        // register the color manager with every color field, for Styler
         Ext.util.Observable.observeClass(gxp.form.ColorField);
         gxp.form.ColorField.on({
             render: function(field) {
@@ -320,6 +320,13 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
         // set maxGetUrlLength to avoid non-compliant GET urls for WMS GetMap
         OpenLayers.Tile.Image.prototype.maxGetUrlLength = 2048;
+
+
+        
+        // don't draw window shadows - allows us to use autoHeight: true
+        // without using syncShadow on the window
+        Ext.Window.prototype.shadow = false;
+
 
         if (!config.map) {
             config.map = {};
@@ -580,8 +587,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
        },
 
-
-
     initMapPanel: function() {
         this.mapItems = [{
             xtype: "gx_zoomslider",
@@ -678,9 +683,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
         this.on("ready", function() {
             this.addInfo();
-
-            //var queryTool = new GeoExplorer.FeatureQueryTool(this, 'queryPanel', 'gridWinPanel');
-
             this.mapPanel.layers.on({
                 "update": function() {this.modified |= 1;},
                 "add": function() {this.modified |= 1;},
@@ -1305,7 +1307,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     items: [
                         this.mapPanelContainer,
                         westPanel, eastPanel
-                    ]
+                    ],
+                    ref: "../../main"
                 }
             }
         ];
@@ -1924,8 +1927,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         return mapOverlay;
     },
 
-
-
     createTools: function() {
         var toolGroup = "toolGroup";
         var mapPanel = this.mapPanel;
@@ -1962,7 +1963,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                             autoWidth: true,
                             limitScales: true,
                             map: {
-                                theme: null,
                                 controls: [
                                     new OpenLayers.Control.Navigation({
                                         zoomWheelEnabled: false,
@@ -2268,86 +2268,10 @@ var streetViewButton = new Ext.Button({
                 })]
             })
         });
-
-        var cleanup = function() {
-            if (measureToolTip) {
-                measureToolTip.destroy();
-            }
-        };
-
-        var makeString = function(metricData) {
-            var metric = metricData.measure;
-            var metricUnit = metricData.units;
-
-            measureControl.displaySystem = "english";
-
-            var englishData = metricData.geometry.CLASS_NAME.indexOf("LineString") > -1 ?
-            measureControl.getBestLength(metricData.geometry) :
-            measureControl.getBestArea(metricData.geometry);
-
-            var english = englishData[0];
-            var englishUnit = englishData[1];
-
-            measureControl.displaySystem = "metric";
-            var dim = metricData.order == 2 ?
-                '<sup>2</sup>' :
-                '';
-
-            return metric.toFixed(2) + " " + metricUnit + dim + "<br>" +
-                english.toFixed(2) + " " + englishUnit + dim;
-        };
-
-        var measureToolTip;
-        var measureControl = new OpenLayers.Control.Measure(handlerType, {
-            persist: true,
-            handlerOptions: {layerOptions: {styleMap: styleMap}},
-            eventListeners: {
-                measurepartial: function(event) {
-                    cleanup();
-                    measureToolTip = new Ext.ToolTip({
-                        target: Ext.getBody(),
-                        html: makeString(event),
-                        title: title,
-                        autoHide: false,
-                        closable: true,
-                        draggable: false,
-                        mouseOffset: [0, 0],
-                        showDelay: 1,
-                        listeners: {hide: cleanup}
-                    });
-                    if(event.measure > 0) {
-                        var px = measureControl.handler.lastUp;
-                        var p0 = this.mapPanel.getPosition();
-                        measureToolTip.targetXY = [p0[0] + px.x, p0[1] + px.y];
-                        measureToolTip.show();
-                    }
-                },
-                measure: function(event) {
-                    cleanup();
-                    measureToolTip = new Ext.ToolTip({
-                        target: Ext.getBody(),
-                        html: makeString(event),
-                        title: title,
-                        autoHide: false,
-                        closable: true,
-                        draggable: false,
-                        mouseOffset: [0, 0],
-                        showDelay: 1,
-                        listeners: {
-                            hide: function() {
-                                measureControl.cancel();
-                                cleanup();
-                            }
-                        }
-                    });
-                },
-                deactivate: cleanup,
-                scope: this
-            }
-        });
-
-        return measureControl;
     },
+
+
+
 
     /** private: method[makeExportDialog]
      *
