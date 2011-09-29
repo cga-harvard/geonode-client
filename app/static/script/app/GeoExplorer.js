@@ -852,8 +852,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         i instanceof Ext.form.Field && i.setDisabled(true);
                     });
 
-                    isLocal = layer.url.indexOf("/geoserver") === 0;
-
+                    isLocal = layer.url.indexOf("/geoserver") === 0 || layer.url.indexOf(this.localGeoServerBaseUrl) > -1;
+                    console.debug("LAYER URL:" + layer.url);
                     if (isLocal) {
                     	prop.items.get(0).items.get(0).add({html: "<a href='/data/" + layer.params.LAYERS + "'>" + this.shareLayerText + "</a>", xtype: "panel"});
                     }
@@ -1485,7 +1485,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     setWorldMapSourceKey : function(){
         for (var id in this.layerSources) {
             source = this.layerSources[id];
-            if ( source instanceof gxp.plugins.GeoNodeSource  && source.url.indexOf("/geoserver") === 0)
+            if ( source instanceof gxp.plugins.GeoNodeSource  && (source.url.indexOf("/geoserver") === 0 || source.url.indexOf(this.localGeoServerBaseUrl) > -1))
             {
                 this.worldMapSourceKey = id;
             }
@@ -1519,7 +1519,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
             var layerStore = this.mapPanel.layers;
             var isLocal = source instanceof gxp.plugins.GeoNodeSource &&
-                    source.url.indexOf("/geoserver") === 0;
+                    (source.url.indexOf("/geoserver") === 0 || source.url.indexOf(this.localGeoServerBaseUrl) > -1);
             for (var i=0, ii=records.length; i<ii; ++i) {
             	var thisRecord = records[i];
                 if (isLocal) {
