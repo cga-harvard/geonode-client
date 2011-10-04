@@ -110,6 +110,16 @@
     background-image: url(img/geosilk/google_earth.png);
 }
 
+/* gxp_geolocate */
+.x-btn .gxp-icon-geolocate, .x-menu-item .gxp-icon-geolocate, .x-tree-node .gxp-icon-geolocate {
+    background-image: url(img/geolocate.png);
+}
+
+.x-btn .icon-geolocate {
+    background-image: url(img/geolocate.png);
+}
+
+
 .x-btn .icon-save {
     background-image: url(img/geosilk/map_save.png);
 }

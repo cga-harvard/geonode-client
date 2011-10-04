@@ -245,7 +245,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                             if (wfs_url.indexOf("?") > -1)
                                 wfs_url = wfs_url.substring(0, wfs_url.indexOf("?"));
 
-                            wfs_url += "?service=WFS&request=GetFeature&version=1.1.0&srsName=EPSG:900913&outputFormat=GML2&typeName=" + wfs_layer.params.LAYERS + "&BBOX=" + bounds.toBBOX() + ",EPSG:900913";
+                            wfs_url += "?service=WFS&request=GetFeature&version=1.0.0&srsName=EPSG:900913&outputFormat=GML2&typeName=" + wfs_layer.params.LAYERS + "&BBOX=" + bounds.toBBOX() + ",EPSG:900913";
                             Ext.Ajax.request({
                                 'url':wfs_url,
                                 'success':function(resp, opts) {
