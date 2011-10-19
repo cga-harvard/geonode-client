@@ -943,6 +943,18 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 removeCategoryAction.hide();
                 addCategoryAction.hide();
                 renameAction.hide();
+
+                var changed = true;
+                var layer = node.layer;
+                var store = node.layerStore;
+                var record = store.getAt(store.findBy(function(r) {
+                    return r.getLayer() === layer;
+                }));
+                this.selectionChanging = true;
+                changed = geoEx.selectLayer(record);
+                this.selectionChanging = false;
+                return changed;
+
             } else {
                 addCategoryAction.hide();
                 removeLayerAction.hide();
@@ -1308,7 +1320,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     items: [
                         this.mapPanelContainer,
                         westPanel, eastPanel
-                    ]
+                    ],
+                    ref: "../../main"
                 }
             }
         ];
@@ -1604,6 +1617,63 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
         }
 
+    },
+
+    loadConfig: function(config) {
+
+        var oldLayerChange = gxp.plugins.FeatureEditor.prototype.onLayerChange;
+        gxp.plugins.FeatureEditor.prototype.onLayerChange = function (mgr, layer, schema) {
+            oldLayerChange.apply(this, [mgr,layer,schema]);
+
+            var buttons = this.actions;
+            if (!buttons[0].disabled) {
+                Ext.Ajax.request({
+                    url: "/data/" + layer.data.layer.params.LAYERS + "/ajax_layer_edit_check/",
+                    method: "POST",
+                    params: {layername:layer.data.layer.params.LAYERS},
+                    success: function(result, request) {
+                        if (result.responseText != "True") {
+                            buttons[0].disable();
+                            buttons[1].disable();
+                        } else {
+                            buttons[0].enable();
+                            buttons[1].enable();
+                            layer.data.layer.displayOutsideMaxExtent = true;
+
+                        }
+                    },
+                    failure: function (result, request) {
+                        buttons[0].disable();
+                        buttons[1].disable();
+                    }
+                });
+            }
+        }
+
+
+        config.tools = (config.tools || []).concat(
+            {
+                ptype: "gxp_featuremanager",
+                id: "featuremanager",
+                paging: false,
+                tooltip: this.infoButtonText,
+            },
+            {
+                ptype: "gxp_featureeditor",
+                id: "gn_layer_editor",
+                featureManager: "featuremanager",
+                readOnly: false,
+                autoLoadFeatures: true,
+                actionTarget: {target: "main.tbar", index: 17},
+                defaultAction: 1,
+                outputConfig: {panIn: false, height: 220},
+                tooltip: this.infoButtonText,
+                iconClsAdd: null,
+                iconClsEdit: null,
+                createFeatureActionText: '<span class="x-btn-text" style="padding-left:20px;">' + "Create Feature" + '</span>',
+                editFeatureActionText: '<span class="x-btn-text">' + "Edit Feature" + '</span>'
+            });
+        GeoExplorer.superclass.loadConfig.apply(this, arguments);
     },
 
 
@@ -1951,6 +2021,52 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var hglPointsOverlay = new GeoExplorer.HglFeedOverlay(this);
         var hglRecord = null;
 
+        // shared FeatureManager for feature editing, grid and querying
+        var featureManager = new gxp.plugins.FeatureManager({
+            id: "featuremanager",
+            paging: false
+        });
+
+        var featureEditor = new gxp.plugins.FeatureEditor({
+            id: "gn_layer_editor",
+            featureManager: "featuremanager",
+            readOnly: false,
+            autoLoadFeatures: true,
+            actionTarget: "paneltbar",
+            defaultAction: 1,
+            outputConfig: {panIn: false, height: 220}
+        });
+
+
+        featureEditor.oldLayerChange = featureEditor.onLayerChange;
+        featureEditor.onLayerChange = function (mgr, layer, schema) {
+            this.oldLayerChange(mgr, layer, schema);
+
+            var buttons = this.actions;
+
+            if (!buttons[0].disabled) {
+                Ext.Ajax.request({
+                    url: "/data/" + layer.data.layer.params.LAYERS + "/ajax_layer_edit_check/",
+                    method: "POST",
+                    params: {layername:layer.data.layer.params.LAYERS},
+                    success: function(result, request) {
+                        if (result.responseText != "True") {
+                            buttons[0].disable();
+                            buttons[1].disable();
+                        } else {
+                            buttons[0].enable();
+                            buttons[1].enable();
+                            layer.data.layer.displayOutsideMaxExtent = true;
+
+                        }
+                    },
+                    failure: function (result, request) {
+                        buttons[0].disable();
+                        buttons[1].disable();
+                    }
+                });
+            }
+        }
 
         var printButton = new Ext.Button({
             tooltip: this.printTipText,
@@ -2248,118 +2364,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         return tools;
     },
 
-    createMeasureControl: function(handlerType, title) {
 
-        var styleMap = new OpenLayers.StyleMap({
-            "default": new OpenLayers.Style(null, {
-                rules: [new OpenLayers.Rule({
-                    symbolizer: {
-                        "Point": {
-                            pointRadius: 4,
-                            graphicName: "square",
-                            fillColor: "white",
-                            fillOpacity: 1,
-                            strokeWidth: 1,
-                            strokeOpacity: 1,
-                            strokeColor: "#333333"
-                        },
-                        "Line": {
-                            strokeWidth: 3,
-                            strokeOpacity: 1,
-                            strokeColor: "#666666",
-                            strokeDashstyle: "dash"
-                        },
-                        "Polygon": {
-                            strokeWidth: 2,
-                            strokeOpacity: 1,
-                            strokeColor: "#666666",
-                            fillColor: "white",
-                            fillOpacity: 0.3
-                        }
-                    }
-                })]
-            })
-        });
-
-        var cleanup = function() {
-            if (measureToolTip) {
-                measureToolTip.destroy();
-            }
-        };
-
-        var makeString = function(metricData) {
-            var metric = metricData.measure;
-            var metricUnit = metricData.units;
-
-            measureControl.displaySystem = "english";
-
-            var englishData = metricData.geometry.CLASS_NAME.indexOf("LineString") > -1 ?
-                measureControl.getBestLength(metricData.geometry) :
-                measureControl.getBestArea(metricData.geometry);
-
-            var english = englishData[0];
-            var englishUnit = englishData[1];
-
-            measureControl.displaySystem = "metric";
-            var dim = metricData.order == 2 ?
-                '<sup>2</sup>' :
-                '';
-
-            return metric.toFixed(2) + " " + metricUnit + dim + "<br>" +
-                english.toFixed(2) + " " + englishUnit + dim;
-        };
-
-        var measureToolTip;
-        var measureControl = new OpenLayers.Control.Measure(handlerType, {
-            persist: true,
-            handlerOptions: {layerOptions: {styleMap: styleMap}},
-            eventListeners: {
-                measurepartial: function(event) {
-                    cleanup();
-                    measureToolTip = new Ext.ToolTip({
-                        target: Ext.getBody(),
-                        html: makeString(event),
-                        title: title,
-                        autoHide: false,
-                        closable: true,
-                        draggable: false,
-                        mouseOffset: [0, 0],
-                        showDelay: 1,
-                        listeners: {hide: cleanup}
-                    });
-                    if (event.measure > 0) {
-                        var px = measureControl.handler.lastUp;
-                        var p0 = this.mapPanel.getPosition();
-                        measureToolTip.targetXY = [p0[0] + px.x, p0[1] + px.y];
-                        measureToolTip.show();
-                    }
-                },
-                measure: function(event) {
-                    cleanup();
-                    measureToolTip = new Ext.ToolTip({
-                        target: Ext.getBody(),
-                        html: makeString(event),
-                        title: title,
-                        autoHide: false,
-                        closable: true,
-                        draggable: false,
-                        mouseOffset: [0, 0],
-                        showDelay: 1,
-                        listeners: {
-                            hide: function() {
-                                measureControl.cancel();
-                                cleanup();
-                            }
-                        }
-                    });
-                },
-                deactivate: cleanup,
-                scope: this
-            }
-        });
-
-        return measureControl;
-    },
 
     /** private: method[makeExportDialog]
      *
