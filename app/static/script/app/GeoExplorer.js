@@ -1651,12 +1651,35 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         }
 
 
+        gxp.plugins.FeatureManager.prototype.redrawMatchingLayers = function(record) {
+            var name = record.get("name");
+            var source = record.get("source");
+            this.target.mapPanel.layers.each(function(candidate) {
+                if (candidate.get("source") === source && candidate.get("name") === name) {
+                    var layer = candidate.getLayer();
+                    layer.redraw(true);
+                Ext.Ajax.request({
+                    url: "/data/" + layer.params.LAYERS + "/ajax_layer_update_bounds/",
+                    method: "POST",
+                    params: {layername:layer.params.LAYERS},
+                    success: function(result, request) {
+                        if (result.responseText != "True") {
+                        } else {
+                        }
+                    },
+                    failure: function (result, request) {
+                    }
+                });
+                }
+            });
+        }
+
         config.tools = (config.tools || []).concat(
             {
                 ptype: "gxp_featuremanager",
                 id: "featuremanager",
                 paging: false,
-                tooltip: this.infoButtonText,
+                tooltip: this.infoButtonText
             },
             {
                 ptype: "gxp_featureeditor",

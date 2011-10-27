@@ -1,3 +1,4 @@
+
 [submodule "app/static/externals/PrintPreview"]
 	path = app/static/externals/PrintPreview
 	url = git@github.com:GeoNode/PrintPreview.git
