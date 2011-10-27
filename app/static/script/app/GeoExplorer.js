@@ -22,9 +22,8 @@
  * name - {String} Required WMS layer name.
  * title - {String} Optional title to display for layer.
  */
-
-
 var GeoExplorer = Ext.extend(gxp.Viewer, {
+
     /**
      * api: config[localGeoServerBaseUrl]
      * ``String`` url of the local GeoServer instance
@@ -236,7 +235,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         localUrl), "/geoserver/");
                     return;
                 }
-                ;
                 // use the proxy for all non-local requests
                 if (this.proxy && options.url.indexOf(this.proxy) !== 0 &&
                     options.url.indexOf(window.location.protocol) === 0) {
@@ -516,7 +514,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                             return {
                                 success: response.status == 200,
                                 records: []
-                            }
+                            };
                         }
                     },
                     defaults: {
@@ -1367,8 +1365,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     plugins: [
                         {
                             ptype: "gxp_geoserverstylewriter",
-                            baseUrl: layerUrl.split(
-                                "?").shift().replace(/\/(wms|ows)\/?$/, "/rest")
+                            baseUrl: "/gs/rest"
                         },
                         {
                             ptype: "gxp_wmsrasterstylesdialog"
