@@ -1626,7 +1626,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             oldLayerChange.apply(this, [mgr,layer,schema]);
 
             var buttons = this.actions;
-            if (!buttons[0].disabled) {
+            if (layer == null) {
+                buttons[0].disable();
+                buttons[1].disable();
+            }
+            else if (!buttons[0].disabled) {
                 Ext.Ajax.request({
                     url: "/data/" + layer.data.layer.params.LAYERS + "/ajax_layer_edit_check/",
                     method: "POST",

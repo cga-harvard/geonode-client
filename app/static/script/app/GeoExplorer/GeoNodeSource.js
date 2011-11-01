@@ -182,6 +182,14 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
         
     },
 
+    /** api: method[createStore]
+     *
+     *  Creates a store of layer records.  Not necessary for this case.
+     */
+    createStore: function() {
+        this.fireEvent("ready", this);
+    },
+
     /** api: method[getConfigForRecord]
      *  :arg record: :class:`GeoExt.data.LayerRecord`
      *  :returns: ``Object``
