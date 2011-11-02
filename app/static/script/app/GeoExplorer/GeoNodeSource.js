@@ -118,7 +118,10 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
                   tileSize: new OpenLayers.Size(tileWidth, tileHeight),
                   tileOrigin: new OpenLayers.LonLat(originLat, originLon)});
                   layer.params.TILED = true; // set to true when http://projects.opengeo.org/suite/ticket/1286 is closed
+            } else {
+                layer.params.TILED = false;
             }
+
 
 
             if (config.attributes){
