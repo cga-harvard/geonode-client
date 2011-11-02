@@ -1630,7 +1630,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 buttons[0].disable();
                 buttons[1].disable();
             }
-            else if (!buttons[0].disabled) {
+            else if (layer.data.layer.params && !buttons[0].disabled) {
                 Ext.Ajax.request({
                     url: "/data/" + layer.data.layer.params.LAYERS + "/ajax_layer_edit_check/",
                     method: "POST",
@@ -1662,15 +1662,15 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 if (candidate.get("source") === source && candidate.get("name") === name) {
                     var layer = candidate.getLayer();
                     layer.redraw(true);
-                Ext.Ajax.request({
-                    url: "/data/" + layer.params.LAYERS + "/ajax_layer_update_bounds/",
-                    method: "POST",
-                    params: {layername:layer.params.LAYERS},
-                    success: function(result, request) {
-                        if (result.responseText != "True") {
-                        } else {
-                        }
-                    },
+                    Ext.Ajax.request({
+                        url: "/data/" + layer.params.LAYERS + "/ajax_layer_update_bounds/",
+                        method: "POST",
+                        params: {layername:layer.params.LAYERS},
+                        success: function(result, request) {
+                            if (result.responseText != "True") {
+                            } else {
+                            }
+                            },
                     failure: function (result, request) {
                     }
                 });
@@ -2753,6 +2753,23 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
     },
 
+    initCreatePanel: function() {
+        this.createPanel = new Ext.Panel({
+            id: 'worldmap_create_panel',
+            title: 'Create Layer',
+            header: false,
+            autoLoad: {url: '/data/create_pg_layer/?tab=true', scripts: true},
+            listeners:{
+                activate : function(panel) {
+                    panel.getUpdater().refresh();
+                }
+            },
+            renderTo: 'createDiv',
+            autoScroll: true
+        });
+
+    },
+
 
     initTabPanel: function() {
         this.dataTabPanel = new Ext.TabPanel({
@@ -2766,6 +2783,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         });
         if (this.config["edit_map"]) {
             this.dataTabPanel.add(this.uploadPanel)
+            this.dataTabPanel.add(this.createPanel)
         }
 
     },
@@ -2876,6 +2894,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         if (!this.uploadPanel && this.config["edit_map"]) {
             this.initUploadPanel();
         }
+
+        if (!this.createPanel && this.config["edit_map"]) {
+            this.initCreatePanel();
+        }
+
 
         if (!this.dataTabPanel) {
             this.initTabPanel();
