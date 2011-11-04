@@ -266,6 +266,21 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             scope: this
         });
 
+
+        Ext.override(Ext.tree.TreeNode, {
+            findDescendant: function(attribute, value) {
+            var children = this.childNodes;
+            for(var i = 0, l = children.length; i < l; i++) {
+                if(children[i].attributes[attribute] == value){
+                    return children[i];
+                } else if(node = children[i].findDescendant(attribute, value)) {
+                    return node;
+                }
+            }
+            return null;
+            }
+        });
+
         // global beforeunload handler
         window.onbeforeunload = (function() {
             if (this.fireEvent("beforeunload") === false) {
@@ -336,9 +351,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
     reorderNodes : function() {
         var mpl = this.mapPanel.layers;
-        nodes = '';
-        x = 0;
-        layerCount = this.mapPanel.layers.getCount() - 1;
+        var x = 0;
+        var layerCount = this.mapPanel.layers.getCount() - 1;
+        var nodeToSelect = null;
         this.treeRoot.cascade(function(node) {
             if (node.isLeaf() && node.layer) {
                 var layer = node.layer;
@@ -347,7 +362,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     return r.getLayer() === layer;
                 }));
                 if (record.get("group") !== "background") {
-                    nodes += node.text + ":" + x + ":" + record.get("name") + "\n";
                     mpl.remove(record);
                     mpl.insert(layerCount - x, [record]);
                 }
@@ -1563,6 +1577,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         layer.tiled = true;
                         //console.log('BBOX:' + layer.llbbox);
                         var record = source.createLayerRecord(layer);
+                        record.selected = true;
                         //console.log('Created record');
                         ////console.log('GROUP:' + record.get("group"));
                         if (record) {
@@ -1579,8 +1594,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                     record.set("group", "General");
                                 layerStore.add([record]);
                                 geoEx.addCategoryFolder(record.get("group"), "true");
-                                geoEx.reorderNodes();
+                                geoEx.reorderNodes(record.getLayer());
+                                geoEx.treeRoot.findDescendant("layer", record.getLayer()).select();
                             }
+
+                            
                         }
                     },
                     failure: function(result, request) {
