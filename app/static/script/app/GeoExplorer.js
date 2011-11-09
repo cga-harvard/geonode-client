@@ -233,7 +233,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     this.urlPortRegEx, "$1/");
                 if (url.indexOf(localUrl + "rest/") === 0) {
                     options.url = url.replace(new RegExp("^" +
-                        localUrl), "/geoserver/");
+                        localUrl), "/gs/");
                     return;
                 }
                 ;
@@ -1221,32 +1221,35 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             id: 'gridWinPanel',
             collapseMode: "mini",
             title: 'Identify Results',
+            region: "west",
             autoScroll: true,
             split: true,
             items: [],
-            anchor: '100% 50%'
+            width:200
         });
 
         var gridResultsPanel = new Ext.Panel({
             id: 'gridResultsPanel',
             title: 'Feature Details',
+            region: "center",
             collapseMode: "mini",
             autoScroll: true,
             split: true,
             items: [],
-            anchor: '100% 50%'
+            width: 400
         });
 
-        var eastPanel = new Ext.Panel({
+
+        var identifyWindow = new Ext.Window({
             id: 'queryPanel',
-            layout: "anchor",
-            collapseMode: "mini",
-            split: true,
+            layout: "border",
+            closeAction: "hide",
             items: [gridWinPanel, gridResultsPanel],
-            collapsed: true,
-            region: "east",
-            width: 350
+            width: 600,
+            height: 400
         });
+
+
 
 
         this.toolbar = new Ext.Toolbar({
@@ -1333,7 +1336,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     tbar: this.toolbar,
                     items: [
                         this.mapPanelContainer,
-                        westPanel, eastPanel
+                        westPanel
                     ],
                     ref: "../../main"
                 }
@@ -1694,6 +1697,60 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 });
                 }
             });
+        }
+
+        var oldInitComponent = gxp.FeatureEditPopup.prototype.initComponent;
+        gxp.FeatureEditPopup.prototype.initComponent = function(){
+            oldInitComponent.apply(this);
+            if (this.grid.customEditors["Description"] != undefined && this.grid.customEditors["Description"].field.maxLength == undefined) {
+                this.grid.customEditors["Description"].addListener("startedit",
+                        function(el, value) {
+                            var initialValue = value;
+                            var htmlEditor = new Ext.form.HtmlEditor({
+                                value: this.getValue()
+                            });
+                            var htmlEditWindow = new Ext.Window({
+                                    title: 'HTML Editor',
+                                    renderTo: Ext.getBody(),
+                                    width: 600,
+                                    height: 300,
+                                    frame: true,
+                                    layout: 'fit',
+                                    closeAction: 'destroy',
+                                    items: [
+                                        htmlEditor
+                                    ],
+                                    bbar: [
+                                        "->",
+                                        //saveAsButton,
+                                        new Ext.Button({
+                                            text: "Save",
+                                            cls:'x-btn-text',
+                                            handler: function() {
+                                                this.editing = true;
+                                                this.setValue(htmlEditor.getValue());
+                                                this.completeEdit();
+                                                htmlEditWindow.destroy();
+                                            },
+                                            scope: this
+                                        }),
+                                        new Ext.Button({
+                                            text: "Cancel",
+                                            cls:'x-btn-text',
+                                            handler: function() {
+                                                htmlEditWindow.destroy();
+                                            },
+                                            scope: this
+                                        })
+                                    ]
+                                }
+                            );
+
+                            htmlEditWindow.show();
+                            return true;
+                        }
+                    );
+            }
         }
 
         config.tools = (config.tools || []).concat(
