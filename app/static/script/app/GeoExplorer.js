@@ -236,7 +236,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     return;
                 }
                 // use the proxy for all non-local requests
-                if (this.proxy && options.url.indexOf(this.proxy) !== 0 &&
+                if (!url.contains(this.siteUrl) && this.proxy && options.url.indexOf(this.proxy) !== 0 &&
                     options.url.indexOf(window.location.protocol) === 0) {
                     var parts = options.url.replace(/&$/, "").split("?");
                     var params = Ext.apply(parts[1] && Ext.urlDecode(
