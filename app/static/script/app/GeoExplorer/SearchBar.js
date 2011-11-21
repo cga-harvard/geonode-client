@@ -147,7 +147,7 @@ GeoExplorer.SearchBar = function(target) {
                         sld += '</sld:Rule></sld:FeatureTypeStyle></sld:UserStyle></sld:NamedLayer></sld:StyledLayerDescriptor>';
 
                         wmsHighlight = new OpenLayers.Layer.WMS(
-                            "HighlightWMS",
+                            "HighlightWMS_" + dl.params.LAYERS,
                             wms_url,
                             {'layers': dl.params.LAYERS,'format':'image/png', 'SLD_BODY': sld, 'TILED': false, 'TRANSPARENT': true },
                             {'isBaseLayer': false,'displayInLayerSwitcher' : false, 'singleTile': true}

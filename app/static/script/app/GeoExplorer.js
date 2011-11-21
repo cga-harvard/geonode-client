@@ -238,7 +238,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 }
                 ;
                 // use the proxy for all non-local requests
-                if (this.proxy && options.url.indexOf(this.proxy) !== 0 &&
+                if (!url.contains(this.siteUrl) && this.proxy && options.url.indexOf(this.proxy) !== 0 &&
                     options.url.indexOf(window.location.protocol) === 0) {
                     var parts = options.url.replace(/&$/, "").split("?");
                     var params = Ext.apply(parts[1] && Ext.urlDecode(
@@ -1658,13 +1658,15 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     params: {layername:layer.data.layer.params.LAYERS},
                     success: function(result, request) {
                         if (result.responseText != "True") {
-                            buttons[0].disable();
-                            buttons[1].disable();
+                            for (i=0;i< buttons.length;i++) {
+                                buttons[i].disable();
+                            }
                         } else {
-                            buttons[0].enable();
-                            buttons[1].enable();
                             layer.data.layer.displayOutsideMaxExtent = true;
-
+                            for (i=0;i< buttons.length;i++) {
+                                buttons[i].enable();
+                                buttons[i].items[0].toggle(false);
+                            }
                         }
                     },
                     failure: function (result, request) {
@@ -2123,52 +2125,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         var hglPointsOverlay = new GeoExplorer.HglFeedOverlay(this);
         var hglRecord = null;
 
-        // shared FeatureManager for feature editing, grid and querying
-        var featureManager = new gxp.plugins.FeatureManager({
-            id: "featuremanager",
-            paging: false
-        });
-
-        var featureEditor = new gxp.plugins.FeatureEditor({
-            id: "gn_layer_editor",
-            featureManager: "featuremanager",
-            readOnly: false,
-            autoLoadFeatures: true,
-            actionTarget: "paneltbar",
-            defaultAction: 1,
-            outputConfig: {panIn: false, height: 220}
-        });
-
-
-        featureEditor.oldLayerChange = featureEditor.onLayerChange;
-        featureEditor.onLayerChange = function (mgr, layer, schema) {
-            this.oldLayerChange(mgr, layer, schema);
-
-            var buttons = this.actions;
-
-            if (!buttons[0].disabled) {
-                Ext.Ajax.request({
-                    url: "/data/" + layer.data.layer.params.LAYERS + "/ajax_layer_edit_check/",
-                    method: "POST",
-                    params: {layername:layer.data.layer.params.LAYERS},
-                    success: function(result, request) {
-                        if (result.responseText != "True") {
-                            buttons[0].disable();
-                            buttons[1].disable();
-                        } else {
-                            buttons[0].enable();
-                            buttons[1].enable();
-                            layer.data.layer.displayOutsideMaxExtent = true;
-
-                        }
-                    },
-                    failure: function (result, request) {
-                        buttons[0].disable();
-                        buttons[1].disable();
-                    }
-                });
-            }
-        }
 
         var printButton = new Ext.Button({
             tooltip: this.printTipText,
