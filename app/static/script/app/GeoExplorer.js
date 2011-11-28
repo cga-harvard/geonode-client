@@ -236,12 +236,10 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         localUrl), "/gs/");
                         return;
                     }
+                    console.log(url + ":" + url.indexOf(this.localGeoServerBaseUrl));
                     if (url.indexOf(this.localGeoServerBaseUrl) == 0) {
-                        // replace local GeoServer url with /geoserver/
-                        options.url = url.replace(
-                            new RegExp("^" + this.localGeoServerBaseUrl),
-                            "/geoserver/"
-                        );
+                        options.url = url.replace(new RegExp("^" + localUrl),"/geoserver/");
+                        console.log(localUrl + ":" + options.url);
                         return;
                     }
                 }
