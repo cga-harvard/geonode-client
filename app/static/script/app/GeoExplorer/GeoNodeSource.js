@@ -8,7 +8,7 @@
 
 Ext.namespace("gxp.plugins");
 
-gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.LayerSource, {
+gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
 
     /** api: ptype = gxp_gnsource */
     ptype: "gxp_gnsource",
@@ -45,6 +45,7 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.LayerSource, {
     schemaCache: null,
 
 
+    url: null,
 
     /** api: method[createLayerRecord]
      *  :arg config:  ``Object``  The application config for this layer.
@@ -56,6 +57,8 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.LayerSource, {
         var record;
 
         if (config['llbbox']) {
+
+            this.url = config.url;
 
             /**
              * TODO: The WMSCapabilitiesReader should allow for creation
@@ -115,7 +118,10 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.LayerSource, {
                   tileSize: new OpenLayers.Size(tileWidth, tileHeight),
                   tileOrigin: new OpenLayers.LonLat(originLat, originLon)});
                   layer.params.TILED = true; // set to true when http://projects.opengeo.org/suite/ticket/1286 is closed
+            } else {
+                layer.params.TILED = false;
             }
+
 
 
             if (config.attributes){
@@ -163,7 +169,29 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.LayerSource, {
         }
     },
 
+    /** private: method[initDescribeLayerStore]
+     *  creates a WMSDescribeLayer store for layer descriptions of all layers
+     *  created from this source.
+     */
+    initDescribeLayerStore: function() {
+            var version = "1.1.1";
+            this.describeLayerStore = new GeoExt.data.WMSDescribeLayerStore({
+                url: this.url,
+                baseParams: {
+                    VERSION: version,
+                    REQUEST: "DescribeLayer"
+                }
+            });
+        
+    },
 
+    /** api: method[createStore]
+     *
+     *  Creates a store of layer records.  Not necessary for this case.
+     */
+    createStore: function() {
+        this.fireEvent("ready", this);
+    },
 
     /** api: method[getConfigForRecord]
      *  :arg record: :class:`GeoExt.data.LayerRecord`

@@ -1,3 +1,4 @@
+
 [submodule "app/static/externals/PrintPreview"]
 	path = app/static/externals/PrintPreview
 	url = git@github.com:GeoNode/PrintPreview.git
@@ -7,6 +8,3 @@
 [submodule "app/static/externals/geoext"]
 	path = app/static/externals/geoext
 	url = git@github.com:opengeo/GeoExt.git
-[submodule "app/static/externals/gxp"]
-	path = app/static/externals/gxp
-	url = git@github.com:cga-harvard/gxp.git

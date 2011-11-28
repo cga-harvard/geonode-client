@@ -93,6 +93,15 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                             tool.reset(true);
                         }
                     }
+//                    if (pressed) {
+//                        for (var j = this.ownerCt.items.length; j--;) {
+//                            var otool = this.ownerCt.items.items.j;
+//                            if (otool instanceof gxp.plugins.FeatureEditor || otool instanceof gxp.plugins.FeatureManager)
+//                            {
+//                                otool.deactivate();
+//                            }
+//                        }
+//                    }
                 }
             }
         ]);
@@ -480,7 +489,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
         if (clearPanel === true) {
             Ext.getCmp(this.attributePanel).removeAll(true);
             Ext.getCmp(this.gridResultsPanel).removeAll(true);
-            Ext.getCmp(this.featurePanel).collapse(true);
+            Ext.getCmp(this.featurePanel).hide();
 
         }
         var theLayers = this.target.mapPanel.map.layers;
@@ -502,12 +511,9 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
         var gp = Ext.getCmp(this.attributePanel);
 
 
-        ep.expand(true);
+        ep.show();
+        ep.alignTo(document, 'tr-tr');
         gp.removeAll(true);
-
-        //var dp = Ext.getCmp('gridResultsPanel');
-        //dp.removeAll();
-
 
         var currentFeatures = featureInfo;
         //console.log('display # features:' + featureInfo.length);
