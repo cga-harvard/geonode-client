@@ -228,15 +228,25 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 // use django's /geoserver endpoint when talking to the local
                 // GeoServer's RESTconfig API
                 var url = options.url.replace(this.urlPortRegEx, "$1/");
-                var localUrl = this.localGeoServerBaseUrl.replace(
-                    this.urlPortRegEx, "$1/");
-                if (url.indexOf(localUrl + "rest/") === 0) {
-                    options.url = url.replace(new RegExp("^" +
-                        localUrl), "/geoserver/");
-                    return;
+                if (this.localGeoServerBaseUrl) {
+                    var localUrl = this.localGeoServerBaseUrl.replace(
+                        this.urlPortRegEx, "$1/");
+                    if (url.indexOf(localUrl + "rest/") === 0) {
+                        options.url = url.replace(new RegExp("^" +
+                        localUrl), "/gs/");
+                        return;
+                    }
+                    if (url.indexOf(this.localGeoServerBaseUrl) == 0) {
+                        // replace local GeoServer url with /geoserver/
+                        options.url = url.replace(
+                            new RegExp("^" + this.localGeoServerBaseUrl),
+                            "/geoserver/"
+                        );
+                        return;
+                    }
                 }
                 // use the proxy for all non-local requests
-                if (!url.contains(this.siteUrl) && this.proxy && options.url.indexOf(this.proxy) !== 0 &&
+                if (this.proxy && options.url.indexOf(this.proxy) !== 0 &&
                     options.url.indexOf(window.location.protocol) === 0) {
                     var parts = options.url.replace(/&$/, "").split("?");
                     var params = Ext.apply(parts[1] && Ext.urlDecode(
@@ -1362,21 +1372,19 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         this.localGeoServerBaseUrl.replace(
                             this.urlPortRegEx, "$1/")) === 0,
                     hasPermission: true,
-                    plugins: [
-                        {
-                            ptype: "gxp_geoserverstylewriter",
-                            baseUrl: "/gs/rest"
-                        },
-                        {
-                            ptype: "gxp_wmsrasterstylesdialog"
-                        }
-                    ],
-                    autoScroll: true,
-                    listeners: Ext.apply(options.listeners || {}, {
-                        "ready": function() {
-                            // we don't want the Cancel and Save buttons
-                            // if we cannot edit styles
-                            stylesDialog.editable === false &&
+                plugins: [{
+                    ptype: "gxp_geoserverstylewriter",
+                    baseUrl: layerUrl.split(
+                        "?").shift().replace(/\/(wms|ows)\/?$/, "/rest")
+                }, {
+                    ptype: "gxp_wmsrasterstylesdialog"
+                }],
+                autoScroll: true,
+                listeners: Ext.apply(options.listeners || {}, {
+                    "ready": function() {
+                        // we don't want the Cancel and Save buttons
+                        // if we cannot edit styles
+                        stylesDialog.editable === false &&
                             stylesPanel.getFooterToolbar().hide();
                         },
                         "modified": function(cmp, name) {
