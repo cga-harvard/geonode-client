@@ -510,9 +510,10 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
         var ep = Ext.getCmp(this.featurePanel);
         var gp = Ext.getCmp(this.attributePanel);
 
-
-        ep.show();
-        ep.alignTo(document, 'tr-tr');
+        if (ep.hidden) {
+            ep.show();
+            ep.alignTo(document, 'tr-tr');
+        }
         gp.removeAll(true);
 
         var currentFeatures = featureInfo;
