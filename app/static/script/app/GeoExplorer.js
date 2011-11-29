@@ -1773,7 +1773,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 featureManager: "featuremanager",
                 readOnly: false,
                 autoLoadFeatures: true,
-                actionTarget: {target: "main.tbar", index: 3},
+                actionTarget: {target: "main.tbar", index: 4},
                 defaultAction: 1,
                 outputConfig: {panIn: false, height: 220},
                 tooltip: this.infoButtonText,
@@ -2407,7 +2407,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 scope: this,
                 disabled: !this.config["edit_map"],
                 text: '<span class="x-btn-text">' + this.saveMapBtnText + '</span>'
-            }), "-",
+            }), "-","-",
             "-",
             publishAction,
             "-",
