@@ -142,14 +142,14 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                         vendorParams[param] = layer.params[param];
                     }
                 }
-                vendorParams['buffer'] = 10;
+                vendorParams['buffer'] = 25;
 
                 /* Use OpenLayers.Control.GetFeature for local layers only */
                 if (layer.url.indexOf(localUrl) > -1) {
                     //console.log(layer.name + 'IS LOCAL?' );
                     var control = new OpenLayers.Control.GetFeature({
                         protocol: OpenLayers.Protocol.WFS.fromWMSLayer(layer),
-                        clickTolerance:5,
+                        clickTolerance:25,
                         layer: layer,
                         box: false,
                         hover: false,

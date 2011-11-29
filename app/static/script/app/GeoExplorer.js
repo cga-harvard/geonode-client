@@ -1764,7 +1764,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 ptype: "gxp_featuremanager",
                 id: "featuremanager",
                 paging: false,
-                tooltip: this.infoButtonText
+                tooltip: this.infoButtonText,
+                toggleGroup: 'featureGroup'
             },
             {
                 ptype: "gxp_featureeditor",
@@ -1772,14 +1773,15 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 featureManager: "featuremanager",
                 readOnly: false,
                 autoLoadFeatures: true,
-                actionTarget: {target: "main.tbar", index: 17},
+                actionTarget: {target: "main.tbar", index: 3},
                 defaultAction: 1,
                 outputConfig: {panIn: false, height: 220},
                 tooltip: this.infoButtonText,
                 iconClsAdd: null,
                 iconClsEdit: null,
-                createFeatureActionText: '<span class="x-btn-text" style="padding-left:20px;">' + "Create Feature" + '</span>',
-                editFeatureActionText: '<span class="x-btn-text">' + "Edit Feature" + '</span>'
+                createFeatureActionText: '<span class="x-btn-text" >' + "Create Feature" + '</span>',
+                editFeatureActionText: '<span class="x-btn-text">' + "Edit Feature" + '</span>',
+                toggleGroup: 'featureGroup'
             });
         GeoExplorer.superclass.loadConfig.apply(this, arguments);
     },
