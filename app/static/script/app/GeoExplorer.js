@@ -1711,10 +1711,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             if (this.grid.customEditors["Description"] != undefined && this.grid.customEditors["Description"].field.maxLength == undefined) {
                 this.grid.customEditors["Description"].addListener("startedit",
                         function(el, value) {
-                            var initialValue = value;
-                            var htmlEditor = new Ext.form.HtmlEditor({
-                                value: this.getValue()
-                            });
                             var htmlEditWindow = new Ext.Window({
                                     title: 'HTML Editor',
                                     renderTo: Ext.getBody(),
@@ -1723,9 +1719,17 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                     frame: true,
                                     layout: 'fit',
                                     closeAction: 'destroy',
-                                    items: [
-                                        htmlEditor
-                                    ],
+                                    items: [{
+                                        xtype: "panel",
+                                        layout: "fit",
+                                        style: {height:190},
+                                        items: [{
+                                                xtype: "textarea",
+                                                id: "html_textarea",
+                                                value: this.getValue(),
+                                                style: {height:190}
+                                        }]
+                                    }],
                                     bbar: [
                                         "->",
                                         //saveAsButton,
@@ -1734,7 +1738,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                                             cls:'x-btn-text',
                                             handler: function() {
                                                 this.editing = true;
-                                                this.setValue(htmlEditor.getValue());
+                                                this.setValue(nicEditors.findEditor('html_textarea').getContent());
                                                 this.completeEdit();
                                                 htmlEditWindow.destroy();
                                             },
@@ -1753,6 +1757,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                             );
 
                             htmlEditWindow.show();
+                            var myNicEditor = new nicEditor({fullPanel : true,  maxHeight: 190, iconsPath: nicEditIconsPath}).panelInstance('html_textarea')
                             return true;
                         }
                     );
@@ -2646,12 +2651,14 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             value: this.about["keywords"]
         });
 
-        var introTextField = new Ext.form.HtmlEditor({
+        var introTextField = new Ext.form.TextArea({
             width: '95%',
             height: 200,
             fieldLabel: this.metaDataMapIntroText,
+            id: "intro_text_area",
             value: this.about["introtext"]
         });
+
 
         var metaDataPanel = new Ext.FormPanel({
             bodyStyle: {padding: "5px"},
@@ -2666,6 +2673,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         });
 
         metaDataPanel.enable();
+
+
         /*
          var saveAsButton = new Ext.Button({
          id: 'gx_saveAsButton',
@@ -2723,6 +2732,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 })
             ]
         });
+
     },
 
     initInfoTextWindow: function() {
@@ -2993,9 +3003,12 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     showMetadataForm: function() {
         if (!this.metadataForm) {
             this.initMetadataForm();
-        }
+            this.metadataForm.show();
+            var metaNicEditor = new nicEditor({fullPanel : true,  maxHeight: 200, iconsPath: nicEditIconsPath}).panelInstance('intro_text_area')
 
-        this.metadataForm.show();
+        } else
+            this.metadataForm.show();
+
         this.metadataForm.alignTo(document, 't-t');
         //Ext.getCmp('gx_saveButton').enable();
         //Ext.getCmp('gx_saveAsButton').enable();

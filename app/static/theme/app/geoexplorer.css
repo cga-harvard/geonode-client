@@ -486,3 +486,15 @@ width:150px;
 .featureDetailList li span {
 margin-left:160px;
 }
+
+.nicEdit-selected {
+        border: 2px solid #0000ff !important;
+}
+
+.nicEdit-panel {
+        background-color: #fff !important;
+}
+
+.nicEdit-button {
+        background-color: #fff !important;
+}
