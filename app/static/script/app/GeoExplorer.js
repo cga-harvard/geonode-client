@@ -236,10 +236,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         localUrl), "/gs/");
                         return;
                     }
-                    console.log(url + ":" + url.indexOf(this.localGeoServerBaseUrl));
                     if (url.indexOf(this.localGeoServerBaseUrl) == 0) {
                         options.url = url.replace(new RegExp("^" + localUrl),"/geoserver/");
-                        console.log(localUrl + ":" + options.url);
                         return;
                     }
                 }
@@ -2652,7 +2650,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         });
 
         var introTextField = new Ext.form.TextArea({
-            width: '95%',
+            width: 550,
             height: 200,
             fieldLabel: this.metaDataMapIntroText,
             id: "intro_text_area",
