@@ -187,7 +187,7 @@ GeoExplorer.SearchBar = function(target) {
         var theLayers = target.mapPanel.map.layers;
         var hLayers = [];
         for (l = 0; l < theLayers.length; l++) {
-            if (theLayers[l].name == "HighlightWMS" || theLayers[l].name == "hilites") {
+            if (theLayers[l].name.toString().indexOf("HighlightWMS") > -1 || theLayers[l].name == "hilites") {
                 hLayers.push(theLayers[l]);
 
             }
