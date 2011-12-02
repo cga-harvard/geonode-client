@@ -99,8 +99,8 @@ GeoExplorer.SearchBar = function(target) {
             removeHighlightLayers();
 
             //search term manipulation code, copied verbatim from existing WorldMap
-            searchTerm = searchTB.getValue();
-            layers = [];
+            var searchTerm = searchTB.getValue();
+            var layers = [];
 
             if (searchTerm == null || searchTerm.length == 0) {
                 Ext.Msg.alert("Search Term Required", "Please enter a search term");
@@ -110,9 +110,10 @@ GeoExplorer.SearchBar = function(target) {
             //Create a WMS search results layer for each searchable layer
         queryableLayers.each(function(x) {
             dl = x.getLayer();
-            if (dl.getVisibility()  && dl.attributes) {
+            if (dl.getVisibility()) {
+                if (dl.attributes) {
                     var wms_url = dl.url;
-                    queryFields = [];
+                    var queryFields = [];
                     for (f = 0; f < dl.attributes.length; f++) {
                         field = dl.attributes[f]
                         if (field.searchable) {
@@ -121,9 +122,9 @@ GeoExplorer.SearchBar = function(target) {
                     }
 
 
-                    featureQuery = "";
+                    var featureQuery = "";
 
-                    sld = '';//'<?xml version="1.0" encoding="utf-8"?>';
+                    var sld = '';//'<?xml version="1.0" encoding="utf-8"?>';
                     sld += '<sld:StyledLayerDescriptor xmlns="http://www.opengis.net/sld" xmlns:sld="http://www.opengis.net/sld" xmlns:ogc="http://www.opengis.net/ogc" xmlns:gml="http://www.opengis.net/gml" version="1.0.0">';
                     sld += '<sld:NamedLayer><sld:Name>' + dl.params.LAYERS + '</sld:Name><sld:UserStyle><sld:Name>query</sld:Name><sld:FeatureTypeStyle><sld:Rule><ogc:Filter>';
                     for (i = 0; i < queryFields.length; i++) {
@@ -146,8 +147,8 @@ GeoExplorer.SearchBar = function(target) {
                         //sld += '<sld:CssParameter name="stroke-width">1</sld:CssParameter> </sld:Stroke></sld:Mark><sld:Size>16</sld:Size> </sld:Graphic></sld:GraphicFill> </sld:Fill></sld:PolygonSymbolizer>';
                         sld += '</sld:Rule></sld:FeatureTypeStyle></sld:UserStyle></sld:NamedLayer></sld:StyledLayerDescriptor>';
 
-                        wmsHighlight = new OpenLayers.Layer.WMS(
-                            "HighlightWMS_" + dl.params.LAYERS,
+                        var wmsHighlight = new OpenLayers.Layer.WMS(
+                            "HighlightWMS_" + dl.params.LAYERS.substr(8),
                             wms_url,
                             {'layers': dl.params.LAYERS,'format':'image/png', 'SLD_BODY': sld, 'TILED': false, 'TRANSPARENT': true },
                             {'isBaseLayer': false,'displayInLayerSwitcher' : false, 'singleTile': true}
@@ -157,10 +158,9 @@ GeoExplorer.SearchBar = function(target) {
                         layers.push(wmsHighlight);
                     }
                 }
-
-
-                target.mapPanel.map.addLayers(layers);
+            }
         });
+            target.mapPanel.map.addLayers(layers);
         }
         catch
             (e) {
