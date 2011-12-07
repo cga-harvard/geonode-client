@@ -108,6 +108,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
     worldMapSourceKey: null,
 
+    hglSourceKey: null,
+
     //public variables for string literals needed for localization
     addLayersButtonText: "UT:Add Layers",
     arcGisRestLabel: 'UT: Add ArcGIS REST Server',
@@ -1530,6 +1532,21 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
     },
 
+    setHGLSourceKey : function() {
+        for (var id in this.layerSources) {
+            source = this.layerSources[id];
+            if (source instanceof gxp.plugins.HGLSource) {
+                this.hglSourceKey = id;
+            }
+        }
+        if (this.hglSourceKey == null)
+        {
+                   var hglSource = this.addLayerSource({"config":{"url":"http://hgl.harvard.edu:8080/geoserver/wms", "ptype":"gxp_hglsource"}});
+                   this.hglSourceKey = hglSource.id;
+        }
+
+    },
+
     addWorldMapLayers: function(records) {
         if (this.worldMapSourceKey == null)
             this.setWorldMapSourceKey();
@@ -2620,7 +2637,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         geoEx.about.title = titleField.getValue();
                         geoEx.about["abstract"] = abstractField.getValue();
                         geoEx.about["urlsuffix"] = urlField.getValue();
-                        geoEx.about["introtext"] = introTextField.getValue();
+                        geoEx.about["introtext"] = nicEditors.findEditor('intro_text_area').getContent();
                         geoEx.about["keywords"] = keywordsField.getValue();
                         geoEx.save(as);
                         geoEx.initInfoTextWindow();
@@ -3093,6 +3110,38 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 },
                 scope: this
             });
+        }
+    },
+
+
+    addHGL: function(layerTitle, layerName) {
+//        layerName = "sde:SDE.CAMCONTOUR";
+        if (this.hglSourceKey == null)
+            this.setHGLSourceKey();
+        var hglSource = this.layerSources[this.hglSourceKey];
+        if (hglSource)
+        {
+            var layerConfig = {
+                "title": layerTitle,
+                "name": layerName,
+                "source": this.hglSourceKey,
+                "url": hglSource.url,
+                "group": "Harvard Geospatial Library",
+                "properties": "gxp_wmslayerpanel",
+                "fixed": true,
+                "selected": false,
+                "queryable": true,
+                "disabled": false,
+                "abstract": '',
+                "styles": [],
+                "format": "image/png"
+            }
+
+            var record = hglSource.createLayerRecord(layerConfig);
+            this.mapPanel.layers.add([record]);
+            this.addCategoryFolder(record.get("group"), "true");
+            this.reorderNodes(record.getLayer());
+            this.treeRoot.findDescendant("layer", record.getLayer()).select();
         }
     }
 });
