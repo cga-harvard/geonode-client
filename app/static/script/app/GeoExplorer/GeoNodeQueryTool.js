@@ -262,7 +262,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                                     if (features && features.length > 0) {
                                         if (options.single == true) {
                                             control.selectBestFeature(features,
-                                                bounds.getCenterLonLat(), options);
+                                                    bounds.getCenterLonLat(), options);
                                         } else {
                                             control.select(features);
                                         }
@@ -284,7 +284,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                             options = options || {};
                             if (features.length) {
                                 var point = new OpenLayers.Geometry.Point(clickPosition.lon,
-                                    clickPosition.lat);
+                                        clickPosition.lat);
                                 var feature,  dist;
                                 var resultFeature = [];
                                 var minDist = Number.MAX_VALUE;
@@ -296,14 +296,14 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                                             break;
                                         }
                                         else {
-                                            dist = point.distanceTo(feature.geometry, {edge: false});
-                                            if (dist < minDist) {
-                                                minDist = dist;
-                                                resultFeature = feature;
-                                                if (minDist == 0) {
-                                                    break;
-                                                }
-                                            }
+                                                    dist = point.distanceTo(feature.geometry, {edge: false});
+                                                    if (dist < minDist) {
+                                                        minDist = dist;
+                                                        resultFeature = feature;
+                                                        if (minDist == 0) {
+                                                            break;
+                                                        }
+                                                    }
                                         }
                                     }
                                 }
@@ -357,7 +357,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                                             if (qfields.length > 0)
                                                 featureInfo['nameField'] = featureInfo['queryfields'][0];
 
-                                            for (var it = nodes.length; it--;) {
+                                            for (var it =nodes.length; it--;) {
                                                 node = nodes[it];
                                                 var feature = new OpenLayers.Feature.Vector(point);
 
@@ -630,7 +630,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
     createHTML:  function(feature, metaColumns) {
         html = '<ul class="featureDetailList" id="featureDetailList">';
 
-        for (c = 0,max = metaColumns.length; c < max; c++) {
+        for (c = 0, max = metaColumns.length; c < max; c++) {
             column = metaColumns[c];
 
             featureValue = '' + (column.header ? feature.attributes[column.id] : feature.attributes[column])

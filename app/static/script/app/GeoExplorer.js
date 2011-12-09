@@ -3084,6 +3084,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     Ext.getCmp('gx_saveAsButton').enable();
                 },
                 scope: this
+
             });
         }
         else {
@@ -3115,6 +3116,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
 
     addHGL: function(layerTitle, layerName) {
+             Ext.Ajax.request({
+                url: "/hglServiceStarter/",
+                method: 'POST',
+                params: {AddLayer:layerName},
+                success: function(response, options) {
 //        layerName = "sde:SDE.CAMCONTOUR";
         if (this.hglSourceKey == null)
             this.setHGLSourceKey();
@@ -3143,6 +3149,12 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             this.reorderNodes(record.getLayer());
             this.treeRoot.findDescendant("layer", record.getLayer()).select();
         }
+                },
+                failure: function(response, options) {
+                    Ext.Msg.alert('Restricted', "Access to this layer is restricted");
+                },
+                scope: this
+            });
     }
 });
 
