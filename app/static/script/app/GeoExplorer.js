@@ -140,6 +140,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     lengthActionText: "UT:Length",
     loadingMapMessage: "UT:Loading Map...",
     mapSizeLabel: 'UT: Map Size',
+    maxMapLayers: 75,
+    maxLayersTitle: 'UT:Warning',
+    maxLayersText: 'UT:You now have %n layers in your map.  With more than %max layers you may experience problems with layer ordering, info balloon display, and general performance. ',
     measureSplitText: "UT:Measure",
     metadataFormCancelText : "UT:Cancel",
     metadataFormSaveAsCopyText : "UT:Save as Copy",
@@ -193,6 +196,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     zoomSliderTipText: "UT: Zoom Level",
     zoomToLayerExtentText: "UT:Zoom to Layer Extent",
     zoomVisibleButtonText: "UT:Zoom to Original Map Extent",
+
+
 
 
     constructor: function(config) {
@@ -337,6 +342,16 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             config.map = {};
         }
         config.map.numZoomLevels = 21;
+
+        OpenLayers.Map.prototype.Z_INDEX_BASE = {
+        BaseLayer: 100,
+        Overlay: 325,
+        Feature: 3000,
+        Popup: 3025,
+        Control: 4000
+    },
+
+
 
         GeoExplorer.superclass.constructor.apply(this, arguments);
 
@@ -1548,11 +1563,12 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     },
 
     addWorldMapLayers: function(records) {
-        if (this.worldMapSourceKey == null)
-            this.setWorldMapSourceKey();
-        var wmSource = this.layerSources[this.worldMapSourceKey];
-        if (wmSource)
-            this.addLayerAjax(wmSource, this.worldMapSourceKey, records);
+            if (this.worldMapSourceKey == null)
+                this.setWorldMapSourceKey();
+            var wmSource = this.layerSources[this.worldMapSourceKey];
+            if (wmSource) {
+                this.addLayerAjax(wmSource, this.worldMapSourceKey, records);
+            }
     },
 
     /** private: method[getMapProjection]
@@ -1566,97 +1582,96 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     },
 
     addLayerAjax: function (dataSource, dataKey, dataRecords) {
-        var geoEx = this;
-        var key = dataKey;
-        var records = dataRecords;
-        var source = dataSource;
+            var geoEx = this;
+            var key = dataKey;
+            var records = dataRecords;
+            var source = dataSource;
 
-        var layerStore = this.mapPanel.layers;
-        var isLocal = source instanceof gxp.plugins.GeoNodeSource &&
-            source.url.replace(this.urlPortRegEx, "$1/").indexOf(
-                this.localGeoServerBaseUrl.replace(
-                    this.urlPortRegEx, "$1/")) === 0;
-        for (var i = 0, ii = records.length; i < ii; ++i) {
-            var thisRecord = records[i];
-            if (isLocal) {
-                //Get all the required WMS parameters from the GeoNode/Worldmap database
-                // instead of GetCapabilities
+            var layerStore = this.mapPanel.layers;
+            var isLocal = source instanceof gxp.plugins.GeoNodeSource &&
+                source.url.replace(this.urlPortRegEx, "$1/").indexOf(
+                    this.localGeoServerBaseUrl.replace(
+                        this.urlPortRegEx, "$1/")) === 0;
+            for (var i = 0, ii = records.length; i < ii; ++i) {
+                var thisRecord = records[i];
+                if (isLocal) {
+                    //Get all the required WMS parameters from the GeoNode/Worldmap database
+                    // instead of GetCapabilities
 
-                var layer = records[i].get("name");
-                var tiled = records[i].get("tiled");
+                    var layer = records[i].get("name");
+                    var tiled = records[i].get("tiled");
 
-                Ext.Ajax.request({
-                    url: "/maps/addgeonodelayer/?" + thisRecord.get("name"),
-                    method: "POST",
-                    params: {layername:thisRecord.get("name")},
+                    Ext.Ajax.request({
+                        url: "/maps/addgeonodelayer/?" + thisRecord.get("name"),
+                        method: "POST",
+                        params: {layername:thisRecord.get("name")},
 
-                    success: function(result, request) {
-                        var jsonData = Ext.util.JSON.decode(result.responseText);
-                        layer = jsonData.layer;
-                        layer.source = key;
-                        layer.buffer = 0;
-                        layer.tiled = true;
-                        //console.log('BBOX:' + layer.llbbox);
-                        var record = source.createLayerRecord(layer);
-                        record.selected = true;
-                        //console.log('Created record');
-                        ////console.log('GROUP:' + record.get("group"));
-                        if (record) {
-                            if (record.get("group") === "background") {
-                                var pos = layerStore.queryBy(
-                                    function(rec) {
-                                        return rec.get("group") === "background"
-                                    }).getCount();
-                                layerStore.insert(pos, [record]);
+                        success: function(result, request) {
+                            var jsonData = Ext.util.JSON.decode(result.responseText);
+                            layer = jsonData.layer;
+                            layer.source = key;
+                            layer.buffer = 0;
+                            layer.tiled = true;
+                            //console.log('BBOX:' + layer.llbbox);
+                            var record = source.createLayerRecord(layer);
+                            record.selected = true;
+                            //console.log('Created record');
+                            ////console.log('GROUP:' + record.get("group"));
+                            if (record) {
+                                if (record.get("group") === "background") {
+                                    var pos = layerStore.queryBy(
+                                        function(rec) {
+                                            return rec.get("group") === "background"
+                                        }).getCount();
+                                    layerStore.insert(pos, [record]);
 
-                            } else {
-                                category = record.get("group");
-                                if (!category || category == '')
-                                    record.set("group", "General");
-                                layerStore.add([record]);
-                                geoEx.addCategoryFolder(record.get("group"), "true");
-                                geoEx.reorderNodes(record.getLayer());
-                                geoEx.treeRoot.findDescendant("layer", record.getLayer()).select();
+                                } else {
+                                    category = record.get("group");
+                                    if (!category || category == '')
+                                        record.set("group", "General");
+                                    layerStore.add([record]);
+                                    geoEx.addCategoryFolder(record.get("group"), "true");
+                                    geoEx.reorderNodes(record.getLayer());
+                                    geoEx.treeRoot.findDescendant("layer", record.getLayer()).select();
+                                }
+
+
                             }
-
-                            
+                        },
+                        failure: function(result, request) {
+                            //No permission to view
                         }
-                    },
-                    failure: function(result, request) {
-                        //No permission to view
-                    }
 
-                });
-            } else {
-                //Not a local GeoNode layer, use source's standard method for creating the layer.
-                var layer = records[i].get("name");
-                var record = source.createLayerRecord({
-                    name: layer,
-                    source: key,
-                    buffer: 0
-                });
-                //alert(layer + " created after FAIL");
-                if (record) {
-                    if (record.get("group") === "background") {
-                        var pos = layerStore.queryBy(
-                            function(rec) {
-                                return rec.get("group") === "background"
-                            }).getCount();
-                        layerStore.insert(pos, [record]);
-                    } else {
-                        category = "General";
-                        record.set("group", category);
-                        layerStore.add([record]);
-                        geoEx.addCategoryFolder(record.get("group"), "true");
-                        geoEx.reorderNodes();
+                    });
+                } else {
+                    //Not a local GeoNode layer, use source's standard method for creating the layer.
+                    var layer = records[i].get("name");
+                    var record = source.createLayerRecord({
+                        name: layer,
+                        source: key,
+                        buffer: 0
+                    });
+                    //alert(layer + " created after FAIL");
+                    if (record) {
+                        if (record.get("group") === "background") {
+                            var pos = layerStore.queryBy(
+                                function(rec) {
+                                    return rec.get("group") === "background"
+                                }).getCount();
+                            layerStore.insert(pos, [record]);
+                        } else {
+                            category = "General";
+                            record.set("group", category);
+                            layerStore.add([record]);
+                            geoEx.addCategoryFolder(record.get("group"), "true");
+                            geoEx.reorderNodes();
+                        }
                     }
                 }
+                this.searchWindow.hide();
+
+
             }
-            this.searchWindow.hide();
-
-
-        }
-
     },
 
     loadConfig: function(config) {
@@ -2986,18 +3001,25 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
      *  Shows the search window
      */
     showSearchWindow: function() {
-        if (!this.searchWindow) {
-            this.initSearchWindow();
-        } else {
-            this.bbox.updateBBox(this.mapPanel.map.getExtent());
 
+     if (!this.searchWindow) {
+                this.initSearchWindow();
+            } else {
+                this.bbox.updateBBox(this.mapPanel.map.getExtent());
+
+            }
+            this.searchWindow.show();
+            this.searchWindow.alignTo(document, 'tl-tl');
+            this.searchTable.doSearch();
+
+        // Don't show the window if >70 layers on map (due to z-index issue with OpenLayers maps)
+        if (this.mapPanel.layers.data.items.length > this.maxMapLayers) {
+            Ext.Msg.alert(this.maxLayersTitle, this.maxLayersText.replace('%n', this.mapPanel.layers.data.items.length).replace("%max", this.maxMapLayers));
         }
-        this.searchWindow.show();
-        this.searchWindow.alignTo(document, 'tl-tl');
-        this.searchTable.doSearch();
-
 
     },
+
+
 
 
     /** private: method[showInfoWindow]
@@ -3084,7 +3106,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     Ext.getCmp('gx_saveAsButton').enable();
                 },
                 scope: this
-
             });
         }
         else {
@@ -3117,9 +3138,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
     addHGL: function(layerTitle, layerName) {
              Ext.Ajax.request({
-                url: "/hglServiceStarter/",
+                url: "/hglServiceStarter/" + layerName,
                 method: 'POST',
-                params: {AddLayer:layerName},
                 success: function(response, options) {
 //        layerName = "sde:SDE.CAMCONTOUR";
         if (this.hglSourceKey == null)
