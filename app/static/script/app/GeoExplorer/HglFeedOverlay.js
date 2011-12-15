@@ -37,7 +37,8 @@ GeoExplorer.HglFeedOverlay = function(target){
              );
              this.hglRecord = feedSource.createLayerRecord(hglConfig);
              this.hglRecord.group = hglConfig.group;
-             
+
+
              
      		this.popupControl = new OpenLayers.Control.SelectFeature(this.hglRecord.getLayer(), {
  			   //hover:true,
@@ -47,11 +48,13 @@ GeoExplorer.HglFeedOverlay = function(target){
  			      var pos = feature.geometry;
                   this.popup = new OpenLayers.Popup.FramedCloud("popup",
                              feature.geometry.getBounds().getCenterLonLat(),
-                             new OpenLayers.Size(150,150),
+                             new OpenLayers.Size(300,300),
                              "<a target='_blank' href=\"" +
- 			                                         feature.attributes.link + "\">" +  feature.attributes.title +"</a><p>" + feature.attributes.description + "</p>",
+ 			                                         feature.attributes.link + "\">" +  feature.attributes.title +"</a><p>"+ feature.attributes.description + "</p>",
+                                 //"<p><a target='_blank' href=\"javascript:onClick=app.addHGL('" +  feature.attributes.guid + "');return false;\">Display on map</a></p>",
                              null, true);
  			      this.popup.closeOnMove = false;
+                  this.popup.minSize = new OpenLayers.Size(300,150);
                   this.popup.maxSize = new OpenLayers.Size(300,300);
  			      this.popup.keepInMap = true;
  			      target.mapPanel.map.addPopup(this.popup);

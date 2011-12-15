@@ -8,10 +8,10 @@
 
 Ext.namespace("gxp.plugins");
 
-gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
+gxp.plugins.HGLSource = Ext.extend(gxp.plugins.WMSSource, {
 
     /** api: ptype = gxp_gnsource */
-    ptype: "gxp_gnsource",
+    ptype: "gxp_hglsource",
 
     /** api: config[url]
      *  ``String`` WMS service URL for this source
@@ -22,7 +22,7 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
      *  request.
      */
     baseParams: null,
-    title: 'GeoNode Source',
+    title: 'Harvard Geospatial Library Source',
 
     /** i18n */
     noCompatibleSRSTitle: "Warning",
@@ -56,7 +56,7 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
     createLayerRecord: function(config) {
         var record;
 
-        if (config['llbbox']) {
+
 
             this.url = config.url;
 
@@ -66,16 +66,16 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
              */
             var projection = this.getMapProjection();
 
-            var maxExtent =
-                OpenLayers.Bounds.fromArray(config['llbbox']).transform(new OpenLayers.Projection("EPSG:4326"), projection);
+            var maxExtent = undefined;
+//                OpenLayers.Bounds.fromArray(config['llbbox']).transform(new OpenLayers.Projection("EPSG:4326"), projection);
 
 
             // make sure maxExtent is valid (transform does not succeed for all llbbox)
-            if (!(1 / maxExtent.getHeight() > 0) || !(1 / maxExtent.getWidth() > 0)) {
-                // maxExtent has infinite or non-numeric width or height
-                // in this case, the map maxExtent must be specified in the config
-                maxExtent = undefined;
-            }
+//            if (!(1 / maxExtent.getHeight() > 0) || !(1 / maxExtent.getWidth() > 0)) {
+//                // maxExtent has infinite or non-numeric width or height
+//                // in this case, the map maxExtent must be specified in the config
+//                maxExtent = undefined;
+//            }
 
 
             var params = {
@@ -87,7 +87,7 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
                 VERSION: '1.1.1',
                 SERVICE: 'WMS',
                 REQUEST: 'GetMap',
-                LLBBOX: config['llbbox'],
+//                LLBBOX: config['llbbox'],
                 URL: config.url
             };
 
@@ -143,7 +143,7 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
                 queryable: config.queryable,
                 disabled: config.disabled,
                 abstract: config.abstract,
-                styles: [config.styles]
+                styles: config.styles
             };
 
             // add additional fields
@@ -166,7 +166,7 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
             record = new Record(data, layer.id);
 
             return record;
-        }
+
     },
 
     /** private: method[initDescribeLayerStore]
@@ -201,7 +201,7 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
      */
 
     getConfigForRecord: function(record) {
-        var config = gxp.plugins.GeoNodeSource.superclass.getConfigForRecord.apply(this, arguments);
+        var config = gxp.plugins.HGLSource.superclass.getConfigForRecord.apply(this, arguments);
         var layer = record.getLayer();
         var params = layer.params;
         return Ext.apply(config, {
@@ -212,4 +212,4 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
 
 });
 
-Ext.preg(gxp.plugins.GeoNodeSource.prototype.ptype, gxp.plugins.GeoNodeSource);
+Ext.preg(gxp.plugins.HGLSource.prototype.ptype, gxp.plugins.HGLSource);

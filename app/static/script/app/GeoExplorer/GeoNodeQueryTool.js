@@ -93,6 +93,15 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                             tool.reset(true);
                         }
                     }
+//                    if (pressed) {
+//                        for (var j = this.ownerCt.items.length; j--;) {
+//                            var otool = this.ownerCt.items.items.j;
+//                            if (otool instanceof gxp.plugins.FeatureEditor || otool instanceof gxp.plugins.FeatureManager)
+//                            {
+//                                otool.deactivate();
+//                            }
+//                        }
+//                    }
                 }
             }
         ]);
@@ -133,14 +142,14 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                         vendorParams[param] = layer.params[param];
                     }
                 }
-                vendorParams['buffer'] = 10;
+                vendorParams['buffer'] = 25;
 
                 /* Use OpenLayers.Control.GetFeature for local layers only */
                 if (layer.url.indexOf(localUrl) > -1) {
                     //console.log(layer.name + 'IS LOCAL?' );
                     var control = new OpenLayers.Control.GetFeature({
                         protocol: OpenLayers.Protocol.WFS.fromWMSLayer(layer),
-                        clickTolerance:5,
+                        clickTolerance:25,
                         layer: layer,
                         box: false,
                         hover: false,
@@ -245,7 +254,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                             if (wfs_url.indexOf("?") > -1)
                                 wfs_url = wfs_url.substring(0, wfs_url.indexOf("?"));
 
-                            wfs_url += "?service=WFS&request=GetFeature&version=1.1.0&srsName=EPSG:900913&outputFormat=GML2&typeName=" + wfs_layer.params.LAYERS + "&BBOX=" + bounds.toBBOX() + ",EPSG:900913";
+                            wfs_url += "?service=WFS&request=GetFeature&version=1.0.0&srsName=EPSG:900913&outputFormat=GML2&typeName=" + wfs_layer.params.LAYERS + "&BBOX=" + bounds.toBBOX() + ",EPSG:900913";
                             Ext.Ajax.request({
                                 'url':wfs_url,
                                 'success':function(resp, opts) {
@@ -282,14 +291,19 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                                 for (var i = 0, max = features.length; i < max; ++i) {
                                     feature = features[i];
                                     if (feature.geometry) {
-                                        if (!feature.geometry.CLASS_NAME.contains('Polygon')) {
+                                        if (feature.geometry.CLASS_NAME.contains('Point')) {
                                             resultFeature = features;
                                             break;
                                         }
                                         else {
-                                            if (point.intersects(feature.geometry)) {
-                                                resultFeature.push(feature);
-                                            }
+                                                    dist = point.distanceTo(feature.geometry, {edge: false});
+                                                    if (dist < minDist) {
+                                                        minDist = dist;
+                                                        resultFeature = feature;
+                                                        if (minDist == 0) {
+                                                            break;
+                                                        }
+                                                    }
                                         }
                                     }
                                 }
@@ -480,7 +494,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
         if (clearPanel === true) {
             Ext.getCmp(this.attributePanel).removeAll(true);
             Ext.getCmp(this.gridResultsPanel).removeAll(true);
-            Ext.getCmp(this.featurePanel).collapse(true);
+            Ext.getCmp(this.featurePanel).hide();
 
         }
         var theLayers = this.target.mapPanel.map.layers;
@@ -501,13 +515,11 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
         var ep = Ext.getCmp(this.featurePanel);
         var gp = Ext.getCmp(this.attributePanel);
 
-
-        ep.expand(true);
+        if (ep.hidden) {
+            ep.show();
+            ep.alignTo(document, 'tr-tr');
+        }
         gp.removeAll(true);
-
-        //var dp = Ext.getCmp('gridResultsPanel');
-        //dp.removeAll();
-
 
         var currentFeatures = featureInfo;
         //console.log('display # features:' + featureInfo.length);
