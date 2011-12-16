@@ -13,15 +13,15 @@ gxp.plugins.HGLSource = Ext.extend(gxp.plugins.WMSSource, {
     /** api: ptype = gxp_gnsource */
     ptype: "gxp_hglsource",
 
-    /** api: config[url]
-     *  ``String`` WMS service URL for this source
-     */
 
     /** api: config[baseParams]
-     *  ``Object`` Base parameters to use on the WMS GetCapabilities
+     *  ``Object`` Base parameters to use on the HGL layer
      *  request.
      */
     baseParams: null,
+
+
+    /** Title for source **/
     title: 'Harvard Geospatial Library Source',
 
     /** i18n */
@@ -30,21 +30,13 @@ gxp.plugins.HGLSource = Ext.extend(gxp.plugins.WMSSource, {
 
     /** private: property[format]
      *  ``OpenLayers.Format`` Optional custom format to use on the
-     *  WMSCapabilitiesStore store instead of the default.
+     *  HGL store instead of the default.
      */
     format: null,
 
-
-
-    /** private: property[describedLayers]
+    /** api: config[url]
+     *  ``String``  URL for Harvard Geospatial Library
      */
-    describedLayers: null,
-
-    /** private: property[schemaCache]
-     */
-    schemaCache: null,
-
-
     url: null,
 
     /** api: method[createLayerRecord]
@@ -60,23 +52,9 @@ gxp.plugins.HGLSource = Ext.extend(gxp.plugins.WMSSource, {
 
             this.url = config.url;
 
-            /**
-             * TODO: The WMSCapabilitiesReader should allow for creation
-             * of layers in different SRS.
-             */
             var projection = this.getMapProjection();
 
             var maxExtent = undefined;
-//                OpenLayers.Bounds.fromArray(config['llbbox']).transform(new OpenLayers.Projection("EPSG:4326"), projection);
-
-
-            // make sure maxExtent is valid (transform does not succeed for all llbbox)
-//            if (!(1 / maxExtent.getHeight() > 0) || !(1 / maxExtent.getWidth() > 0)) {
-//                // maxExtent has infinite or non-numeric width or height
-//                // in this case, the map maxExtent must be specified in the config
-//                maxExtent = undefined;
-//            }
-
 
             var params = {
                 STYLES: config.styles,
@@ -117,7 +95,7 @@ gxp.plugins.HGLSource = Ext.extend(gxp.plugins.WMSSource, {
                   layer.addOptions({resolutions: tileResolutions,
                   tileSize: new OpenLayers.Size(tileWidth, tileHeight),
                   tileOrigin: new OpenLayers.LonLat(originLat, originLon)});
-                  layer.params.TILED = true; // set to true when http://projects.opengeo.org/suite/ticket/1286 is closed
+                  layer.params.TILED = true;
             } else {
                 layer.params.TILED = false;
             }
