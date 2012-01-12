@@ -1712,25 +1712,29 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         }
 
 
-        gxp.plugins.FeatureManager.prototype.redrawMatchingLayers = function(record) {
+        gxp.plugins.FeatureManager.prototype.redrawMatchingLayers = function (record) {
             var name = record.get("name");
             var source = record.get("source");
-            this.target.mapPanel.layers.each(function(candidate) {
+            var updated = false;
+            this.target.mapPanel.layers.each(function (candidate) {
                 if (candidate.get("source") === source && candidate.get("name") === name) {
                     var layer = candidate.getLayer();
                     layer.redraw(true);
-                    Ext.Ajax.request({
-                        url: "/data/" + layer.params.LAYERS + "/ajax_layer_update_bounds/",
-                        method: "POST",
-                        params: {layername:layer.params.LAYERS},
-                        success: function(result, request) {
-                            if (result.responseText != "True") {
-                            } else {
-                            }
+                    if (!updated) {
+                        Ext.Ajax.request({
+                            url:"/data/" + layer.params.LAYERS + "/ajax_layer_update_bounds/",
+                            method:"POST",
+                            params:{layername:layer.params.LAYERS},
+                            success:function (result, request) {
+                                if (result.responseText != "True") {
+                                } else {
+                                }
                             },
-                    failure: function (result, request) {
+                            failure:function (result, request) {
+                            }
+                        });
                     }
-                });
+                    updated = true;
                 }
             });
         }
@@ -2847,6 +2851,15 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
     },
 
+    initWarperPanel: function() {
+        this.warperPanel = new Ext.Panel({
+            id: 'worldmap_warper_panel',
+            title: 'Rectify Layer',
+            header: false,
+            contentEl: 'warpDiv',
+            autoScroll: true
+        });
+    },
 
     initTabPanel: function() {
         this.dataTabPanel = new Ext.TabPanel({
@@ -2859,9 +2872,10 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             ]
         });
         if (this.config["edit_map"]) {
-            this.dataTabPanel.add(this.uploadPanel)
-            this.dataTabPanel.add(this.createPanel)
+            this.dataTabPanel.add(this.uploadPanel);
+            this.dataTabPanel.add(this.createPanel);
         }
+        this.dataTabPanel.add(this.warperPanel);
 
     },
 
@@ -2976,10 +2990,14 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             this.initCreatePanel();
         }
 
+        if (!this.warperPanel) {
+            this.initWarperPanel();
+        }
 
         if (!this.dataTabPanel) {
             this.initTabPanel();
         }
+
 
         this.searchWindow = new Ext.Window({
             id: 'ge_searchWindow',
