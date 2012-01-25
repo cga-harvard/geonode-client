@@ -6,24 +6,6 @@ Ext.namespace("GeoExplorer");
  */
 GeoExplorer.MapSnapshotGrid =  function(mapid) {
 
-/*
-var snapReader = new Ext.data.JsonReader({
-    // metadata configuration options:
-    idProperty: 'id',
-    // the fields config option will internally create an Ext.data.Record
-    // constructor that provides mapping for reading the record data objects
-    fields: [
-        // map Record's 'firstname' field to data object's key of same name
-        {name: 'user', mapping: 'user'},
-        // map Record's 'job' field to data object's 'occupation' key
-        {name: 'date', mapping: 'created_dttm'},
-
-        {name: 'link', mapping: 'snapshot'}
-    ]
-});
-*/
-
-
 
 var store = new Ext.data.JsonStore({
     url: '/maps/history/' + mapid,
