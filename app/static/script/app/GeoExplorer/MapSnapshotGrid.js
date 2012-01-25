@@ -2,8 +2,7 @@
 Ext.namespace("GeoExplorer");
 
 /** api: constructor
- *  Create a tool to perform a WFS GetFeature query for the selected point on the map
- *  target: GeoExplorer instance
+ *  A tool to display all previously saved versions of a map, along with date and user.
  */
 GeoExplorer.MapSnapshotGrid =  function(mapid) {
 

@@ -91,6 +91,13 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
                 URL: config.url
             };
 
+
+            
+            if ("cql_filter" in config ) {
+            	params['CQL_FILTER'] = config['cql_filter'];
+            }
+
+
             layer = new OpenLayers.Layer.WMS(
                 config.title,
                 config.url,
@@ -105,6 +112,7 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
                     projection: projection
                 }
             );
+
 
             if ("tiled" in config && config.tiled == true) {
 
@@ -143,8 +151,11 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
                 queryable: config.queryable,
                 disabled: config.disabled,
                 abstract: config.abstract,
-                styles: [config.styles]
+                styles: [config.styles],
+                cql_filter: "cql_filter" in config ? config.cql_filter : ''
             };
+            
+
 
             // add additional fields
             var fields = [
@@ -159,7 +170,8 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
                 {name: "queryable", type: "boolean"},
                 {name: 'disabled', type: 'boolean'},
                 {name: "abstract", type: "string"},
-                {name: "styles"} //array
+                {name: "styles"}, //array
+                {name: "cql_filter", type: "string"}
             ];
 
             var Record = GeoExt.data.LayerRecord.create(fields);
@@ -204,10 +216,18 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
         var config = gxp.plugins.GeoNodeSource.superclass.getConfigForRecord.apply(this, arguments);
         var layer = record.getLayer();
         var params = layer.params;
-        return Ext.apply(config, {
+        
+        if ('CQL_FILTER' in params) {
+        	Ext.apply(config, {
+            	cql_filter: params.CQL_FILTER
+            	});       	
+        }
+
+        config= Ext.apply(config, {
             styles: params.STYLES,
-            tiled: record.getLayer().params.TILED
+            tiled: params.TILED,
         });
+        return config;
     }
 
 });
