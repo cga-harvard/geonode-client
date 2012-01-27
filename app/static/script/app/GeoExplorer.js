@@ -1677,6 +1677,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     loadConfig: function(config) {
 
         var oldLayerChange = gxp.plugins.FeatureEditor.prototype.onLayerChange;
+        var localUrl = this.config.localGeoServerBaseUrl;
         gxp.plugins.FeatureEditor.prototype.onLayerChange = function (mgr, layer, schema) {
             oldLayerChange.apply(this, [mgr,layer,schema]);
 
@@ -1685,7 +1686,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 buttons[0].disable();
                 buttons[1].disable();
             }
-            else if (layer.data.layer.params && !buttons[0].disabled) {
+            else if (layer.data.layer.params && layer.data.queryable[0] == true && layer.data.layer.url.contains(localUrl) && !buttons[0].disabled) {
                 Ext.Ajax.request({
                     url: "/data/" + layer.data.layer.params.LAYERS + "/ajax_layer_edit_check/",
                     method: "POST",
@@ -1708,6 +1709,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         buttons[1].disable();
                     }
                 });
+            } else {
+                buttons[0].disable();
+                buttons[1].disable();
             }
         }
 
