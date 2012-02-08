@@ -202,7 +202,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 }
                 // use the proxy for all non-local requests
                 if(this.proxy && options.url.indexOf(this.proxy) !== 0 &&
-                    options.url.indexOf(window.location.protocol) === 0) {
+                        options.url.indexOf(window.location.protocol) === 0) {
                     var parts = options.url.replace(/&$/, "").split("?");
                     var params = Ext.apply(parts[1] && Ext.urlDecode(
                         parts[1]) || {}, options.params);
@@ -218,7 +218,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     this.busyMask && this.busyMask.hide();
                     var url = options.url;
                     if (response.status == 401 && url.indexOf("http" != 0) &&
-                        url.indexOf(this.proxy) === -1) {
+                                            url.indexOf(this.proxy) === -1) {
                         var submit = function() {
                             form.getForm().submit({
                                 waitMsg: "Logging in...",
@@ -480,7 +480,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             });
         });
 
-        var layersContainer = new Ext.Panel({
+       var layersContainer = new Ext.Panel({
             id: "layertree",
             autoScroll: true,
             border: false,
@@ -507,7 +507,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             for (var id in this.layerSources) {
                 source = this.layerSources[id];
                 if (source.store && source instanceof gxp.plugins.WMSSource &&
-                    source.url.indexOf("/geoserver/wms" === 0)) {
+                                source.url.indexOf("/geoserver/wms" === 0)) {
                     startSourceId = id;
                 }
             }
@@ -811,8 +811,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 printWindow.center();
 
                 unsupportedLayers.length &&
-                Ext.Msg.alert(this.unsupportedLayersTitleText, this.unsupportedLayersText +
-                    "<ul><li>" + unsupportedLayers.join("</li><li>") + "</li></ul>");
+                    Ext.Msg.alert(this.unsupportedLayersTitleText, this.unsupportedLayersText +
+                        "<ul><li>" + unsupportedLayers.join("</li><li>") + "</li></ul>");
 
             },
             scope: this
