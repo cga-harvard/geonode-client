@@ -148,6 +148,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     unsupportedLayersTitleText: 'UT:Unsupported Layers',
     unsupportedLayersText: 'UT:The following layers cannot be printed:',
     widthLabel: 'UT: Width',
+    urlCharErrorLabel: 'UT:URL\'s can only contain letters, numbers, dashes & underscores.',
+    urlDupeErrorLabel: 'UT: The following URL\'s already exist:',
     zoomSelectorText: 'UT:Zoom level',
     zoomSliderTipText: "UT: Zoom Level",
     zoomToLayerExtentText: "UT:Zoom to Layer Extent",
@@ -886,52 +888,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
      */
     initMetadataForm: function(){
 
-        //Make sure URL is not taken; if it is, show list of taken url's that start with field value
-        Ext.apply(Ext.form.VTypes, {
-            UniqueMapId : this.mapID,
-            UniqueUrl: function(value, field) {
-                alert(this.UniqueMapId);
-                var allowedChars = value.match(/^(\w+[-]*)+$/g);
-                if (!allowedChars) {
-                    this.UniqueUrlText = "URL's can only contain letters, numbers, dashes & underscores."
-                    return false;
-                }
-
-                Ext.Ajax.request({
-                    url: "/maps/checkurl/",
-                    method: 'POST',
-                    params : {query:value, mapid: this.UniqueMapId},
-                    success: function(response, options) {
-                        var urlcount = Ext.decode(response.responseText).count;
-                        if (urlcount > 0) {
-                            this.UniqueUrlText = "The following URL's are already taken:";
-                            var urls = Ext.decode(response.responseText).urls;
-                            var isValid = true;
-                            for (var u in urls) {
-                                if (urls[u].url != undefined && urls[u].url != null)
-                                    this.UniqueUrlText += "<br/>" + urls[u].url;
-                                if (urls[u].url == value) {
-                                    isValid = false;
-                                }
-
-                            }
-                            if (!isValid)
-                                field.markInvalid(this.UniqueUrlText);
-                        }
-                    },
-                    failure: function(response, options) {
-                        return false;
-                        Ext.Msg.alert('Error', response.responseText, this.showMetadataForm);
-                    },
-                    scope: this
-                });
-                return true;
-            },
-
-            UniqueUrlText: "The following URL's are already taken, please choose another"
-        });
-
-
         var titleField = new Ext.form.TextField({
             width: '95%',
             fieldLabel: this.metaDataMapTitle,
@@ -951,12 +907,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         });
 
         var urlField = new Ext.form.TextField({
-            width:'20%',
-            fieldLabel: this.metaDataMapURL + "<br/><span style='font-style:italic;'>http://" + document.location.hostname + "/maps/<YOUR_URL></YOUR_URL></span>",
+            width:'50%',
+            fieldLabel: this.metaDataMapURL + " (<span style='font-style:italic;'>http://" + document.location.hostname + "/maps/YOUR_URL):</span>",
             labelSeparator:'',
             enableKeyEvents: true,
             validationEvent: 'onblur',
-            vtype: 'UniqueUrl',
             itemCls:'x-form-field-inline',
             ctCls:'x-form-field-inline',
             value: this.about["urlsuffix"],
@@ -971,6 +926,53 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     //saveAsButton.disable();
                     saveButton.disable();
                 }
+            },
+            validator: function(value) {
+                var uniqueMapId = app.mapID;
+                var charError = app.urlCharErrorLabel;
+                var dupeError = app.urlDupeErrorLabel;
+
+                var allowedChars = value.match(/^(\w+[-]*)+$/g);
+                if (value.length === 0) {
+                    return true;
+                }
+
+                if (!allowedChars) {
+                    return charError;
+                }
+                Ext.Ajax.request({
+                    url: "/maps/checkurl/",
+                    method: 'POST',
+                    params : {query:value, mapid: uniqueMapId},
+                    success: function(response, options) {
+                        var urlcount = Ext.decode(response.responseText).count;
+                        if (urlcount > 0) {
+                            var urls = Ext.decode(response.responseText).urls;
+                            var isValid = true;
+                            for (var u in urls) {
+                                if (urls[u].url != undefined && urls[u].url != null)
+                                    dupeError += "<br>" + urls[u].url;
+                                if (urls[u].url == value) {
+                                    isValid = false;
+                                }
+
+                            }
+                            if (!isValid) {
+                                urlField.markInvalid(dupeError);
+                                return false;
+                            } else {
+                                return true;
+                            }
+                        } else {
+                            return true;
+                        }
+                    },
+                    failure: function(response, options) {
+                        return false;
+                        Ext.Msg.alert('Error', response.responseText, this.showMetadataForm);
+                    },
+                    scope: this
+                });
             }
         });
 
@@ -1050,10 +1052,6 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     showMetadataForm: function() {
         if(!this.metadataForm) {
             this.initMetadataForm();
-        } else {
-            //Update map URL validator
-            Ext.apply(Ext.form.VTypes, {
-                UniqueMapId : this.mapID});
         }
 
         this.metadataForm.show();
