@@ -377,7 +377,8 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         }, {
             ptype: "gxp_zoomtoextent",
             actionTarget: {target: "paneltbar", index: 8}
-        }, {
+        },
+         {
             ptype: "gxp_layertree",
             outputConfig: {id: "treecontent"},
             outputTarget: "layertree"
@@ -405,7 +406,63 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             ptype: "gxp_styler",
             rasterStyling: true,
             actionTarget: ["treetbar", "treecontent.contextMenu"]
-        });
+        }, {
+                ptype: "gxp_featuremanager",
+                id: "featuremanager",
+                paging: false,
+                tooltip: this.infoButtonText
+        },
+        {
+                ptype: "gxp_featureeditor",
+                id: "gn_layer_editor",
+                featureManager: "featuremanager",
+                readOnly: false,
+                autoLoadFeatures: true,
+                actionTarget: ["treetbar"],
+                defaultAction: 1,
+                outputConfig: {panIn: false, height: 220},
+                tooltip: this.infoButtonText
+         }
+        );
+
+        /* Check layer edit permissions and enable/disable edit buttons based on response */
+        var oldLayerChange = gxp.plugins.FeatureEditor.prototype.onLayerChange;
+        var localUrl = config.localGeoServerBaseUrl;
+        gxp.plugins.FeatureEditor.prototype.onLayerChange = function (mgr, layer, schema) {
+            oldLayerChange.apply(this, [mgr,layer,schema]);
+
+            var buttons = this.actions;
+            if (layer == null) {
+                buttons[0].disable();
+                buttons[1].disable();
+            }
+            else if (layer.data.layer.params && layer.data.layer.url.indexOf("/geoserver/wms") > -1 && layer.data.queryable == true && !buttons[0].disabled) {
+                Ext.Ajax.request({
+                    url: "/data/" + layer.data.layer.params.LAYERS + "/ajax_layer_edit_check/",
+                    method: "POST",
+                    params: {layername:layer.data.layer.params.LAYERS},
+                    success: function(result, request) {
+                        if (result.responseText != "True") {
+                            for (i=0;i< buttons.length;i++) {
+                                buttons[i].disable();
+                            }
+                        } else {
+                            layer.data.layer.displayOutsideMaxExtent = true;
+                            for (i=0;i< buttons.length;i++) {
+                                buttons[i].enable();
+                            }
+                        }
+                    },
+                    failure: function (result, request) {
+                        buttons[0].disable();
+                        buttons[1].disable();
+                    }
+                });
+            } else {
+                buttons[0].disable();
+                buttons[1].disable();
+            }
+        }
         GeoExplorer.superclass.loadConfig.apply(this, arguments);
     },
     
