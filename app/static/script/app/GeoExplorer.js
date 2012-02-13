@@ -906,6 +906,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             }
         });
 
+        var geoEx = this;
         var urlField = new Ext.form.TextField({
             width:'50%',
             fieldLabel: this.metaDataMapURL + " (<span style='font-style:italic;'>http://" + document.location.hostname + "/maps/YOUR_URL):</span>",
@@ -918,19 +919,19 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             listeners: {
                 "valid": function() {
                     if (titleField.isValid()) {
-                        //saveAsButton.enable();
+                        saveAsButton.enable();
                         saveButton.enable();
                     }
                 },
                 "invalid": function() {
-                    //saveAsButton.disable();
+                    saveAsButton.disable();
                     saveButton.disable();
                 }
             },
             validator: function(value) {
-                var uniqueMapId = app.mapID;
-                var charError = app.urlCharErrorLabel;
-                var dupeError = app.urlDupeErrorLabel;
+                var uniqueMapId = geoEx.mapID;
+                var charError = geoEx.urlCharErrorLabel;
+                var dupeError = geoEx.urlDupeErrorLabel;
 
                 var allowedChars = value.match(/^(\w+[-]*)+$/g);
                 if (value.length === 0) {
@@ -970,10 +971,10 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     failure: function(response, options) {
                         return false;
                         Ext.Msg.alert('Error', response.responseText, this.showMetadataForm);
-                    },
-                    scope: this
+                    }
                 });
-            }
+            },
+            scope:this
         });
 
 
@@ -997,6 +998,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         });
 
         metaDataPanel.enable();
+
+
+
 
         var saveAsButton = new Ext.Button({
             text: this.metadataFormSaveAsCopyText,
