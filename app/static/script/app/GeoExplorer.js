@@ -366,7 +366,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             }
         });
     },
-    
+
     loadConfig: function(config) {
         config.tools = (config.tools || []).concat({
             ptype: "gxp_zoom",
@@ -377,8 +377,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         }, {
             ptype: "gxp_zoomtoextent",
             actionTarget: {target: "paneltbar", index: 8}
-        },
-         {
+        }, {
             ptype: "gxp_layertree",
             outputConfig: {id: "treecontent"},
             outputTarget: "layertree"
@@ -414,46 +413,48 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         },
         {
                 ptype: "gxp_featureeditor",
-                id: "gn_layer_editor",
                 featureManager: "featuremanager",
+                id: "gn_layer_editor",
                 readOnly: false,
-                autoLoadFeatures: true,
+                autoLoadFeature: true,
                 actionTarget: ["treetbar"],
                 defaultAction: 1,
-                outputConfig: {panIn: false, height: 220},
+                outputConfig: {id: "gn_layer_editor", panIn: false, height: 220},
                 tooltip: this.infoButtonText
          }
         );
 
-        /* Check layer edit permissions and enable/disable edit buttons based on response */
-        var oldLayerChange = gxp.plugins.FeatureEditor.prototype.onLayerChange;
-        var localUrl = config.localGeoServerBaseUrl;
-        gxp.plugins.FeatureEditor.prototype.onLayerChange = function (mgr, layer, schema) {
-            oldLayerChange.apply(this, [mgr,layer,schema]);
+        GeoExplorer.superclass.loadConfig.apply(this, arguments);
+    },
 
-            var buttons = this.actions;
-            if (layer == null) {
-                buttons[0].disable();
-                buttons[1].disable();
-            }
-            else if (layer.data.layer.params && layer.data.layer.url.indexOf("/geoserver/wms") > -1 && layer.data.queryable == true && !buttons[0].disabled) {
+
+    checkLayerPermissions:function (layer) {
+        var buttons = this.tools["gn_layer_editor"].actions;
+        if (layer == null) {
+            buttons[0].disable();
+            buttons[1].disable();
+        }
+        else {
+            var changedLayer = layer.getLayer();
+            //Proceed if this is a local queryable WMS layer
+            if (changedLayer.params && changedLayer.url.indexOf(this.localGeoServerBaseUrl) === 0 && layer.data.queryable == true && !buttons[0].disabled) {
                 Ext.Ajax.request({
-                    url: "/data/" + layer.data.layer.params.LAYERS + "/ajax_layer_edit_check/",
-                    method: "POST",
-                    params: {layername:layer.data.layer.params.LAYERS},
-                    success: function(result, request) {
+                    url:"/data/" + changedLayer.params.LAYERS + "/ajax_layer_edit_check/",
+                    method:"POST",
+                    params:{layername:changedLayer.params.LAYERS},
+                    success:function (result, request) {
                         if (result.responseText != "True") {
-                            for (i=0;i< buttons.length;i++) {
+                            for (i = 0; i < buttons.length; i++) {
                                 buttons[i].disable();
                             }
                         } else {
-                            layer.data.layer.displayOutsideMaxExtent = true;
-                            for (i=0;i< buttons.length;i++) {
+                            changedLayer.displayOutsideMaxExtent = true;
+                            for (i = 0; i < buttons.length; i++) {
                                 buttons[i].enable();
                             }
                         }
                     },
-                    failure: function (result, request) {
+                    failure:function (result, request) {
                         buttons[0].disable();
                         buttons[1].disable();
                     }
@@ -463,9 +464,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 buttons[1].disable();
             }
         }
-        GeoExplorer.superclass.loadConfig.apply(this, arguments);
     },
-    
+
+
     initMapPanel: function() {
         this.mapItems = [{
             xtype: "gx_zoomslider",
@@ -534,6 +535,9 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 },
                 scope: this
             });
+
+        this.on("layerselectionchange", this.checkLayerPermissions);
+
         });
 
        var layersContainer = new Ext.Panel({
