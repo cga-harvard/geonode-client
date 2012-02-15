@@ -240,7 +240,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         this.urlPortRegEx, "$1/");
                     if (url.indexOf(localUrl + "rest/") === 0) {
                         options.url = url.replace(new RegExp("^" +
-                        localUrl), "/gs/");
+                            localUrl), "/gs/");
                         return;
                     }
                     if (url.indexOf(this.localGeoServerBaseUrl) == 0) {
@@ -249,7 +249,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                     }
                 }
                 // use the proxy for all non-local requests
-                if (!url.contains(this.siteUrl) && this.proxy && options.url.indexOf(this.proxy) !== 0 &&
+                if (url.indexOf(this.siteUrl) === -1 && this.proxy && options.url.indexOf(this.proxy) !== 0 &&
                     options.url.indexOf(window.location.protocol) === 0) {
                     var parts = options.url.replace(/&$/, "").split("?");
                     var params = Ext.apply(parts[1] && Ext.urlDecode(
@@ -280,15 +280,15 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
         Ext.override(Ext.tree.TreeNode, {
             findDescendant: function(attribute, value) {
-            var children = this.childNodes;
-            for(var i = 0, l = children.length; i < l; i++) {
-                if(children[i].attributes[attribute] == value){
-                    return children[i];
-                } else if(node = children[i].findDescendant(attribute, value)) {
-                    return node;
+                var children = this.childNodes;
+                for(var i = 0, l = children.length; i < l; i++) {
+                    if(children[i].attributes[attribute] == value){
+                        return children[i];
+                    } else if(node = children[i].findDescendant(attribute, value)) {
+                        return node;
+                    }
                 }
-            }
-            return null;
+                return null;
             }
         });
 
@@ -344,16 +344,16 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         config.map.numZoomLevels = 21;
 
         OpenLayers.Map.prototype.Z_INDEX_BASE = {
-        BaseLayer: 100,
-        Overlay: 325,
-        Feature: 3000,
-        Popup: 3025,
-        Control: 4000
-    },
+            BaseLayer: 100,
+            Overlay: 325,
+            Feature: 3000,
+            Popup: 3025,
+            Control: 4000
+        },
 
 
 
-        GeoExplorer.superclass.constructor.apply(this, arguments);
+            GeoExplorer.superclass.constructor.apply(this, arguments);
 
         this.mapID = this.initialConfig.id;
     },
@@ -1415,19 +1415,19 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                         this.localGeoServerBaseUrl.replace(
                             this.urlPortRegEx, "$1/")) === 0,
                     hasPermission: true,
-                plugins: [{
-                    ptype: "gxp_geoserverstylewriter",
-                    baseUrl: layerUrl.split(
-                        "?").shift().replace(/\/(wms|ows)\/?$/, "/rest")
-                }, {
-                    ptype: "gxp_wmsrasterstylesdialog"
-                }],
-                autoScroll: true,
-                listeners: Ext.apply(options.listeners || {}, {
-                    "ready": function() {
-                        // we don't want the Cancel and Save buttons
-                        // if we cannot edit styles
-                        stylesDialog.editable === false &&
+                    plugins: [{
+                        ptype: "gxp_geoserverstylewriter",
+                        baseUrl: layerUrl.split(
+                            "?").shift().replace(/\/(wms|ows)\/?$/, "/rest")
+                    }, {
+                        ptype: "gxp_wmsrasterstylesdialog"
+                    }],
+                    autoScroll: true,
+                    listeners: Ext.apply(options.listeners || {}, {
+                        "ready": function() {
+                            // we don't want the Cancel and Save buttons
+                            // if we cannot edit styles
+                            stylesDialog.editable === false &&
                             stylesPanel.getFooterToolbar().hide();
                         },
                         "modified": function(cmp, name) {
@@ -1556,19 +1556,19 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
         }
         if (this.hglSourceKey == null)
         {
-                   var hglSource = this.addLayerSource({"config":{"url":"http://dixon.hul.harvard.edu/cgi-bin/tilecache/tilecache.cgi?", "ptype":"gxp_hglsource"}});
-                   this.hglSourceKey = hglSource.id;
+            var hglSource = this.addLayerSource({"config":{"url":"http://dixon.hul.harvard.edu/cgi-bin/tilecache/tilecache.cgi?", "ptype":"gxp_hglsource"}});
+            this.hglSourceKey = hglSource.id;
         }
 
     },
 
     addWorldMapLayers: function(records) {
-            if (this.worldMapSourceKey == null)
-                this.setWorldMapSourceKey();
-            var wmSource = this.layerSources[this.worldMapSourceKey];
-            if (wmSource) {
-                this.addLayerAjax(wmSource, this.worldMapSourceKey, records);
-            }
+        if (this.worldMapSourceKey == null)
+            this.setWorldMapSourceKey();
+        var wmSource = this.layerSources[this.worldMapSourceKey];
+        if (wmSource) {
+            this.addLayerAjax(wmSource, this.worldMapSourceKey, records);
+        }
     },
 
     /** private: method[getMapProjection]
@@ -1582,96 +1582,96 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
     },
 
     addLayerAjax: function (dataSource, dataKey, dataRecords) {
-            var geoEx = this;
-            var key = dataKey;
-            var records = dataRecords;
-            var source = dataSource;
+        var geoEx = this;
+        var key = dataKey;
+        var records = dataRecords;
+        var source = dataSource;
 
-            var layerStore = this.mapPanel.layers;
-            var isLocal = source instanceof gxp.plugins.GeoNodeSource &&
-                source.url.replace(this.urlPortRegEx, "$1/").indexOf(
-                    this.localGeoServerBaseUrl.replace(
-                        this.urlPortRegEx, "$1/")) === 0;
-            for (var i = 0, ii = records.length; i < ii; ++i) {
-                var thisRecord = records[i];
-                if (isLocal) {
-                    //Get all the required WMS parameters from the GeoNode/Worldmap database
-                    // instead of GetCapabilities
+        var layerStore = this.mapPanel.layers;
+        var isLocal = source instanceof gxp.plugins.GeoNodeSource &&
+            source.url.replace(this.urlPortRegEx, "$1/").indexOf(
+                this.localGeoServerBaseUrl.replace(
+                    this.urlPortRegEx, "$1/")) === 0;
+        for (var i = 0, ii = records.length; i < ii; ++i) {
+            var thisRecord = records[i];
+            if (isLocal) {
+                //Get all the required WMS parameters from the GeoNode/Worldmap database
+                // instead of GetCapabilities
 
-                    var layer = records[i].get("name");
-                    var tiled = records[i].get("tiled");
+                var layer = records[i].get("name");
+                var tiled = records[i].get("tiled");
 
-                    Ext.Ajax.request({
-                        url: "/maps/addgeonodelayer/?" + thisRecord.get("name"),
-                        method: "POST",
-                        params: {layername:thisRecord.get("name")},
+                Ext.Ajax.request({
+                    url: "/maps/addgeonodelayer/?" + thisRecord.get("name"),
+                    method: "POST",
+                    params: {layername:thisRecord.get("name")},
 
-                        success: function(result, request) {
-                            var jsonData = Ext.util.JSON.decode(result.responseText);
-                            layer = jsonData.layer;
-                            layer.source = key;
-                            layer.buffer = 0;
-                            layer.tiled = true;
-                            //console.log('BBOX:' + layer.llbbox);
-                            var record = source.createLayerRecord(layer);
-                            record.selected = true;
-                            //console.log('Created record');
-                            ////console.log('GROUP:' + record.get("group"));
-                            if (record) {
-                                if (record.get("group") === "background") {
-                                    var pos = layerStore.queryBy(
-                                        function(rec) {
-                                            return rec.get("group") === "background"
-                                        }).getCount();
-                                    layerStore.insert(pos, [record]);
+                    success: function(result, request) {
+                        var jsonData = Ext.util.JSON.decode(result.responseText);
+                        layer = jsonData.layer;
+                        layer.source = key;
+                        layer.buffer = 0;
+                        layer.tiled = true;
+                        //console.log('BBOX:' + layer.llbbox);
+                        var record = source.createLayerRecord(layer);
+                        record.selected = true;
+                        //console.log('Created record');
+                        ////console.log('GROUP:' + record.get("group"));
+                        if (record) {
+                            if (record.get("group") === "background") {
+                                var pos = layerStore.queryBy(
+                                    function(rec) {
+                                        return rec.get("group") === "background"
+                                    }).getCount();
+                                layerStore.insert(pos, [record]);
 
-                                } else {
-                                    category = record.get("group");
-                                    if (!category || category == '')
-                                        record.set("group", "General");
-                                    layerStore.add([record]);
-                                    geoEx.addCategoryFolder(record.get("group"), "true");
-                                    geoEx.reorderNodes(record.getLayer());
-                                    geoEx.treeRoot.findDescendant("layer", record.getLayer()).select();
-                                }
-
-
+                            } else {
+                                category = record.get("group");
+                                if (!category || category == '')
+                                    record.set("group", "General");
+                                layerStore.add([record]);
+                                geoEx.addCategoryFolder(record.get("group"), "true");
+                                geoEx.reorderNodes(record.getLayer());
+                                geoEx.treeRoot.findDescendant("layer", record.getLayer()).select();
                             }
-                        },
-                        failure: function(result, request) {
-                            //No permission to view
-                        }
 
-                    });
-                } else {
-                    //Not a local GeoNode layer, use source's standard method for creating the layer.
-                    var layer = records[i].get("name");
-                    var record = source.createLayerRecord({
-                        name: layer,
-                        source: key,
-                        buffer: 0
-                    });
-                    //alert(layer + " created after FAIL");
-                    if (record) {
-                        if (record.get("group") === "background") {
-                            var pos = layerStore.queryBy(
-                                function(rec) {
-                                    return rec.get("group") === "background"
-                                }).getCount();
-                            layerStore.insert(pos, [record]);
-                        } else {
-                            category = "General";
-                            record.set("group", category);
-                            layerStore.add([record]);
-                            geoEx.addCategoryFolder(record.get("group"), "true");
-                            geoEx.reorderNodes();
+
                         }
+                    },
+                    failure: function(result, request) {
+                        //No permission to view
+                    }
+
+                });
+            } else {
+                //Not a local GeoNode layer, use source's standard method for creating the layer.
+                var layer = records[i].get("name");
+                var record = source.createLayerRecord({
+                    name: layer,
+                    source: key,
+                    buffer: 0
+                });
+                //alert(layer + " created after FAIL");
+                if (record) {
+                    if (record.get("group") === "background") {
+                        var pos = layerStore.queryBy(
+                            function(rec) {
+                                return rec.get("group") === "background"
+                            }).getCount();
+                        layerStore.insert(pos, [record]);
+                    } else {
+                        category = "General";
+                        record.set("group", category);
+                        layerStore.add([record]);
+                        geoEx.addCategoryFolder(record.get("group"), "true");
+                        geoEx.reorderNodes();
                     }
                 }
-                this.searchWindow.hide();
-
-
             }
+            this.searchWindow.hide();
+
+
+        }
     },
 
     loadConfig: function(config) {
@@ -1686,7 +1686,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 buttons[0].disable();
                 buttons[1].disable();
             }
-            else if (layer.data.layer.params && layer.data.queryable[0] == true && layer.data.layer.url.contains(localUrl) && !buttons[0].disabled) {
+            else if (layer.data.layer.params && layer.data.queryable == true && layer.data.layer.url.indexOf(localUrl) > -1 && !buttons[0].disabled) {
                 Ext.Ajax.request({
                     url: "/data/" + layer.data.layer.params.LAYERS + "/ajax_layer_edit_check/",
                     method: "POST",
@@ -1748,57 +1748,57 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             oldInitComponent.apply(this);
             if (this.grid.customEditors["Description"] != undefined && this.grid.customEditors["Description"].field.maxLength == undefined) {
                 this.grid.customEditors["Description"].addListener("startedit",
-                        function(el, value) {
-                            var htmlEditWindow = new Ext.Window({
-                                    title: 'HTML Editor',
-                                    renderTo: Ext.getBody(),
-                                    width: 600,
-                                    height: 300,
-                                    frame: true,
-                                    layout: 'fit',
-                                    closeAction: 'destroy',
+                    function(el, value) {
+                        var htmlEditWindow = new Ext.Window({
+                                title: 'HTML Editor',
+                                renderTo: Ext.getBody(),
+                                width: 600,
+                                height: 300,
+                                frame: true,
+                                layout: 'fit',
+                                closeAction: 'destroy',
+                                items: [{
+                                    xtype: "panel",
+                                    layout: "fit",
+                                    style: {height:190},
                                     items: [{
-                                        xtype: "panel",
-                                        layout: "fit",
-                                        style: {height:190},
-                                        items: [{
-                                                xtype: "textarea",
-                                                id: "html_textarea",
-                                                value: this.getValue(),
-                                                style: {height:190}
-                                        }]
-                                    }],
-                                    bbar: [
-                                        "->",
-                                        //saveAsButton,
-                                        new Ext.Button({
-                                            text: "Save",
-                                            cls:'x-btn-text',
-                                            handler: function() {
-                                                this.editing = true;
-                                                this.setValue(nicEditors.findEditor('html_textarea').getContent());
-                                                this.completeEdit();
-                                                htmlEditWindow.destroy();
-                                            },
-                                            scope: this
-                                        }),
-                                        new Ext.Button({
-                                            text: "Cancel",
-                                            cls:'x-btn-text',
-                                            handler: function() {
-                                                htmlEditWindow.destroy();
-                                            },
-                                            scope: this
-                                        })
-                                    ]
-                                }
-                            );
+                                        xtype: "textarea",
+                                        id: "html_textarea",
+                                        value: this.getValue(),
+                                        style: {height:190}
+                                    }]
+                                }],
+                                bbar: [
+                                    "->",
+                                    //saveAsButton,
+                                    new Ext.Button({
+                                        text: "Save",
+                                        cls:'x-btn-text',
+                                        handler: function() {
+                                            this.editing = true;
+                                            this.setValue(nicEditors.findEditor('html_textarea').getContent());
+                                            this.completeEdit();
+                                            htmlEditWindow.destroy();
+                                        },
+                                        scope: this
+                                    }),
+                                    new Ext.Button({
+                                        text: "Cancel",
+                                        cls:'x-btn-text',
+                                        handler: function() {
+                                            htmlEditWindow.destroy();
+                                        },
+                                        scope: this
+                                    })
+                                ]
+                            }
+                        );
 
-                            htmlEditWindow.show();
-                            var myNicEditor = new nicEditor({fullPanel : true,  maxHeight: 190, iconsPath: nicEditIconsPath}).panelInstance('html_textarea')
-                            return true;
-                        }
-                    );
+                        htmlEditWindow.show();
+                        var myNicEditor = new nicEditor({fullPanel : true,  maxHeight: 190, iconsPath: nicEditIconsPath}).panelInstance('html_textarea')
+                        return true;
+                    }
+                );
             }
         }
 
@@ -1815,7 +1815,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 id: "gn_layer_editor",
                 featureManager: "featuremanager",
                 readOnly: false,
-                autoLoadFeatures: true,
+                autoLoadFeature: true,
                 actionTarget: {target: "main.tbar", index: 4},
                 defaultAction: 1,
                 outputConfig: {panIn: false, height: 220},
@@ -3024,15 +3024,15 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
      */
     showSearchWindow: function() {
 
-     if (!this.searchWindow) {
-                this.initSearchWindow();
-            } else {
-                this.bbox.updateBBox(this.mapPanel.map.getExtent());
+        if (!this.searchWindow) {
+            this.initSearchWindow();
+        } else {
+            this.bbox.updateBBox(this.mapPanel.map.getExtent());
 
-            }
-            this.searchWindow.show();
-            this.searchWindow.alignTo(document, 'tl-tl');
-            this.searchTable.doSearch();
+        }
+        this.searchWindow.show();
+        this.searchWindow.alignTo(document, 'tl-tl');
+        this.searchTable.doSearch();
 
         // Don't show the window if >70 layers on map (due to z-index issue with OpenLayers maps)
         if (this.mapPanel.layers.data.items.length > this.maxMapLayers) {
@@ -3159,44 +3159,44 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
 
 
     addHGL: function(layerTitle, layerName) {
-             Ext.Ajax.request({
-                url: "/hglServiceStarter/" + layerName,
-                method: 'POST',
-                success: function(response, options) {
+        Ext.Ajax.request({
+            url: "/hglServiceStarter/" + layerName,
+            method: 'POST',
+            success: function(response, options) {
 //        layerName = "sde:SDE.CAMCONTOUR";
-        if (this.hglSourceKey == null)
-            this.setHGLSourceKey();
-        var hglSource = this.layerSources[this.hglSourceKey];
-        if (hglSource)
-        {
-            var layerConfig = {
-                "title": layerTitle,
-                "name": layerName,
-                "source": this.hglSourceKey,
-                "url": hglSource.url,
-                "group": "Harvard Geospatial Library",
-                "properties": "gxp_wmslayerpanel",
-                "fixed": true,
-                "selected": false,
-                "queryable": true,
-                "disabled": false,
-                "abstract": '',
-                "styles": [],
-                "format": "image/png"
-            }
+                if (this.hglSourceKey == null)
+                    this.setHGLSourceKey();
+                var hglSource = this.layerSources[this.hglSourceKey];
+                if (hglSource)
+                {
+                    var layerConfig = {
+                        "title": layerTitle,
+                        "name": layerName,
+                        "source": this.hglSourceKey,
+                        "url": hglSource.url,
+                        "group": "Harvard Geospatial Library",
+                        "properties": "gxp_wmslayerpanel",
+                        "fixed": true,
+                        "selected": false,
+                        "queryable": true,
+                        "disabled": false,
+                        "abstract": '',
+                        "styles": [],
+                        "format": "image/png"
+                    }
 
-            var record = hglSource.createLayerRecord(layerConfig);
-            this.mapPanel.layers.add([record]);
-            this.addCategoryFolder(record.get("group"), "true");
-            this.reorderNodes(record.getLayer());
-            this.treeRoot.findDescendant("layer", record.getLayer()).select();
-        }
-                },
-                failure: function(response, options) {
-                    Ext.Msg.alert('Restricted', "Access to this layer is restricted");
-                },
-                scope: this
-            });
+                    var record = hglSource.createLayerRecord(layerConfig);
+                    this.mapPanel.layers.add([record]);
+                    this.addCategoryFolder(record.get("group"), "true");
+                    this.reorderNodes(record.getLayer());
+                    this.treeRoot.findDescendant("layer", record.getLayer()).select();
+                }
+            },
+            failure: function(response, options) {
+                Ext.Msg.alert('Restricted', "Access to this layer is restricted");
+            },
+            scope: this
+        });
     }
 });
 

@@ -1,30 +1,11 @@
-.olLayerGoogleCopyright
-{
-	display:none;	
-}
-
-
 /* don't wrap lines on any tooltips */
 .x-tip {
     white-space: nowrap;
 }
 
-
 /* get images on buttons with text to line up with those with no text */
 .x-btn-text-icon .x-btn-center .x-btn-text {
     background-position: 0 3px;
-}
-
-.x-btn-text {
-	font-size: 8pt;
-	text-decoration: underline;
-	color: #18469C;	
-}
-
-.x-btn-text button {
-	font-size: 8pt;
-	text-decoration: underline;
-	color: #18469C;	
 }
 
 /* apply some margin when using the row expander */
@@ -38,7 +19,6 @@
     background-color: #EAEAEA;
 }
 
-
 .x-tree-node-leaf  .gx-tree-layer-icon {
     background-image: url(img/geosilk/vector.png);
 }
@@ -48,34 +28,25 @@
 }
 
 .x-menu-group-item .x-menu-item-icon {
-    background: transparent url(http://extjs.cachefly.net/ext-2.2.1/resources/images/default/form/radio.gif) no-repeat 0 0;
+    background: transparent url(../../externals/ext/resources/images/default/form/radio.gif) no-repeat 0 0;
     height: 13px;
     width: 13px;
     margin: 2px;
 }
 
 .x-menu-item-checked .x-menu-group-item .x-menu-item-icon {
-    background: transparent url(http://extjs.cachefly.net/ext-2.2.1/resources/images/default/form/radio.gif) no-repeat -13px -13px;
+    background: transparent url(../../externals/ext/resources/images/default/form/radio.gif) no-repeat -13px -13px;
     height: 13px;
     width: 13px;
     margin: 2px;
-}
-
-.x-span-font-eight {
-	font-size: 8pt;	
 }
 
 .x-btn .icon-geoexplorer {
     background-image: url(img/geoexplorer.png);
 }
 
-.x-btn .icon-add, .x-menu-item .icon-add {
-    background-image: url(img/silk/add.png);	
-}
-
-
 .x-btn .icon-addlayers {
-    background-image: url(img/silk/layers.png);
+    background-image: url(img/silk/add.png);
 }
 
 .x-btn .icon-removelayers, .x-menu-item .icon-removelayers {
@@ -90,35 +61,13 @@
     background-image: url(img/silk/palette.png);
 }
 
-.x-btn .gxp-icon-getfeatureinfo, .x-menu-item .gxp-icon-getfeatureinfo, .x-tree-node .gxp-icon-getfeatureinfo {
-    background-image: url(img/silk/information.png);
-}
-
 .x-btn .icon-getfeatureinfo {
     background-image: url(img/silk/information.png);
-}
-
-.x-btn .icon-picasa {
-    background-image: url(img/worldmap/picasa.png);
-}
-
-.x-btn .icon-youtube {
-    background-image: url(img/worldmap/youtube.gif);
 }
 
 .x-btn .icon-3D {
     background-image: url(img/geosilk/google_earth.png);
 }
-
-/* gxp_geolocate */
-.x-btn .gxp-icon-geolocate, .x-menu-item .gxp-icon-geolocate, .x-tree-node .gxp-icon-geolocate {
-    background-image: url(img/geolocate.png);
-}
-
-.x-btn .icon-geolocate {
-    background-image: url(img/geolocate.png);
-}
-
 
 .x-btn .icon-save {
     background-image: url(img/geosilk/map_save.png);
@@ -157,14 +106,6 @@
 .x-btn .icon-pdf {
     background-image: url(img/silk/page_white_acrobat.png);
 }
-
-.x-btn-link-medium {
-	text-decoration:underline;
-	float:right;
-	text-align:right;
-}
-
-
 
 div.report { 
     background-color: white;
@@ -240,24 +181,12 @@ background-color:white;
     background-image: url(img/geosilk/pan.png);
 }
 
-
-
-.x-form-field-inline {
-	display:inline;
-	padding:0 0 30px 0;
-	margin:0px;
-}
-
 .legend-item {
     margin: 0.5em 10px;
 }
 
-.transparent-panel {
-	background:transparent;
-}
-
 div.map-overlay {
-    z-index: 4000;
+    z-index: 1000; 
     position: absolute; 
     right: 10px; 
     bottom: 10px;
@@ -269,39 +198,6 @@ div.map-overlay div.overlay-element {
     float: left;
     margin: 5px;
     background:transparent;
-}
-
-
-cga-logo-overlay {
-    z-index: 10000; 
-    position: absolute; 
-    left: 100px; 
-    bottom: 10px;
-    width:151px;
-    height:39px;
-    background: transparent;  
-}
-
-.more-overlay-element {
-    float: left;
-    z-index: 4000;
-    position: absolute; 
-    right: 50px; 
-    top: 10px;  
-    height:25px;
-    width:50px;
-    background: #FFF;
-    text-decoration: none;
-    border: 1px solid #000;
-}
-
-.more-overlay-element .x-btn-small td {background-image: none; text-decoration:none;}
-.more-overlay-element .x-btn-small td button {text-decoration:none;}
-
-div.cga-link {
-	margin:3px;
-	font-size:8pt;
-	clear: both;	
 }
 
 div.overlay-scaleline {
@@ -462,39 +358,103 @@ div.overlay-scaleline {
     margin: 4px;
 }
 
-#more-info{
+#more-info{ 
 float:right;
 }
 
-.featureDetailList {
+/* gxp overrides for different folder structure */
+.olControlZoomPanel div {
+    background-image:url(../../externals/ext/resources/images/gray/panel/tool-sprites.gif);
 }
-.featureDetailList li {
-margin:4px 5px;
-min-height:16px;
-position:relative;
+.x-tree-node img.gxp-folder, .x-tree-node-collapsed img.gxp-folder{
+    background: url(../../externals/ext/resources/images/default/tree/folder.gif);
 }
-* html .featureDetailList li {
-height:16px;
-}
-.featureDetailList li label {
-font-weight:bold;
-left:0;
-position:absolute;
-top:0;
-width:150px;
-}
-.featureDetailList li span {
-margin-left:160px;
+.x-tree-node-expanded img.gxp-folder {
+    background: url(../../externals/ext/resources/images/default/tree/folder-open.gif);
 }
 
-.nicEdit-selected {
-        border: 2px solid #0000ff !important;
+.olLayerGoogleV3.olLayerGoogleCopyright {
+    bottom: 1em !important;
+}
+.olLayerGoogleV3.olLayerGooglePoweredBy {
+    bottom: 2em !important;
 }
 
-.nicEdit-panel {
-        background-color: #fff !important;
+/* WorldMap additions/modifications */
+
+.x-btn-text {
+                   font-size: 8pt;
+                   text-decoration: underline;
+                   color: #18469C;
+               }
+
+.x-btn-text button {
+    font-size: 8pt;
+    text-decoration: underline;
+    color: #18469C;
 }
 
-.nicEdit-button {
-        background-color: #fff !important;
+.x-btn-link-medium {
+    text-decoration:underline;
+    float:right;
+    text-align:right;
+}
+
+.x-btn .icon-add, .x-menu-item .icon-add {
+    background-image: url(img/silk/add.png);
+}
+
+.x-btn .icon-picasa {
+    background-image: url(img/worldmap/picasa.png);
+}
+
+.x-btn .icon-youtube {
+    background-image: url(img/worldmap/youtube.gif);
+}
+
+
+.x-span-font-eight {
+    font-size: 8pt;
+}
+
+.x-form-field-inline {
+    display:inline;
+    padding:0 0 30px 0;
+    margin:0px;
+}
+
+.transparent-panel {
+    background:transparent;
+}
+
+cga-logo-overlay {
+    z-index: 10000;
+    position: absolute;
+    left: 100px;
+    bottom: 10px;
+    width:151px;
+    height:39px;
+    background: transparent;
+}
+
+.more-overlay-element {
+    float: left;
+    z-index: 4000;
+    position: absolute;
+    right: 50px;
+    top: 10px;
+    height:25px;
+    width:50px;
+    background: #FFF;
+    text-decoration: none;
+    border: 1px solid #000;
+}
+
+.more-overlay-element .x-btn-small td {background-image: none; text-decoration:none;}
+.more-overlay-element .x-btn-small td button {text-decoration:none;}
+
+div.cga-link {
+    margin:3px;
+    font-size:8pt;
+    clear: both;
 }
