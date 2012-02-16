@@ -139,20 +139,20 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
 
             // data for the new record
             var data = {
-                title: config.title,
-                name: config.name,
-                source: config.source,
-                group: config.group,
-                attributes: config.attributes,
-                properties: "gxp_wmslayerpanel",
-                fixed: config.fixed,
-                selected: "selected" in config ? config.selected : false,
-                layer: layer,
-                queryable: config.queryable,
-                disabled: config.disabled,
-                abstract: config.abstract,
-                styles: [config.styles],
-                cql_filter: "cql_filter" in config ? config.cql_filter : ''
+                'title': config.title,
+                'name': config.name,
+                'source': config.source,
+                'group': config.group,
+                'attributes': config.attributes,
+                'properties': "gxp_wmslayerpanel",
+                'fixed': config.fixed,
+                'selected': "selected" in config ? config.selected : false,
+                'layer': layer,
+                'queryable': config.queryable,
+                'disabled': config.disabled,
+                'abstract': config['abstract'],
+                'styles': [config.styles],
+                'cql_filter': "cql_filter" in config ? config.cql_filter : ''
             };
             
 
@@ -213,9 +213,14 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
      */
 
     getConfigForRecord: function(record) {
-        var config = gxp.plugins.GeoNodeSource.superclass.getConfigForRecord.apply(this, arguments);
+        var config = gxp.plugins.WMSSource.superclass.getConfigForRecord.apply(this, arguments);
         var layer = record.getLayer();
         var params = layer.params;
+        config = Ext.apply(config, {
+            format: params.FORMAT,
+            styles: params.STYLES,
+            transparent: params.TRANSPARENT
+        });
         
         if ('CQL_FILTER' in params) {
         	Ext.apply(config, {
@@ -225,7 +230,7 @@ gxp.plugins.GeoNodeSource = Ext.extend(gxp.plugins.WMSSource, {
 
         config= Ext.apply(config, {
             styles: params.STYLES,
-            tiled: params.TILED,
+            tiled: params.TILED
         });
         return config;
     }

@@ -7,7 +7,7 @@
 
     <property name="build" location="build"/>
     <property name="app.proxy.geoserver" value=""/>
-    <property name="app.port" value="8080"/>
+    <property name="app.port" value="9090"/>
     <condition property="git" value="git.cmd" else="git">
         <os family="windows"/>
     </condition>
@@ -53,13 +53,8 @@
             <fileset dir="src/main/webapp/">
             </fileset>
         </copy>
-<<<<<<< HEAD
-        <copy todir="${build}/${ant.project.name}/WEB-INF/lib" flatten="false" includeEmptyDirs="false">
-            <fileset dir="${build}/ringo/lib"/>
-=======
         <copy todir="${build}/${ant.project.name}/WEB-INF/lib" flatten="true" includeEmptyDirs="false">
             <fileset dir="externals/ringo/lib"/>
->>>>>>> gccore/master
         </copy>
         <copy todir="${build}/${ant.project.name}/WEB-INF/app">
             <fileset dir="app">
@@ -67,6 +62,20 @@
                 <exclude name="**/script/**"/>
             </fileset>
         </copy>
+        <!--
+        <copy todir="${build}/${ant.project.name}/WEB-INF/app/static/externals/timeline/timeline_ajax/styles">
+            <fileset dir="app/static/externals/timeline/timeline_ajax/styles"/>
+        </copy>
+        <copy todir="${build}/${ant.project.name}/WEB-INF/app/static/externals/timeline/timeline_ajax/images">
+            <fileset dir="app/static/externals/timeline/timeline_ajax/images"/>
+        </copy>
+        <copy todir="${build}/${ant.project.name}/WEB-INF/app/static/externals/timeline/timeline_js/images">
+            <fileset dir="app/static/externals/timeline/timeline_js/images"/>
+        </copy>
+        <copy todir="${build}/${ant.project.name}/WEB-INF/app/static/externals/timeline/timeline_js">
+            <fileset file="app/static/externals/timeline/timeline_js/timeline-bundle.css"/>
+        </copy>
+        -->
         <!-- copy stick -->
         <copy todir="${build}/${ant.project.name}/WEB-INF/app/stick">
             <fileset dir="externals/stick">
@@ -121,8 +130,6 @@
             <fileset dir="${build}/${ant.project.name}/WEB-INF/app/static"/>
         </war>
     </target>
-<<<<<<< HEAD
-    
 
     <target name="wmwar" depends="buildjs, redist" description="create web archive">
         <echo>Creating WAR file.</echo>
@@ -132,9 +139,6 @@
             </fileset>
         </war>
     </target>
-
-=======
->>>>>>> gccore/master
 
     <target name="zip" depends="dist" description="create zip with static files">
         <echo>Creating ZIP file of static files</echo>

@@ -120,7 +120,7 @@ gxp.plugins.HGLSource = Ext.extend(gxp.plugins.WMSSource, {
                 layer: layer,
                 queryable: config.queryable,
                 disabled: config.disabled,
-                abstract: config.abstract,
+                'abstract': config['abstract'],
                 styles: config.styles
             };
 
