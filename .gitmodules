@@ -18,4 +18,4 @@
 	url = git://github.com/tschaub/buildkit.git
 [submodule "app/static/externals/gxp"]
 	path = app/static/externals/gxp
-	url = git://github.com/opengeo/gxp.git
+	url = git://github.com/cga-harvard/gxp.git
