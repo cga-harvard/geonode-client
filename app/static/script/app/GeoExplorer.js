@@ -1686,7 +1686,7 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
                 buttons[0].disable();
                 buttons[1].disable();
             }
-            else if (layer.data.layer.params && layer.data.queryable == true && layer.data.layer.url.indexOf(localUrl) > -1 && !buttons[0].disabled) {
+            else if (layer.getLayer().params  && layer.data.layer.url.indexOf(localUrl) > -1 && !buttons[0].disabled) {
                 Ext.Ajax.request({
                     url: "/data/" + layer.data.layer.params.LAYERS + "/ajax_layer_edit_check/",
                     method: "POST",
@@ -1743,11 +1743,11 @@ var GeoExplorer = Ext.extend(gxp.Viewer, {
             });
         }
 
-        var oldInitComponent = gxp.FeatureEditPopup.prototype.initComponent;
-        gxp.FeatureEditPopup.prototype.initComponent = function(){
+        var oldInitComponent = gxp.plugins.FeatureEditorGrid.prototype.initComponent;
+        gxp.plugins.FeatureEditorGrid.prototype.initComponent = function(){
             oldInitComponent.apply(this);
-            if (this.grid.customEditors["Description"] != undefined && this.grid.customEditors["Description"].field.maxLength == undefined) {
-                this.grid.customEditors["Description"].addListener("startedit",
+            if (this.customEditors["Description"] != undefined && this.customEditors["Description"].field.maxLength == undefined) {
+                this.customEditors["Description"].addListener("startedit",
                     function(el, value) {
                         var htmlEditWindow = new Ext.Window({
                                 title: 'HTML Editor',

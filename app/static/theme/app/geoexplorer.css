@@ -458,3 +458,36 @@ div.cga-link {
     font-size:8pt;
     clear: both;
 }
+
+.featureDetailList {
+}
+.featureDetailList li {
+    margin:4px 5px;
+    min-height:16px;
+    position:relative;
+}
+* html .featureDetailList li {
+    height:16px;
+}
+.featureDetailList li label {
+    font-weight:bold;
+    left:0;
+    position:absolute;
+    top:0;
+    width:150px;
+}
+.featureDetailList li span {
+    margin-left:160px;
+}
+
+.nicEdit-selected {
+    border: 2px solid #0000ff !important;
+}
+
+.nicEdit-panel {
+    background-color: #fff !important;
+}
+
+.nicEdit-button {
+    background-color: #fff !important;
+}

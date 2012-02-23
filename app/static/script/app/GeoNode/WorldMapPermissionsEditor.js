@@ -101,8 +101,11 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
                 {html: "<strong>" + gettext("Who can view or download this?") + "</strong>", flex: 1, border: false},
                 { xtype: 'radiogroup', columns: 1, value: this.viewMode, items: radioItems, listeners: {
                     change: function(grp, checked) {
-                        this.viewMode = checked.inputValue;
-                        this.fireEvent("updated", this);
+                        if (checked != null)
+                        {
+                            this.viewMode = checked.inputValue;
+                            this.fireEvent("updated", this);
+                        }
                     },
                     scope: this
                 }}
@@ -148,9 +151,11 @@ GeoNode.WorldMapPermissionsEditor = Ext.extend(Ext.util.Observable, {
                 { xtype: 'radiogroup', columns: 1, value: this.editMode, items: radioItems,
                   listeners: {
                     change: function(grp, checked) {
-                        this.editMode = checked.inputValue;
-                        this.editorChooser.setDisabled(this.editMode !== 'LIST');
-                        this.fireEvent("updated", this);
+                        if (checked != null) {
+                            this.editMode = checked.inputValue;
+                            this.editorChooser.setDisabled(this.editMode !== 'LIST');
+                            this.fireEvent("updated", this);
+                        }
                     },
                     scope: this
                 }},

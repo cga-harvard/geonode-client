@@ -291,7 +291,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
                                 for (var i = 0, max = features.length; i < max; ++i) {
                                     feature = features[i];
                                     if (feature.geometry) {
-                                        if (feature.geometry.CLASS_NAME.contains('Point')) {
+                                        if (feature.geometry.CLASS_NAME.indexOf('Point') > -1) {
                                             resultFeature = features;
                                             break;
                                         }
@@ -332,7 +332,7 @@ gxp.plugins.GeoNodeQueryTool = Ext.extend(gxp.plugins.Tool, {
 
                                 if (evt.text != '') {
 
-                                    if (evt.text.contains('<FeatureInfoResponse')) {
+                                    if (evt.text.indexOf('<FeatureInfoResponse') > -1) {
 
                                         var coords = map.getLonLatFromPixel(evt.xy);
                                         var point = new OpenLayers.Geometry.Point(coords.lon, coords.lat)
